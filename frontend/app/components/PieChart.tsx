@@ -24,14 +24,26 @@ interface PieChartProps {
 }
 
 export default function PieChart({ assets, isEditMode = false, onEdit, onDelete }: PieChartProps) {
-  const values = assets.map(a => {
-    if (a.isStock && a.shares && a.currentPrice) {
-      return a.shares * a.currentPrice;
-    } else {
-      return a.balance || 0
-    }});
 
-  const totalValue = values.reduce((acc, val) => acc + val, 0);
+  if (assets.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-80">
+        <div className="text-gray-500">No assets to display</div>
+      </div>
+    );
+  }
+
+  const values = assets.map(a => {
+    if (a.isStock) {
+      const value = (a.shares || 0) * (a.currentPrice || 0);
+      return isNaN(value) ? 0 : value;
+    } else {
+      const value = a.balance || 0;
+      return isNaN(value) ? 0 : value;
+    }
+  });
+
+  const totalValue = values.reduce((acc, val) => acc + (isNaN(val) ? 0 : val), 0);
 
   const backgroundColors = [
     '#3B82F6', // Blue
@@ -71,16 +83,35 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
     ],
   };
 
+
+
+
+
   // Enhanced center text plugin with better typography
   const centerText: Plugin<"doughnut"> = {
-    id: "centerText",
+    id: "mainCenterText",
     beforeDraw: (chart) => {
       const { width, height, ctx } = chart;
       ctx.save();
       
-      // Calculate total value from the current chart data
-      const currentTotalValue = chart.data.datasets[0].data.reduce((acc: number, val: any) => acc + val, 0);
-      const formattedTotal = `$${currentTotalValue.toLocaleString(undefined, {
+      // Use the pre-calculated totalValue with fallback to chart data
+      let displayTotal = totalValue;
+      if (displayTotal <= 0 || isNaN(displayTotal)) {
+        // Fallback: calculate from chart data if totalValue is 0 or NaN
+        const chartData = chart.data.datasets[0]?.data as number[];
+        if (chartData && chartData.length > 0) {
+          displayTotal = chartData.reduce((acc, val) => acc + (val || 0), 0);
+        }
+      }
+      
+      // Ensure we have a valid number
+      if (isNaN(displayTotal) || displayTotal <= 0) {
+        displayTotal = 0;
+      }
+      
+
+      
+      const formattedTotal = `$${displayTotal.toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       })}`;
@@ -158,7 +189,12 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
   return (
     <div className="flex items-start p-0">
       <div className="w-80 h-80 mr-8 flex-shrink-0">
-        <Doughnut data={data} options={options} plugins={[centerText]} />
+        <Doughnut 
+          key={`chart-${assets.length}-${totalValue.toFixed(2)}`} 
+          data={data} 
+          options={options} 
+          plugins={[centerText]} 
+        />
       </div>
       
       {/* Legend */}
@@ -182,7 +218,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
               
               return (
                 <div 
-                  key={asset.name} 
+                  key={asset.id} 
                   className={`flex items-center space-x-3 px-4 py-2 bg-white rounded-lg shadow-sm transition-all ${
                     isEditMode 
                       ? 'hover:shadow-md hover:bg-gray-50 cursor-pointer' 
@@ -240,7 +276,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
                     </div>
                     <div className="flex items-center justify-between mt-1 text-xs text-gray-500">
                       <span>
-                        {asset.isStock && asset.shares && asset.currentPrice ? `${asset.shares.toLocaleString()} @ $${asset.currentPrice.toFixed(2)}` : `APY: ${asset.apy ? (asset.apy * 100).toFixed(2) + "%" : "N/A"}`}
+                        {asset.isStock ? `${(asset.shares || 0).toLocaleString()} @ $${(asset.currentPrice || 0).toFixed(2)}` : `APY: ${((asset.apy || 0) * 100).toFixed(2)}%`}
                       </span>
                       {!isEditMode && (
                         <span className="font-medium">

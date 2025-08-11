@@ -17,6 +17,8 @@ export default function PositionAnalytics({ assets }) {
             {(() => {
               const cashValue = assets.filter(asset => !asset.isStock).reduce((total, asset) => total + asset.balance, 0);
               const totalValue = assets.reduce((total, asset) => total + (asset.isStock ? asset.shares * asset.currentPrice : asset.balance), 0);
+
+              if (isNaN(cashValue) || isNaN(totalValue) || totalValue === 0) return '0.00';
               return (cashValue / totalValue * 100).toFixed(1);
             })()}%
           </div>
@@ -28,18 +30,19 @@ export default function PositionAnalytics({ assets }) {
             ${(() => {
               const cashAccounts = assets.filter(asset => !asset.isStock);
               const totalCash = cashAccounts.reduce((total, asset) => total + asset.balance, 0);
-              if (cashAccounts.length === 0) return '0.00';
+              if (cashAccounts.length === 0) return '0.00 / $0.00';
               const weightedAPY = cashAccounts.reduce((total, asset) => total + (asset.apy * asset.balance), 0) / totalCash;
               const monthlyInterest = totalCash * (weightedAPY / 12);
-              return monthlyInterest.toFixed(2);
+              const annualInterest = totalCash * weightedAPY;
+              return `${monthlyInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / $${annualInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             })()}
           </div>
-          <div className="text-sm text-gray-600">Monthly Interest</div>
+          <div className="text-sm text-gray-600">Monthly / Annual Interest</div>
         </div>
 
         <div className="bg-white rounded-lg p-4 shadow-sm">
           <div className="text-2xl font-bold text-purple-600">
-            ${assets.filter(asset => !asset.isStock).reduce((total, asset) => total + asset.balance, 0).toFixed(2)}
+            ${assets.filter(asset => !asset.isStock).reduce((total, asset) => total + asset.balance, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div className="text-sm text-gray-600">
             Available Cash • {(() => {
