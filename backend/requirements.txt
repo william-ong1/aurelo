@@ -4,3 +4,5 @@ yfinance
 pandas
 python-dateutil
 pytz
+google-generativeai
+Pillow
