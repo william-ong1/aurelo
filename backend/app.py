@@ -10,6 +10,9 @@ from PIL import Image
 import io
 import base64
 import json
+from typing import List, Dict
+import asyncio
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
@@ -34,6 +37,9 @@ else:
 class ImageParseRequest(BaseModel):
     image: str
     mimeType: str = "image/jpeg"
+
+class PortfolioRequest(BaseModel):
+    tickers: List[str]
 
 def parse_portfolio_image(image_data: str, mime_type: str):
     """Parse portfolio image using Gemini Vision API"""
@@ -191,6 +197,75 @@ async def get_price(ticker: str):
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Could not fetch price for {ticker}: {e}")
+
+@app.get("/api/prices")
+async def get_prices(tickers: str):
+    """Return current market prices for multiple tickers.
+    Query param: tickers=AAPL,MSFT,GOOGL
+    Response: { "prices": {"AAPL": 172.45, "MSFT": 340.12}, "timestamp": "2024-01-01T12:00:00Z" }
+    """
+    try:
+        ticker_list = [ticker.strip().upper() for ticker in tickers.split(',') if ticker.strip()]
+        if not ticker_list:
+            raise HTTPException(status_code=400, detail="No valid tickers provided")
+        
+        prices = {}
+        failed_tickers = []
+        
+        # Fetch prices for all tickers
+        for ticker in ticker_list:
+            try:
+                t = yf.Ticker(ticker)
+                info = t.fast_info if hasattr(t, "fast_info") else {}
+                price = None
+                
+                if info and info.get("last_price") is not None:
+                    price = info.get("last_price")
+                else:
+                    hist = t.history(period="1d", interval="1m")
+                    if not hist.empty:
+                        price = float(hist['Close'].iloc[-1])
+                
+                if price is not None:
+                    prices[ticker] = float(price)
+                else:
+                    failed_tickers.append(ticker)
+                    
+            except Exception as e:
+                print(f"Error fetching price for {ticker}: {e}")
+                failed_tickers.append(ticker)
+        
+        return {
+            "prices": prices,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "failed_tickers": failed_tickers
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching prices: {e}")
+
+@app.post("/api/portfolio-value")
+async def get_portfolio_value(request: PortfolioRequest):
+    """Calculate portfolio value with real-time prices.
+    Request: { "tickers": ["AAPL", "MSFT"] }
+    Response: { "portfolio_value": 12345.67, "prices": {...}, "timestamp": "..." }
+    """
+    try:
+        if not request.tickers:
+            raise HTTPException(status_code=400, detail="No tickers provided")
+        
+        # Get real-time prices
+        prices_response = await get_prices(",".join(request.tickers))
+        prices = prices_response["prices"]
+        
+        return {
+            "prices": prices,
+            "timestamp": prices_response["timestamp"],
+            "failed_tickers": prices_response["failed_tickers"]
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error calculating portfolio value: {e}")
 
 @app.post("/api/parse-image")
 async def parse_image(request: ImageParseRequest):

@@ -1,7 +1,8 @@
 "use client";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, ChartOptions, Plugin } from "chart.js";
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2, RefreshCw, Clock } from 'lucide-react';
+import { useRealTime } from '../contexts/RealTimeContext';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -24,6 +25,12 @@ interface PieChartProps {
 }
 
 export default function PieChart({ assets, isEditMode = false, onEdit, onDelete }: PieChartProps) {
+  const { realTimePrices, lastUpdated, isLoading, fetchPrices } = useRealTime();
+  
+  // Check if we have real-time prices for all stock assets
+  const stockAssets = assets.filter(asset => asset.isStock && asset.ticker);
+  const hasAllPrices = stockAssets.length === 0 || stockAssets.every(asset => realTimePrices[asset.ticker!]);
+  const isInitialLoading = isLoading || !hasAllPrices;
 
   if (assets.length === 0) {
     return (
@@ -33,7 +40,81 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
     );
   }
 
+  // Show loading state while fetching initial prices
+  if (isInitialLoading && stockAssets.length > 0) {
+    return (
+      <div className="flex items-start p-0">
+        <div className="w-80 mr-8 flex-shrink-0">
+          <div className="w-80 h-80 flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <div className="text-gray-600 font-medium">Loading prices...</div>
+              <div className="text-sm text-gray-500 mt-1">Fetching real-time data</div>
+            </div>
+          </div>
+          
+          {/* Loading refresh button */}
+          <div className="flex items-center justify-center gap-3 mt-1 text-xs text-gray-500 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg px-3 py-1.5">
+            <button
+              disabled={true}
+              className="p-1.5 pr-0 rounded-md transition-all text-gray-200 cursor-not-allowed"
+              title="Loading prices..."
+            >
+              <RefreshCw size={13} className="animate-spin" />
+            </button>
+            <span className="font-medium">Loading...</span>
+          </div>
+        </div>
+        
+        {/* Loading legend */}
+        <div className="flex-1 max-h-88 overflow-y-auto pr-2">
+          <div className="space-y-2">
+            {assets.map((asset, index) => (
+              <div 
+                key={asset.id} 
+                className="flex items-center space-x-3 px-4 py-2 bg-white rounded-lg shadow-sm animate-pulse"
+              >
+                <div className="w-4 h-4 rounded-full bg-gray-200 flex-shrink-0"></div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-baseline space-x-2 flex-1">
+                      <div className="text-sm font-semibold text-gray-900">
+                        {asset.isStock ? asset.ticker : "CASH"}
+                      </div>
+                      <div className="text-xs text-gray-600 truncate">
+                        {asset.name}
+                      </div>
+                    </div>
+                    <div className="w-16 h-4 bg-gray-200 rounded"></div>
+                  </div>
+                  <div className="flex items-center justify-between mt-1">
+                    <div className="w-32 h-3 bg-gray-200 rounded"></div>
+                    <div className="w-20 h-3 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate values with real-time prices
   const values = assets.map(a => {
+    if (a.isStock) {
+      // Use real-time price if available, otherwise fall back to stored price
+      const currentPrice = (a.ticker && realTimePrices[a.ticker]) ? realTimePrices[a.ticker] : (a.currentPrice || 0);
+      const value = (a.shares || 0) * currentPrice;
+      return isNaN(value) ? 0 : value;
+    } else {
+      const value = a.balance || 0;
+      return isNaN(value) ? 0 : value;
+    }
+  });
+
+  // Calculate values with stored prices for comparison
+  const storedValues = assets.map(a => {
     if (a.isStock) {
       const value = (a.shares || 0) * (a.currentPrice || 0);
       return isNaN(value) ? 0 : value;
@@ -44,6 +125,11 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
   });
 
   const totalValue = values.reduce((acc, val) => acc + (isNaN(val) ? 0 : val), 0);
+  const totalStoredValue = storedValues.reduce((acc, val) => acc + (isNaN(val) ? 0 : val), 0);
+  
+  // Calculate portfolio change
+  const portfolioChange = totalValue - totalStoredValue;
+  const portfolioChangePercent = totalStoredValue > 0 ? (portfolioChange / totalStoredValue) * 100 : 0;
 
   const backgroundColors = [
     '#3B82F6', // Blue
@@ -84,10 +170,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
   };
 
 
-
-
-
-  // Enhanced center text plugin with better typography
+  // Enhanced center text plugin with portfolio change
   const centerText: Plugin<"doughnut"> = {
     id: "mainCenterText",
     beforeDraw: (chart) => {
@@ -109,8 +192,6 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
         displayTotal = 0;
       }
       
-
-      
       const formattedTotal = `$${displayTotal.toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -122,13 +203,20 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
       ctx.fillStyle = "#1f2937";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(formattedTotal, width / 2, height / 2 - fontSize * 0.2);
+      ctx.fillText(formattedTotal, width / 2, height / 2 - fontSize * 0.4);
       
-      // Subtitle
-      const subtitleSize = fontSize * 0.35;
-      ctx.font = `${subtitleSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
-      ctx.fillStyle = "#6b7280";
-      ctx.fillText("Total Portfolio", width / 2, height / 2 + fontSize * 0.6);
+      // Portfolio change
+      if (Math.abs(portfolioChange) > 0.01) { // Only show if there's a meaningful change
+        const changeSize = fontSize * 0.5;
+        ctx.font = `${changeSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+        ctx.fillStyle = portfolioChange >= 0 ? "#10B981" : "#EF4444"; // Green for positive, red for negative
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        
+        const changeSymbol = portfolioChange >= 0 ? "↗" : "↘";
+        const changeText = `${changeSymbol} $${Math.abs(portfolioChange).toFixed(2)} (${portfolioChangePercent >= 0 ? "+" : ""}${portfolioChangePercent.toFixed(2)}%)`;
+        ctx.fillText(changeText, width / 2, height / 2 + fontSize * 0.5);
+      }
       
       ctx.restore();
     },
@@ -169,9 +257,13 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
               ].filter(Boolean);
             }
 
+            // Use real-time price if available
+            const currentPrice = (asset.ticker && realTimePrices[asset.ticker]) ? realTimePrices[asset.ticker] : (asset.currentPrice || 0);
+            const priceSource = (asset.ticker && realTimePrices[asset.ticker]) ? 'Live' : 'Stored';
+
             return [
               `${context.label}: ${percentage}%`,
-              `${(asset.shares || 0).toLocaleString()} shares @ $${(asset.currentPrice || 0).toFixed(2)}`,
+              `${(asset.shares || 0).toLocaleString()} shares @ $${currentPrice.toFixed(2)} (${priceSource})`,
               `Value: $${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             ];
           },
@@ -186,23 +278,66 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
     },
   };
 
+  const formatTime = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }).format(date);
+  };
+
+  const handleRefresh = async () => {
+    const stockTickers = assets
+      .filter(asset => asset.isStock && asset.ticker)
+      .map(asset => asset.ticker!)
+      .filter((ticker, index, arr) => arr.indexOf(ticker) === index);
+    
+    if (stockTickers.length > 0) {
+      await fetchPrices(stockTickers, true);
+    }
+  };
+
   return (
     <div className="flex items-start p-0">
-      <div className="w-80 h-80 mr-8 flex-shrink-0">
-        <Doughnut 
-          key={`chart-${assets.length}-${totalValue.toFixed(2)}`} 
-          data={data} 
-          options={options} 
-          plugins={[centerText]} 
-        />
+      <div className="w-80 mr-8 flex-shrink-0">
+        <div className="w-80 h-80">
+          <Doughnut 
+            key={`chart-${assets.length}-${totalValue.toFixed(2)}-${portfolioChange.toFixed(2)}`} 
+            data={data} 
+            options={options} 
+            plugins={[centerText]} 
+          />
+        </div>
+        
+        {/* Refresh button and last updated time - centered below chart */}
+        <div className="flex items-center justify-center gap-1 mt-1 mr-4 text-xs text-gray-500 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg px-3 py-1.5">
+          <button
+            onClick={handleRefresh}
+            disabled={isLoading}
+            className={`p-1.5 pr-0 rounded-md transition-all ${
+              isLoading
+                ? 'text-gray-200 cursor-not-allowed' 
+                : 'text-gray-400 hover:text-gray-600 transition-all cursor-pointer'
+            }`}
+            title="Refresh prices"
+          >
+            <RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />
+          </button>
+          {lastUpdated && (
+            <span className="font-medium">{formatTime(lastUpdated)}</span>
+          )}
+        </div>
       </div>
       
       {/* Legend */}
-      <div className="flex-1 max-h-80 overflow-y-auto pr-2">
+      <div className="flex-1 max-h-88 overflow-y-auto pr-2">
         <div className="space-y-2">
           {assets
             .map((asset, index) => {  
-              const value = asset.isStock ? ((asset.shares || 0) * (asset.currentPrice || 0)) : (asset.balance || 0)
+              const value = asset.isStock ? 
+                ((asset.shares || 0) * (asset.ticker && realTimePrices[asset.ticker] ? realTimePrices[asset.ticker] : (asset.currentPrice || 0))) : 
+                (asset.balance || 0);
               const percentage = ((value / totalValue) * 100);
 
               return {
@@ -276,14 +411,36 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
                     </div>
                     <div className="flex items-center justify-between mt-1 text-xs text-gray-500">
                       <span>
-                        {asset.isStock ? `${(asset.shares || 0).toLocaleString()} @ $${(asset.currentPrice || 0).toFixed(2)}` : `APY: ${((asset.apy || 0) * 100).toFixed(2)}%`}
+                        {asset.isStock ? (
+                          <>
+                            {(asset.shares || 0).toLocaleString()} @ ${(asset.currentPrice || 0).toFixed(2)} → ${(asset.ticker && realTimePrices[asset.ticker]) ? realTimePrices[asset.ticker].toFixed(2) : (asset.currentPrice || 0).toFixed(2)}
+                            {asset.ticker && realTimePrices[asset.ticker] && (
+                              <>
+                                <span className={`ml-2 font-medium ${realTimePrices[asset.ticker] > (asset.currentPrice || 0) ? 'text-green-600' : 'text-red-600'}`}>
+                                  {realTimePrices[asset.ticker] > (asset.currentPrice || 0) ? '↗' : '↘'}
+                                </span>
+                                <span className={`ml-1 font-medium ${realTimePrices[asset.ticker] > (asset.currentPrice || 0) ? 'text-green-600' : 'text-red-600'}`}>
+                                  ${((realTimePrices[asset.ticker] - (asset.currentPrice || 0)) * (asset.shares || 0)).toFixed(2)} ({(((realTimePrices[asset.ticker] - (asset.currentPrice || 0)) / (asset.currentPrice || 1)) * 100).toFixed(1)}%)
+                                </span>
+                              </>
+                            )}
+                          </>
+                        ) : (
+                          `APY: ${((asset.apy || 0) * 100).toFixed(2)}%`
+                        )}
                       </span>
                       {!isEditMode && (
                         <span className="font-medium">
-                          ${asset.value.toLocaleString(undefined, { 
-                            minimumFractionDigits: 2, 
-                            maximumFractionDigits: 2 
-                          })}
+                          ${asset.isStock ? 
+                            ((asset.shares || 0) * (asset.ticker && realTimePrices[asset.ticker] ? realTimePrices[asset.ticker] : (asset.currentPrice || 0))).toLocaleString(undefined, { 
+                              minimumFractionDigits: 2, 
+                              maximumFractionDigits: 2 
+                            }) :
+                            asset.value.toLocaleString(undefined, { 
+                              minimumFractionDigits: 2, 
+                              maximumFractionDigits: 2 
+                            })
+                          }
                         </span>
                       )}
                     </div>

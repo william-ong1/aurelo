@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, X, Edit2, Trash2, Upload, FileText } from 'lucide-react';
 import PositionAnalytics from './components/PositionAnalytics';
 import PieChart from './components/PieChart';
+import { useRealTime } from './contexts/RealTimeContext';
 
 interface Asset {
   id: number;
@@ -63,6 +64,7 @@ const saveAssetsToStorage = (assets: Asset[]) => {
 };
 
 export default function Home() {
+  const { fetchPrices } = useRealTime();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
@@ -91,6 +93,18 @@ export default function Home() {
   useEffect(() => {
     saveAssetsToStorage(assets);
   }, [assets]);
+
+  // Fetch real-time prices when assets change
+  useEffect(() => {
+    const stockTickers = assets
+      .filter(asset => asset.isStock && asset.ticker)
+      .map(asset => asset.ticker!)
+      .filter((ticker, index, arr) => arr.indexOf(ticker) === index);
+    
+    if (stockTickers.length > 0) {
+      fetchPrices(stockTickers);
+    }
+  }, [assets, fetchPrices]);
 
   // Generate next ID
   const getNextId = () => {
@@ -297,7 +311,7 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24 pt-8">
+    <main className="flex flex-col items-center justify-between p-24 pt-8">
       {/* Aurelo Header */}
       <div className="w-full max-w-5xl mb-8">
         <div className="rounded-xl p-6 bg-gradient-to-br from-slate-50 via-white to-slate-100 shadow-lg border border-gray-200/50">
@@ -320,13 +334,13 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-6 text-sm">
-              <div className="hidden sm:flex items-center gap-2 text-gray-600">
+              {/* <div className="hidden sm:flex items-center gap-2 text-gray-600">
                 <span className="font-medium">Track</span>
                 <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
                 <span className="font-medium">Analyze</span>
                 <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
                 <span className="font-medium">Optimize</span>
-              </div>
+              </div> */}
               <div className="flex items-center gap-2 text-gray-500">
                 <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">v1.0.0</span>
               </div>

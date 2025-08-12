@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { RealTimeProvider } from "./contexts/RealTimeContext";
 
 export const metadata: Metadata = {
-  title: "Aurelo — Simplify Your Investment Portfolio",
+  title: "Aurelo",
   keywords: [
     "investment tracking",
     "portfolio management",
@@ -22,7 +23,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <RealTimeProvider>
+          {children}
+        </RealTimeProvider>
+      </body>
     </html>
   );
 }
