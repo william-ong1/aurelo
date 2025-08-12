@@ -1,58 +1,111 @@
 import React from 'react';
 
 export default function PositionAnalytics({ assets }) {
+  // Calculate portfolio metrics
+  const stockAssets = assets.filter(asset => asset.isStock);
+  const cashAssets = assets.filter(asset => !asset.isStock);
+  
+  const totalStockValue = stockAssets.reduce((total, asset) => total + (asset.shares * asset.currentPrice), 0);
+  const totalCashValue = cashAssets.reduce((total, asset) => total + asset.balance, 0);
+  const totalPortfolioValue = totalStockValue + totalCashValue;
+  
+  const cashAllocation = totalPortfolioValue > 0 ? (totalCashValue / totalPortfolioValue) * 100 : 0;
+  const stockAllocation = totalPortfolioValue > 0 ? (totalStockValue / totalPortfolioValue) * 100 : 0;
+  
+  const weightedAPY = cashAssets.length > 0 && totalCashValue > 0 
+    ? cashAssets.reduce((total, asset) => total + (asset.apy * asset.balance), 0) / totalCashValue 
+    : 0;
+  
+  const monthlyInterest = totalCashValue * (weightedAPY / 12);
+  const annualInterest = totalCashValue * weightedAPY;
+
   return (
-    <div className="mt-8 rounded-lg p-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl shadow-lg">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">Portfolio Analytics</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="text-2xl font-bold text-blue-600">
-            {assets.filter(asset => asset.isStock).length} / {assets.filter(asset => !asset.isStock).length}
+    <div className="mt-8 rounded-xl p-6 bg-gradient-to-br from-slate-50 to-slate-100 shadow-lg">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold text-gray-800">Portfolio Analytics</h2>
+        <div className="text-sm text-gray-500 font-medium">
+          Total Value: ${totalPortfolioValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Asset Distribution */}
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Asset Distribution</h3>
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
           </div>
-          <div className="text-sm text-gray-600">Stock / Cash Positions</div>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Stocks</span>
+              <span className="text-lg font-semibold text-gray-900">{stockAssets.length}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Cash</span>
+              <span className="text-lg font-semibold text-gray-900">{cashAssets.length}</span>
+            </div>
+          </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="text-2xl font-bold text-green-600">
-            {(() => {
-              const cashValue = assets.filter(asset => !asset.isStock).reduce((total, asset) => total + asset.balance, 0);
-              const totalValue = assets.reduce((total, asset) => total + (asset.isStock ? asset.shares * asset.currentPrice : asset.balance), 0);
-
-              if (isNaN(cashValue) || isNaN(totalValue) || totalValue === 0) return '0.00';
-              return (cashValue / totalValue * 100).toFixed(1);
-            })()}%
+        {/* Allocation */}
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Allocation</h3>
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
           </div>
-          <div className="text-sm text-gray-600">Cash Allocation</div>
-        </div>
-        
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="text-2xl font-bold text-orange-600">
-            ${(() => {
-              const cashAccounts = assets.filter(asset => !asset.isStock);
-              const totalCash = cashAccounts.reduce((total, asset) => total + asset.balance, 0);
-              if (cashAccounts.length === 0) return '0.00 / $0.00';
-              const weightedAPY = cashAccounts.reduce((total, asset) => total + (asset.apy * asset.balance), 0) / totalCash;
-              const monthlyInterest = totalCash * (weightedAPY / 12);
-              const annualInterest = totalCash * weightedAPY;
-              return `${monthlyInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / $${annualInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            })()}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Stocks</span>
+              <span className="text-lg font-semibold text-gray-900">{stockAllocation.toFixed(1)}%</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Cash</span>
+              <span className="text-lg font-semibold text-gray-900">{cashAllocation.toFixed(1)}%</span>
+            </div>
           </div>
-          <div className="text-sm text-gray-600">Monthly / Annual Interest</div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="text-2xl font-bold text-purple-600">
-            ${assets.filter(asset => !asset.isStock).reduce((total, asset) => total + asset.balance, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        {/* Cash Interest */}
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Cash Flow</h3>
+            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
           </div>
-          <div className="text-sm text-gray-600">
-            Available Cash • {(() => {
-              const cashAccounts = assets.filter(asset => !asset.isStock);
-              if (cashAccounts.length === 0) return '0.00% APY';
-              const totalBalance = cashAccounts.reduce((total, asset) => total + asset.balance, 0);
-              const weightedAPY = cashAccounts.reduce((total, asset) => total + (asset.apy * asset.balance), 0) / totalBalance;
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Monthly</span>
+              <span className="text-lg font-semibold text-gray-900">
+                ${monthlyInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Annual</span>
+              <span className="text-lg font-semibold text-gray-900">
+                ${annualInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+          </div>
+        </div>
 
-              return `${(weightedAPY * 100).toFixed(2)}% APY`;
-            })()}
+        {/* Cash Summary */}
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Cash Summary</h3>
+            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Available</span>
+              <span className="text-lg font-semibold text-gray-900">
+                ${totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">APY</span>
+              <span className="text-lg font-semibold text-gray-900">
+                {(weightedAPY * 100).toFixed(2)}%
+              </span>
+            </div>
           </div>
         </div>
       </div>

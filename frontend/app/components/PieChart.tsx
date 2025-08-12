@@ -28,7 +28,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
   if (assets.length === 0) {
     return (
       <div className="flex items-center justify-center h-80">
-        <div className="text-gray-500">No assets to display</div>
+        <div className="text-gray-500">No assets to display.</div>
       </div>
     );
   }
