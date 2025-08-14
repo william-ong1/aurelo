@@ -1,1 +1,35 @@
 @import "tailwindcss";
+
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+  /* Improve touch targets */
+  button, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Better text readability on mobile */
+  body {
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  /* Prevent horizontal scrolling */
+  html, body {
+    overflow-x: hidden;
+  }
+}
+
+/* Improve chart responsiveness */
+.chart-container {
+  position: relative;
+  height: 320px;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .chart-container {
+    height: 320px;
+    width: 320px;
+  }
+}

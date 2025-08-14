@@ -6,11 +6,20 @@ interface RealTimePrices {
   [ticker: string]: number;
 }
 
+interface DailyData {
+  yesterday_close: number;
+  current: number;
+  change: number;
+  change_percent: number;
+}
+
 interface RealTimeContextType {
   realTimePrices: RealTimePrices;
+  dailyData: { [ticker: string]: DailyData };
   lastUpdated: Date | null;
   isLoading: boolean;
   error: string | null;
+  failedTickers: string[];
   fetchPrices: (tickers: string[], forceRefresh?: boolean) => Promise<void>;
 }
 
@@ -22,9 +31,11 @@ interface RealTimeProviderProps {
 
 export function RealTimeProvider({ children }: RealTimeProviderProps) {
   const [realTimePrices, setRealTimePrices] = useState<RealTimePrices>({});
+  const [dailyData, setDailyData] = useState<{ [ticker: string]: DailyData }>({});
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [failedTickers, setFailedTickers] = useState<string[]>([]);
 
   const fetchPrices = useCallback(async (tickers: string[], forceRefresh = false) => {
     if (tickers.length === 0) return;
@@ -40,10 +51,14 @@ export function RealTimeProvider({ children }: RealTimeProviderProps) {
 
       const data = await response.json();
       setRealTimePrices(prev => ({ ...prev, ...data.prices }));
+      setDailyData(prev => ({ ...prev, ...data.daily_data }));
       setLastUpdated(new Date(data.timestamp));
       
       if (data.failed_tickers && data.failed_tickers.length > 0) {
         console.warn('Failed to fetch prices for:', data.failed_tickers);
+        setFailedTickers(data.failed_tickers);
+      } else {
+        setFailedTickers([]);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch prices');
@@ -55,9 +70,11 @@ export function RealTimeProvider({ children }: RealTimeProviderProps) {
 
   const value: RealTimeContextType = {
     realTimePrices,
+    dailyData,
     lastUpdated,
     isLoading,
     error,
+    failedTickers,
     fetchPrices
   };
 

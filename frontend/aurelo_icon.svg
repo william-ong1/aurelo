@@ -1,0 +1,38 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Golden gradient definition -->
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFA500;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF8C00;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main "A" structure with thick, rounded strokes -->
+  <!-- Left leg of the A -->
+  <path d="M 60 150 L 100 50" 
+        fill="none" 
+        stroke="url(#goldGradient)" 
+        stroke-width="16" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  
+  <!-- Right leg of A -->
+  <path d="M 100 50 L 140 150" 
+        fill="none" 
+        stroke="url(#goldGradient)" 
+        stroke-width="16" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  
+  <!-- Horizontal crossbar of the A -->
+  <line x1="78" y1="115" x2="122" y2="115" 
+        stroke="url(#goldGradient)" 
+        stroke-width="16" 
+        stroke-linecap="round"/>
+  
+  <!-- 3 Growth bars centered in the A with equal left/right spacing, moved lower -->
+  <rect x="82" y="133" width="8" height="23" fill="url(#goldGradient)" rx="4"/>
+  <rect x="94" y="123" width="8" height="33" fill="url(#goldGradient)" rx="4"/>
+  <rect x="106" y="113" width="8" height="43" fill="url(#goldGradient)" rx="4"/>
+</svg>

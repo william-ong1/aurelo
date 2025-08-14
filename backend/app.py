@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import yfinance as yf
@@ -10,12 +10,24 @@ from PIL import Image
 import io
 import base64
 import json
-from typing import List, Dict
+from typing import List, Dict, Optional
 import asyncio
 from datetime import datetime
+from supabase import create_client, Client
+from jose import jwt, JWTError
 
 # Load environment variables
 load_dotenv()
+
+# Initialize Supabase client
+supabase_url = os.getenv('SUPABASE_URL')
+supabase_key = os.getenv('SUPABASE_ANON_KEY')
+
+if not supabase_url or not supabase_key:
+    print("Warning: Supabase credentials not found. Please set SUPABASE_URL and SUPABASE_ANON_KEY")
+    supabase: Optional[Client] = None
+else:
+    supabase = create_client(supabase_url, supabase_key)
 
 app = FastAPI()
 
@@ -34,12 +46,57 @@ if not gemini_api_key:
 else:
     genai.configure(api_key=gemini_api_key)
 
+# Authentication models
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class UserRegister(BaseModel):
+    email: str
+    password: str
+    name: Optional[str] = None
+
+class UserResponse(BaseModel):
+    id: str
+    email: str
+    name: Optional[str] = None
+
+# Portfolio models
+class PortfolioAsset(BaseModel):
+    name: str
+    isStock: bool
+    ticker: Optional[str] = None
+    shares: Optional[float] = None
+    currentPrice: Optional[float] = None
+    balance: Optional[float] = None
+    apy: Optional[float] = None
+
+class PortfolioSaveRequest(BaseModel):
+    assets: List[PortfolioAsset]
+
 class ImageParseRequest(BaseModel):
     image: str
     mimeType: str = "image/jpeg"
 
 class PortfolioRequest(BaseModel):
     tickers: List[str]
+
+# Authentication helper functions
+async def get_current_user(authorization: str = Header(None)) -> str:
+    """Extract user ID from JWT token"""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid authorization header")
+    
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+    
+    try:
+        token = authorization.split("Bearer ")[1]
+        # Verify the JWT token with Supabase
+        user = supabase.auth.get_user(token)
+        return user.user.id
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 def parse_portfolio_image(image_data: str, mime_type: str):
     """Parse portfolio image using Gemini Vision API"""
@@ -200,9 +257,16 @@ async def get_price(ticker: str):
 
 @app.get("/api/prices")
 async def get_prices(tickers: str):
-    """Return current market prices for multiple tickers.
+    """Return current market prices and daily change data for multiple tickers.
     Query param: tickers=AAPL,MSFT,GOOGL
-    Response: { "prices": {"AAPL": 172.45, "MSFT": 340.12}, "timestamp": "2024-01-01T12:00:00Z" }
+    Response: { 
+        "prices": {"AAPL": 172.45, "MSFT": 340.12}, 
+        "daily_data": {
+            "AAPL": {"open": 170.00, "current": 172.45, "change": 2.45, "change_percent": 1.44},
+            "MSFT": {"open": 338.00, "current": 340.12, "change": 2.12, "change_percent": 0.63}
+        },
+        "timestamp": "2024-01-01T12:00:00Z" 
+    }
     """
     try:
         ticker_list = [ticker.strip().upper() for ticker in tickers.split(',') if ticker.strip()]
@@ -210,26 +274,52 @@ async def get_prices(tickers: str):
             raise HTTPException(status_code=400, detail="No valid tickers provided")
         
         prices = {}
+        daily_data = {}
         failed_tickers = []
         
-        # Fetch prices for all tickers
+        # Fetch prices and daily data for all tickers
         for ticker in ticker_list:
             try:
                 t = yf.Ticker(ticker)
+                
+                # Get current price using fast_info for more accuracy
                 info = t.fast_info if hasattr(t, "fast_info") else {}
-                price = None
+                current_price = None
                 
                 if info and info.get("last_price") is not None:
-                    price = info.get("last_price")
+                    current_price = info.get("last_price")
                 else:
-                    hist = t.history(period="1d", interval="1m")
+                    # Fallback to historical data
+                    hist = t.history(period="1d")
                     if not hist.empty:
-                        price = float(hist['Close'].iloc[-1])
+                        current_price = float(hist['Close'].iloc[-1])
                 
-                if price is not None:
-                    prices[ticker] = float(price)
-                else:
+                if current_price is None:
                     failed_tickers.append(ticker)
+                    continue
+                
+                prices[ticker] = float(current_price)
+                
+                # Get yesterday's closing price (or last trading day) and calculate daily change
+                hist = t.history(period="5d")  # Get 5 days to ensure we have the last trading day
+                if hist.empty or len(hist) < 2:
+                    failed_tickers.append(ticker)
+                    continue
+                
+                # Get yesterday's closing price (last trading day)
+                yesterday_close = float(hist['Close'].iloc[-2])  # Second to last entry
+                daily_change = current_price - yesterday_close
+                daily_change_percent = (daily_change / yesterday_close) * 100 if yesterday_close > 0 else 0
+                
+                daily_data[ticker] = {
+                    "yesterday_close": yesterday_close,
+                    "current": current_price,
+                    "change": daily_change,
+                    "change_percent": daily_change_percent
+                }
+                
+                # Debug logging
+                print(f"DEBUG {ticker}: Yesterday Close=${yesterday_close:.2f}, Current=${current_price:.2f}, Change=${daily_change:.2f}, Percent={daily_change_percent:.2f}%")
                     
             except Exception as e:
                 print(f"Error fetching price for {ticker}: {e}")
@@ -237,6 +327,7 @@ async def get_prices(tickers: str):
         
         return {
             "prices": prices,
+            "daily_data": daily_data,
             "timestamp": datetime.utcnow().isoformat() + "Z",
             "failed_tickers": failed_tickers
         }
@@ -282,6 +373,164 @@ async def parse_image(request: ImageParseRequest):
     except Exception as e:
         print(f"API error: {e}")
         raise HTTPException(status_code=500, detail="Failed to process image")
+
+# Authentication endpoints
+@app.post("/api/auth/register")
+async def register_user(user_data: UserRegister):
+    """Register a new user"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+    
+    try:
+        response = supabase.auth.sign_up({
+            "email": user_data.email,
+            "password": user_data.password,
+            "options": {
+                "data": {
+                    "name": user_data.name
+                }
+            }
+        })
+        
+        if response.user:
+            return UserResponse(
+                id=response.user.id,
+                email=response.user.email,
+                name=user_data.name
+            )
+        else:
+            raise HTTPException(status_code=400, detail="Registration failed")
+            
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/auth/login")
+async def login_user(user_data: UserLogin):
+    """Login user and return session"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+    
+    try:
+        response = supabase.auth.sign_in_with_password({
+            "email": user_data.email,
+            "password": user_data.password
+        })
+        
+        if response.user and response.session:
+            return {
+                "user": UserResponse(
+                    id=response.user.id,
+                    email=response.user.email,
+                    name=response.user.user_metadata.get("name")
+                ),
+                "access_token": response.session.access_token,
+                "refresh_token": response.session.refresh_token
+            }
+        else:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+            
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+@app.post("/api/auth/logout")
+async def logout_user(authorization: str = Header(None)):
+    """Logout user"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+    
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid authorization header")
+    
+    try:
+        token = authorization.split("Bearer ")[1]
+        supabase.auth.sign_out()
+        return {"message": "Logged out successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/auth/me")
+async def get_current_user_info(user_id: str = Depends(get_current_user)):
+    """Get current user information"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+    
+    try:
+        # Get user data from Supabase
+        user_data = supabase.auth.get_user()
+        return UserResponse(
+            id=user_data.user.id,
+            email=user_data.user.email,
+            name=user_data.user.user_metadata.get("name")
+        )
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+# Portfolio management endpoints
+@app.post("/api/portfolio/save")
+async def save_portfolio(
+    portfolio_data: PortfolioSaveRequest,
+    user_id: str = Depends(get_current_user)
+):
+    """Save user's portfolio assets"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+    
+    try:
+        # Convert assets to database format
+        assets_data = []
+        for asset in portfolio_data.assets:
+            asset_dict = {
+                "user_id": user_id,
+                "name": asset.name,
+                "is_stock": asset.isStock,
+                "ticker": asset.ticker,
+                "shares": asset.shares,
+                "current_price": asset.currentPrice,
+                "balance": asset.balance,
+                "apy": asset.apy,
+                "created_at": datetime.utcnow().isoformat()
+            }
+            assets_data.append(asset_dict)
+        
+        # Delete existing assets for this user
+        supabase.table("portfolio_assets").delete().eq("user_id", user_id).execute()
+        
+        # Insert new assets
+        if assets_data:
+            result = supabase.table("portfolio_assets").insert(assets_data).execute()
+            return {"message": "Portfolio saved successfully", "assets_count": len(assets_data)}
+        else:
+            return {"message": "Portfolio cleared", "assets_count": 0}
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save portfolio: {str(e)}")
+
+@app.get("/api/portfolio")
+async def get_portfolio(user_id: str = Depends(get_current_user)):
+    """Get user's portfolio assets"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+    
+    try:
+        result = supabase.table("portfolio_assets").select("*").eq("user_id", user_id).execute()
+        
+        assets = []
+        for row in result.data:
+            asset = PortfolioAsset(
+                name=row["name"],
+                isStock=row["is_stock"],
+                ticker=row["ticker"],
+                shares=row["shares"],
+                currentPrice=row["current_price"],
+                balance=row["balance"],
+                apy=row["apy"]
+            )
+            assets.append(asset)
+        
+        return {"assets": assets}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get portfolio: {str(e)}")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

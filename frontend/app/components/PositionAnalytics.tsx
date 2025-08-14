@@ -8,6 +8,7 @@ interface Asset {
   ticker?: string;
   shares?: number;
   currentPrice?: number;
+  purchasePrice?: number;
   balance?: number;
   apy?: number;
 }
@@ -17,12 +18,14 @@ interface PositionAnalyticsProps {
 }
 
 export default function PositionAnalytics({ assets }: PositionAnalyticsProps) {
-  const { realTimePrices, isLoading } = useRealTime();
+  const { realTimePrices, isLoading, failedTickers } = useRealTime();
   
-  // Check if we have real-time prices for all stock assets
+  // Check if we have real-time prices for all valid stock assets (exclude invalid tickers)
   const stockAssets = assets.filter(asset => asset.isStock);
-  const stockAssetsWithTickers = stockAssets.filter(asset => asset.ticker);
-  const hasAllPrices = stockAssetsWithTickers.length === 0 || stockAssetsWithTickers.every(asset => realTimePrices[asset.ticker!]);
+  const validStockAssetsWithTickers = stockAssets.filter(asset => 
+    asset.ticker && !failedTickers.includes(asset.ticker)
+  );
+  const hasAllPrices = validStockAssetsWithTickers.length === 0 || validStockAssetsWithTickers.every(asset => realTimePrices[asset.ticker!]);
   const isInitialLoading = isLoading || !hasAllPrices;
   
   const cashAssets = assets.filter(asset => !asset.isStock);
@@ -50,17 +53,17 @@ export default function PositionAnalytics({ assets }: PositionAnalyticsProps) {
   const annualInterest = totalCashValue * weightedAPY;
 
   // Show loading state while fetching initial prices
-  if (isInitialLoading && stockAssetsWithTickers.length > 0) {
+  if (isInitialLoading && validStockAssetsWithTickers.length > 0) {
     return (
-      <div className="mt-8 rounded-xl p-6 bg-gradient-to-br from-slate-50 to-slate-100 shadow-lg">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-800">Portfolio Analytics</h2>
+      <div className="mt-6 sm:mt-8 rounded-xl p-4 sm:p-6 bg-gradient-to-br from-slate-50 to-slate-100 shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Portfolio Analytics</h2>
           <div className="text-sm text-gray-500 font-medium">
             Loading...
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {/* Loading cards */}
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 animate-pulse">
@@ -80,17 +83,17 @@ export default function PositionAnalytics({ assets }: PositionAnalyticsProps) {
   }
 
   return (
-    <div className="mt-8 rounded-xl p-6 bg-gradient-to-br from-slate-50 to-slate-100 shadow-lg">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-gray-800">Portfolio Analytics</h2>
+    <div className="mt-6 sm:mt-8 rounded-xl p-4 sm:p-6 bg-gradient-to-br from-slate-50 to-slate-100 shadow-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 sm:mb-6">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Portfolio Analytics</h2>
         <div className="text-sm text-gray-500 font-medium">
           Total Value: ${totalPortfolioValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* Portfolio Breakdown */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Breakdown</h3>
             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -98,13 +101,13 @@ export default function PositionAnalytics({ assets }: PositionAnalyticsProps) {
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Stocks ({stockAssets.length})</span>
-              <span className="text-lg font-semibold text-gray-900">
+              <span className="text-base sm:text-lg font-semibold text-gray-900">
                 ${totalStockValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Cash ({cashAssets.length})</span>
-              <span className="text-lg font-semibold text-gray-900">
+              <span className="text-base sm:text-lg font-semibold text-gray-900">
                 ${totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
@@ -112,7 +115,7 @@ export default function PositionAnalytics({ assets }: PositionAnalyticsProps) {
         </div>
 
         {/* Allocation */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Allocation</h3>
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -120,17 +123,17 @@ export default function PositionAnalytics({ assets }: PositionAnalyticsProps) {
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Stocks</span>
-              <span className="text-lg font-semibold text-gray-900">{stockAllocation.toFixed(1)}%</span>
+              <span className="text-base sm:text-lg font-semibold text-gray-900">{stockAllocation.toFixed(1)}%</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Cash</span>
-              <span className="text-lg font-semibold text-gray-900">{cashAllocation.toFixed(1)}%</span>
+              <span className="text-base sm:text-lg font-semibold text-gray-900">{cashAllocation.toFixed(1)}%</span>
             </div>
           </div>
         </div>
 
         {/* Cash Interest */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Income</h3>
             <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
@@ -138,13 +141,13 @@ export default function PositionAnalytics({ assets }: PositionAnalyticsProps) {
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Monthly</span>
-              <span className="text-lg font-semibold text-gray-900">
+              <span className="text-base sm:text-lg font-semibold text-gray-900">
                 ${monthlyInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Annual</span>
-              <span className="text-lg font-semibold text-gray-900">
+              <span className="text-base sm:text-lg font-semibold text-gray-900">
                 ${annualInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
@@ -152,7 +155,7 @@ export default function PositionAnalytics({ assets }: PositionAnalyticsProps) {
         </div>
 
         {/* Cash Summary */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Cash</h3>
             <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
@@ -160,13 +163,13 @@ export default function PositionAnalytics({ assets }: PositionAnalyticsProps) {
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Available</span>
-              <span className="text-lg font-semibold text-gray-900">
+              <span className="text-base sm:text-lg font-semibold text-gray-900">
                 ${totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">APY</span>
-              <span className="text-lg font-semibold text-gray-900">
+              <span className="text-base sm:text-lg font-semibold text-gray-900">
                 {(weightedAPY * 100).toFixed(2)}%
               </span>
             </div>

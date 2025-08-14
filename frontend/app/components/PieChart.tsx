@@ -13,6 +13,7 @@ interface Asset {
   ticker?: string;
   shares?: number;
   currentPrice?: number;
+  purchasePrice?: number;
   balance?: number;
   apy?: number;
 }
@@ -22,14 +23,17 @@ interface PieChartProps {
   isEditMode?: boolean;
   onEdit?: (asset: Asset) => void;
   onDelete?: (assetId: number) => void;
+  timePeriod: 'all-time' | 'today';
 }
 
-export default function PieChart({ assets, isEditMode = false, onEdit, onDelete }: PieChartProps) {
-  const { realTimePrices, lastUpdated, isLoading, fetchPrices } = useRealTime();
+export default function PieChart({ assets, isEditMode = false, onEdit, onDelete, timePeriod }: PieChartProps) {
+  const { realTimePrices, dailyData, lastUpdated, isLoading, failedTickers, fetchPrices } = useRealTime();
   
-  // Check if we have real-time prices for all stock assets
-  const stockAssets = assets.filter(asset => asset.isStock && asset.ticker);
-  const hasAllPrices = stockAssets.length === 0 || stockAssets.every(asset => realTimePrices[asset.ticker!]);
+  // Check if we have real-time prices for all valid stock assets (exclude invalid tickers)
+  const validStockAssets = assets.filter(asset => 
+    asset.isStock && asset.ticker && !failedTickers.includes(asset.ticker)
+  );
+  const hasAllPrices = validStockAssets.length === 0 || validStockAssets.every(asset => realTimePrices[asset.ticker!]);
   const isInitialLoading = isLoading || !hasAllPrices;
 
   if (assets.length === 0) {
@@ -41,11 +45,11 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
   }
 
   // Show loading state while fetching initial prices
-  if (isInitialLoading && stockAssets.length > 0) {
+  if (isInitialLoading && validStockAssets.length > 0) {
     return (
-      <div className="flex items-start p-0">
-        <div className="w-80 mr-8 flex-shrink-0">
-          <div className="w-80 h-80 flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg">
+      <div className="flex flex-col lg:flex-row items-start p-0 gap-6">
+        <div className="w-full lg:mr-8 flex-shrink-0">
+          <div className="chart-container mx-auto flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
               <div className="text-gray-600 font-medium">Loading prices...</div>
@@ -53,7 +57,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
             </div>
           </div>
           
-          {/* Loading refresh button */}
+          {/* Loading refresh button
           <div className="flex items-center justify-center gap-3 mt-1 text-xs text-gray-500 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg px-3 py-1.5">
             <button
               disabled={true}
@@ -63,11 +67,11 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
               <RefreshCw size={13} className="animate-spin" />
             </button>
             <span className="font-medium">Loading...</span>
-          </div>
+          </div> */}
         </div>
         
         {/* Loading legend */}
-        <div className="flex-1 max-h-88 overflow-y-auto pr-2">
+        <div className="flex-1 w-full lg:max-h-88 overflow-y-auto lg:pr-2">
           <div className="space-y-2">
             {assets.map((asset, index) => (
               <div 
@@ -100,10 +104,10 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
     );
   }
 
-  // Calculate values with real-time prices
+  // Calculate values based on time period
   const values = assets.map(a => {
     if (a.isStock) {
-      // Use real-time price if available, otherwise fall back to stored price
+      // Always use current price for the pie chart value (same for both views)
       const currentPrice = (a.ticker && realTimePrices[a.ticker]) ? realTimePrices[a.ticker] : (a.currentPrice || 0);
       const value = (a.shares || 0) * currentPrice;
       return isNaN(value) ? 0 : value;
@@ -127,9 +131,32 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
   const totalValue = values.reduce((acc, val) => acc + (isNaN(val) ? 0 : val), 0);
   const totalStoredValue = storedValues.reduce((acc, val) => acc + (isNaN(val) ? 0 : val), 0);
   
-  // Calculate portfolio change
-  const portfolioChange = totalValue - totalStoredValue;
-  const portfolioChangePercent = totalStoredValue > 0 ? (portfolioChange / totalStoredValue) * 100 : 0;
+  // Calculate portfolio change based on time period
+  let portfolioChange: number;
+  let portfolioChangePercent: number;
+  
+                  if (timePeriod === 'today') {
+                  // For today view, calculate change from yesterday's closing prices to current prices
+                  const yesterdayClosingValues = assets.map(a => {
+                    if (a.isStock && a.ticker && dailyData[a.ticker]) {
+                      return (a.shares || 0) * dailyData[a.ticker].yesterday_close;
+                    } else if (a.isStock) {
+                                        // Fallback: use purchase price if daily data not available
+                  const purchasePrice = a.purchasePrice || a.currentPrice || 0;
+                      return (a.shares || 0) * purchasePrice;
+                    } else {
+                      return a.balance || 0;
+                    }
+                  });
+                  const totalYesterdayValue = yesterdayClosingValues.reduce((acc, val) => acc + (isNaN(val) ? 0 : val), 0);
+                  
+                  portfolioChange = totalValue - totalYesterdayValue;
+                  portfolioChangePercent = totalYesterdayValue > 0 ? (portfolioChange / totalYesterdayValue) * 100 : 0;
+  } else {
+    // For all-time view, use the original calculation
+    portfolioChange = totalValue - totalStoredValue;
+    portfolioChangePercent = totalStoredValue > 0 ? (portfolioChange / totalStoredValue) * 100 : 0;
+  }
 
   const backgroundColors = [
     '#3B82F6', // Blue
@@ -260,10 +287,12 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
             // Use real-time price if available
             const currentPrice = (asset.ticker && realTimePrices[asset.ticker]) ? realTimePrices[asset.ticker] : (asset.currentPrice || 0);
             const priceSource = (asset.ticker && realTimePrices[asset.ticker]) ? 'Live' : 'Stored';
+            const purchasePrice = asset.purchasePrice || asset.currentPrice || 0;
 
             return [
               `${context.label}: ${percentage}%`,
               `${(asset.shares || 0).toLocaleString()} shares @ $${currentPrice.toFixed(2)} (${priceSource})`,
+              `Purchase Price: $${purchasePrice.toFixed(2)}`,
               `Value: $${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             ];
           },
@@ -299,11 +328,13 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
   };
 
   return (
-    <div className="flex items-start p-0">
-      <div className="w-80 mr-8 flex-shrink-0">
-        <div className="w-80 h-80">
+    <div className="flex flex-col lg:flex-row items-start p-0 gap-6">
+      <div className="w-full lg:w-80 lg:mr-8 flex-shrink-0">
+
+        
+        <div className="chart-container mx-auto">
           <Doughnut 
-            key={`chart-${assets.length}-${totalValue.toFixed(2)}-${portfolioChange.toFixed(2)}`} 
+            key={`chart-${assets.length}-${totalValue.toFixed(2)}-${portfolioChange.toFixed(2)}-${timePeriod}-${JSON.stringify(values)}`} 
             data={data} 
             options={options} 
             plugins={[centerText]} 
@@ -311,18 +342,18 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
         </div>
         
         {/* Refresh button and last updated time - centered below chart */}
-        <div className="flex items-center justify-center gap-1 mt-1 mr-4 text-xs text-gray-500 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg px-3 py-1.5">
+        <div className="flex items-center justify-center gap-1 mt-1 mr-2 text-xs text-gray-500 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg px-3 py-1.5">
           <button
             onClick={handleRefresh}
             disabled={isLoading}
-            className={`p-1.5 pr-0 rounded-md transition-all ${
+            className={`p-1 pr-0 rounded-md transition-all ${
               isLoading
                 ? 'text-gray-200 cursor-not-allowed' 
                 : 'text-gray-400 hover:text-gray-600 transition-all cursor-pointer'
             }`}
             title="Refresh prices"
           >
-            <RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />
+            <RefreshCw size={12} className={isLoading ? 'animate-spin' : ''} />
           </button>
           {lastUpdated && (
             <span className="font-medium">{formatTime(lastUpdated)}</span>
@@ -331,123 +362,277 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete 
       </div>
       
       {/* Legend */}
-      <div className="flex-1 max-h-88 overflow-y-auto pr-2">
+      <div className="flex-1 w-full lg:max-h-88 overflow-y-auto lg:pr-2">
         <div className="space-y-2">
-          {assets
-            .map((asset, index) => {  
-              const value = asset.isStock ? 
-                ((asset.shares || 0) * (asset.ticker && realTimePrices[asset.ticker] ? realTimePrices[asset.ticker] : (asset.currentPrice || 0))) : 
-                (asset.balance || 0);
-              const percentage = ((value / totalValue) * 100);
+          {(() => {
+            // Separate assets into valid and invalid tickers
+            const validAssets = assets.filter(asset => 
+              !asset.isStock || !asset.ticker || !failedTickers.includes(asset.ticker)
+            );
+            
+            const invalidAssets = assets.filter(asset => 
+              asset.isStock && asset.ticker && failedTickers.includes(asset.ticker)
+            );
 
+            // Process valid assets
+            const processedValidAssets = validAssets
+              .map((asset, index) => {  
+                let value: number;
+                let changeValue: number = 0;
+                let changePercent: number = 0;
+                
+                if (asset.isStock) {
+                  // Always use current price for the pie chart value
+                  const currentPrice = (asset.ticker && realTimePrices[asset.ticker]) ? realTimePrices[asset.ticker] : (asset.currentPrice || 0);
+                  value = (asset.shares || 0) * currentPrice;
+                  
+                  if (timePeriod === 'today') {
+                    // For today view, calculate change from yesterday's closing price to current price
+                    if (asset.ticker && dailyData[asset.ticker]) {
+                      const yesterdayClose = dailyData[asset.ticker].yesterday_close;
+                      changeValue = (asset.shares || 0) * (currentPrice - yesterdayClose);
+                      changePercent = dailyData[asset.ticker].change_percent;
+                    } else {
+                      // Fallback: use purchase price if daily data not available
+                      const purchasePrice = asset.purchasePrice || asset.currentPrice || 0;
+                      changeValue = (asset.shares || 0) * (currentPrice - purchasePrice);
+                      changePercent = purchasePrice > 0 ? ((currentPrice - purchasePrice) / purchasePrice) * 100 : 0;
+                    }
+                  } else {
+                    // For all-time view, calculate change from purchase price to current price
+                    const purchasePrice = asset.purchasePrice || asset.currentPrice || 0;
+                    changeValue = (asset.shares || 0) * (currentPrice - purchasePrice);
+                    changePercent = purchasePrice > 0 ? ((currentPrice - purchasePrice) / purchasePrice) * 100 : 0;
+                  }
+                } else {
+                  value = asset.balance || 0;
+                  changeValue = 0; // Cash doesn't change in this context
+                  changePercent = 0;
+                }
+                
+                const percentage = ((value / totalValue) * 100);
+
+                return {
+                  ...asset,
+                  originalIndex: index,
+                  value: value,
+                  percentage: percentage,
+                  changeValue: changeValue,
+                  changePercent: changePercent,
+                };
+              })
+              .sort((a, b) => b.percentage - a.percentage);
+
+            // Process invalid assets
+            const processedInvalidAssets = invalidAssets.map((asset, index) => {
+              const value = (asset.shares || 0) * (asset.currentPrice || 0);
+              const percentage = ((value / totalValue) * 100);
+              
               return {
                 ...asset,
-                originalIndex: index,
+                originalIndex: validAssets.length + index,
                 value: value,
                 percentage: percentage,
-              };})
+                changeValue: 0,
+                changePercent: 0,
+              };
+            });
 
-            .sort((a, b) => b.percentage - a.percentage)
-            .map((asset) => {
-              const displayPercentage = asset.percentage < 1 ? "<1%" : `${asset.percentage.toFixed(1)}%`;
-              
-              return (
-                <div 
-                  key={asset.id} 
-                  className={`flex items-center space-x-3 px-4 py-2 bg-white rounded-lg shadow-sm transition-all ${
-                    isEditMode 
-                      ? 'hover:shadow-md hover:bg-gray-50 cursor-pointer' 
-                      : 'hover:shadow-md'
-                  }`}
-                  onClick={isEditMode ? () => onEdit?.(asset) : undefined}
-                >
-                  <div 
-                    className="w-4 h-4 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: finalColors[asset.originalIndex] }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-baseline space-x-2 flex-1">
-                        <div className="text-sm font-semibold text-gray-900">
-                          {asset.isStock ? asset.ticker : "CASH"}
-                        </div>
-                        <div className="text-xs text-gray-600 truncate">
-                          {asset.name}
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-16 flex justify-end">
-                          {!isEditMode && (
-                            <div className="text-sm font-semibold text-gray-900">
-                              {displayPercentage}
+            return (
+              <>
+                {/* Valid Assets */}
+                {processedValidAssets.map((asset) => {
+                  const displayPercentage = asset.percentage < 1 ? "<1%" : `${asset.percentage.toFixed(1)}%`;
+                  
+                  return (
+                    <div 
+                      key={asset.id} 
+                      className={`flex items-center space-x-3 px-3 sm:px-4 py-2 bg-white rounded-lg shadow-sm transition-all ${
+                        isEditMode 
+                          ? 'hover:shadow-md hover:bg-gray-50 cursor-pointer' 
+                          : 'hover:shadow-md'
+                      }`}
+                      onClick={isEditMode ? () => onEdit?.(asset) : undefined}
+                    >
+                      <div 
+                        className="w-4 h-4 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: finalColors[asset.originalIndex] }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-baseline space-x-2 flex-1 min-w-0">
+                            <div className="text-sm font-semibold text-gray-900 truncate">
+                              {asset.isStock ? asset.ticker : "CASH"}
                             </div>
-                          )}
-                          {isEditMode && (
-                            <div className="flex items-center space-x-1">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onEdit?.(asset);
-                                }}
-                                className="px-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                title="Edit"
-                              >
-                                <Edit2 size={14} />
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onDelete?.(asset.id);
-                                }}
-                                className="px-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                                title="Delete"
-                              >
-                                <Trash2 size={14} />
-                              </button>
+                            <div className="text-xs text-gray-600 truncate hidden sm:block">
+                              {asset.name}
                             </div>
-                          )}
+                          </div>
+                          <div className="flex items-center space-x-2 flex-shrink-0">
+                            <div className="w-12 sm:w-16 flex justify-end">
+                              {!isEditMode && (
+                                <div className="text-sm font-semibold text-gray-900">
+                                  {displayPercentage}
+                                </div>
+                              )}
+                              {isEditMode && (
+                                <div className="flex items-center space-x-1">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onEdit?.(asset);
+                                    }}
+                                    className="px-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                    title="Edit"
+                                  >
+                                    <Edit2 size={14} />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onDelete?.(asset.id);
+                                    }}
+                                    className="px-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                    title="Delete"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between mt-1 text-xs text-gray-500">
-                      <span>
-                        {asset.isStock ? (
-                          <>
-                            {(asset.shares || 0).toLocaleString()} @ ${(asset.currentPrice || 0).toFixed(2)} → ${(asset.ticker && realTimePrices[asset.ticker]) ? realTimePrices[asset.ticker].toFixed(2) : (asset.currentPrice || 0).toFixed(2)}
-                            {asset.ticker && realTimePrices[asset.ticker] && (
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-1 text-xs text-gray-500 gap-1">
+                          <span className="truncate">
+                            {asset.isStock ? (
                               <>
-                                <span className={`ml-2 font-medium ${realTimePrices[asset.ticker] > (asset.currentPrice || 0) ? 'text-green-600' : 'text-red-600'}`}>
-                                  {realTimePrices[asset.ticker] > (asset.currentPrice || 0) ? '↗' : '↘'}
-                                </span>
-                                <span className={`ml-1 font-medium ${realTimePrices[asset.ticker] > (asset.currentPrice || 0) ? 'text-green-600' : 'text-red-600'}`}>
-                                  ${((realTimePrices[asset.ticker] - (asset.currentPrice || 0)) * (asset.shares || 0)).toFixed(2)} ({(((realTimePrices[asset.ticker] - (asset.currentPrice || 0)) / (asset.currentPrice || 1)) * 100).toFixed(1)}%)
-                                </span>
+                                {(asset.shares || 0).toLocaleString()} @ ${(asset.purchasePrice || asset.currentPrice || 0).toFixed(2)} → ${(asset.ticker && realTimePrices[asset.ticker]) ? realTimePrices[asset.ticker].toFixed(2) : (asset.currentPrice || 0).toFixed(2)}
+                                {asset.changeValue !== 0 && (
+                                  <>
+                                    <span className={`ml-2 font-medium ${asset.changeValue > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                      {asset.changeValue > 0 ? '↗' : '↘'}
+                                    </span>
+                                    <span className={`ml-1 font-medium ${asset.changeValue > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                      ${Math.abs(asset.changeValue).toFixed(2)} ({asset.changePercent >= 0 ? '+' : ''}{asset.changePercent.toFixed(1)}%)
+                                    </span>
+                                  </>
+                                )}
                               </>
+                            ) : (
+                              `APY: ${((asset.apy || 0) * 100).toFixed(2)}%`
                             )}
-                          </>
-                        ) : (
-                          `APY: ${((asset.apy || 0) * 100).toFixed(2)}%`
-                        )}
-                      </span>
-                      {!isEditMode && (
-                        <span className="font-medium">
-                          ${asset.isStock ? 
-                            ((asset.shares || 0) * (asset.ticker && realTimePrices[asset.ticker] ? realTimePrices[asset.ticker] : (asset.currentPrice || 0))).toLocaleString(undefined, { 
-                              minimumFractionDigits: 2, 
-                              maximumFractionDigits: 2 
-                            }) :
-                            asset.value.toLocaleString(undefined, { 
-                              minimumFractionDigits: 2, 
-                              maximumFractionDigits: 2 
-                            })
-                          }
-                        </span>
-                      )}
+                          </span>
+                          {!isEditMode && (
+                            <span className="font-medium flex-shrink-0">
+                              ${asset.isStock ? 
+                                ((asset.shares || 0) * (asset.ticker && realTimePrices[asset.ticker] ? realTimePrices[asset.ticker] : (asset.currentPrice || 0))).toLocaleString(undefined, { 
+                                  minimumFractionDigits: 2, 
+                                  maximumFractionDigits: 2 
+                                }) :
+                                asset.value.toLocaleString(undefined, { 
+                                  minimumFractionDigits: 2, 
+                                  maximumFractionDigits: 2 
+                                })
+                              }
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })}
+                  );
+                })}
+
+                {/* Invalid Tickers Section */}
+                {processedInvalidAssets.length > 0 && (
+                  <>
+                    <div className="mt-4 mb-2">
+                      <div className="text-xs font-medium text-gray-500 tracking-wide px-3">
+                        Invalid Tickers (No Real-Time Data)
+                      </div>
+                    </div>
+                    {processedInvalidAssets.map((asset) => {
+                      const displayPercentage = asset.percentage < 1 ? "<1%" : `${asset.percentage.toFixed(1)}%`;
+                      
+                      return (
+                        <div 
+                          key={asset.id} 
+                          className={`flex items-center space-x-3 px-3 sm:px-4 py-2 bg-gray-50 rounded-lg shadow-sm transition-all ${
+                            isEditMode 
+                              ? 'hover:shadow-md hover:bg-gray-100 cursor-pointer' 
+                              : 'hover:shadow-md'
+                          }`}
+                          onClick={isEditMode ? () => onEdit?.(asset) : undefined}
+                        >
+                          <div 
+                            className="w-4 h-4 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: finalColors[asset.originalIndex] }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-baseline space-x-2 flex-1 min-w-0">
+                                <div className="text-sm font-semibold text-gray-700 truncate">
+                                  {asset.ticker}
+                                </div>
+                                <div className="text-xs text-gray-500 truncate hidden sm:block">
+                                  {asset.name}
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2 flex-shrink-0">
+                                <div className="w-12 sm:w-16 flex justify-end">
+                                  {!isEditMode && (
+                                    <div className="text-sm font-semibold text-gray-700">
+                                      {displayPercentage}
+                                    </div>
+                                  )}
+                                  {isEditMode && (
+                                    <div className="flex items-center space-x-1">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          onEdit?.(asset);
+                                        }}
+                                        className="px-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                        title="Edit"
+                                      >
+                                        <Edit2 size={14} />
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          onDelete?.(asset.id);
+                                        }}
+                                        className="px-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                        title="Delete"
+                                      >
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-1 text-xs text-gray-500 gap-1">
+                              <span className="truncate">
+                                {(asset.shares || 0).toLocaleString()} @ ${(asset.purchasePrice || asset.currentPrice || 0).toFixed(2)} (No real-time data)
+                              </span>
+                              {!isEditMode && (
+                                <span className="font-medium flex-shrink-0">
+                                  ${((asset.shares || 0) * (asset.currentPrice || 0)).toLocaleString(undefined, { 
+                                    minimumFractionDigits: 2, 
+                                    maximumFractionDigits: 2 
+                                  })}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
+              </>
+            );
+          })()}
         </div>
       </div>
     </div>

@@ -6,3 +6,6 @@ python-dateutil
 pytz
 google-generativeai
 Pillow
+supabase
+python-jose[cryptography]
+python-multipart

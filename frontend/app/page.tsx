@@ -1,9 +1,12 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Edit2, Trash2, Upload, FileText } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, Upload, FileText, LogIn, UserPlus } from 'lucide-react';
 import PositionAnalytics from './components/PositionAnalytics';
 import PieChart from './components/PieChart';
 import { useRealTime } from './contexts/RealTimeContext';
+import { useAuth } from './contexts/AuthContext';
+import AuthModal from './components/AuthModal';
+import UserProfile from './components/UserProfile';
 
 interface Asset {
   id: number;
@@ -12,6 +15,7 @@ interface Asset {
   ticker?: string;
   shares?: number;
   currentPrice?: number;
+  purchasePrice?: number;
   balance?: number;
   apy?: number;
 }
@@ -34,7 +38,7 @@ function InputField({ label, ...props }: { label: string; [key: string]: any }) 
       </label>
       <input
         {...props}
-        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-black focus:border-black hover:border-black transition-all"
+        className="w-full px-3 sm:px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-black focus:border-black hover:border-black transition-all text-base"
       />
     </div>
   );
@@ -47,7 +51,8 @@ const loadAssetsFromStorage = (): Asset[] => {
   if (typeof window === 'undefined') return [];
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    const assets = stored ? JSON.parse(stored) : [];
+    return assets;
   } catch (error) {
     console.error('Error loading assets from localStorage:', error);
     return [];
@@ -65,34 +70,123 @@ const saveAssetsToStorage = (assets: Asset[]) => {
 
 export default function Home() {
   const { fetchPrices } = useRealTime();
+  const { user, token, isAuthenticated, isLoading, logout } = useAuth();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [uploadMode, setUploadMode] = useState<'manual' | 'image'>('manual');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [parsedAssets, setParsedAssets] = useState<ParsedAsset[]>([]);
+  const [timePeriod, setTimePeriod] = useState<'all-time' | 'today'>('all-time');
   const [formData, setFormData] = useState({
     name: '',
     isStock: true,
     ticker: '',
     shares: '',
-    currentPrice: '',
+    price: '',
     balance: '',
     apy: ''
   });
+  const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
 
-  // Load assets from localStorage on component mount
+  // Load assets from backend when authenticated, localStorage when not
   useEffect(() => {
-    const storedAssets = loadAssetsFromStorage();
-    setAssets(storedAssets);
-  }, []);
+    if (isAuthenticated && token) {
+      loadPortfolioFromBackend();
+    } else if (!isAuthenticated && !isLoading && !hasLoadedFromStorage && !token) {
+      // Load from localStorage if not authenticated and no token
+      const storedAssets = loadAssetsFromStorage();
+      setAssets(storedAssets);
+      setHasLoadedFromStorage(true);
+    }
+  }, [isAuthenticated, token, isLoading, hasLoadedFromStorage]);
 
-  // Save assets to localStorage whenever assets change
+  // Reset flags and clear assets when authentication state changes
   useEffect(() => {
-    saveAssetsToStorage(assets);
-  }, [assets]);
+    if (!isAuthenticated) {
+      setHasLoadedFromStorage(false);
+      setAssets([]); // Clear assets when user logs out
+    }
+  }, [isAuthenticated, token]); // Also depend on token to catch token removal
+
+  // Save assets to backend when authenticated, localStorage when not
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      // Save to backend when authenticated (including empty portfolio)
+      savePortfolioToBackend();
+    } else if (!isAuthenticated && hasLoadedFromStorage) {
+      // Save to localStorage if not authenticated and we've already loaded from storage
+      saveAssetsToStorage(assets);
+    }
+  }, [assets, isAuthenticated, token, hasLoadedFromStorage]);
+
+  const loadPortfolioFromBackend = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/portfolio', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const backendAssets = data.assets.map((asset: any, index: number) => ({
+          ...asset,
+          id: index + 1 // Generate local IDs
+        }));
+        setAssets(backendAssets);
+      }
+    } catch (error) {
+      console.error('Error loading portfolio from backend:', error);
+    }
+  };
+
+  const savePortfolioToBackend = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/portfolio/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ assets })
+      });
+      
+      if (!response.ok) {
+        console.error('Error saving portfolio to backend');
+      } else {
+        console.log('Portfolio saved to backend successfully');
+      }
+    } catch (error) {
+      console.error('Error saving portfolio to backend:', error);
+    }
+  };
+
+  const clearBackendPortfolio = async () => {
+    if (!token) return;
+    
+    try {
+      const response = await fetch('http://localhost:8000/api/portfolio/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ assets: [] })
+      });
+      
+      if (response.ok) {
+        console.log('Backend portfolio cleared successfully');
+      }
+    } catch (error) {
+      console.error('Error clearing backend portfolio:', error);
+    }
+  };
+
+
 
   // Fetch real-time prices when assets change
   useEffect(() => {
@@ -191,7 +285,7 @@ export default function Home() {
               : newPrice;
             
             newAssets[index].shares = totalShares;
-            newAssets[index].currentPrice = weightedAveragePrice;
+            newAssets[index].purchasePrice = weightedAveragePrice;
           } else {
             newAssets[index].balance = (newAssets[index].balance || 0) + (asset.balance || 0);
             // Backend returns APY as decimal, so we keep it as is
@@ -217,13 +311,14 @@ export default function Home() {
     let assetData: Partial<Asset>;
 
     if (formData.isStock) {
-      if (!formData.ticker || !formData.shares || !formData.currentPrice) return;
+      if (!formData.ticker || !formData.shares || !formData.price) return;
       assetData = {
         name: formData.name,
         isStock: true,
         ticker: formData.ticker.toUpperCase(),
         shares: parseFloat(formData.shares) || 0,
-        currentPrice: parseFloat(formData.currentPrice) || 0
+        currentPrice: parseFloat(formData.price) || 0,
+        purchasePrice: parseFloat(formData.price) || 0
       };
     } else {
       if (!formData.balance || !formData.apy) return;
@@ -254,9 +349,9 @@ export default function Home() {
           const updated = [...prev];
           if (assetData.isStock) {
             const existingShares = updated[index].shares || 0;
-            const existingPrice = updated[index].currentPrice || 0;
+            const existingPrice = updated[index].purchasePrice || 0;
             const newShares = assetData.shares || 0;
-            const newPrice = assetData.currentPrice || 0;
+            const newPrice = assetData.purchasePrice || 0;
             
             // Calculate weighted average price
             const totalShares = existingShares + newShares;
@@ -265,7 +360,7 @@ export default function Home() {
               : newPrice;
             
             updated[index].shares = totalShares;
-            updated[index].currentPrice = weightedAveragePrice;
+            updated[index].purchasePrice = weightedAveragePrice;
           } else {
             updated[index].balance = (updated[index].balance || 0) + (assetData.balance || 0);
             updated[index].apy = assetData.apy;
@@ -277,7 +372,7 @@ export default function Home() {
       });
     }
 
-    setFormData({ name: '', isStock: true, ticker: '', shares: '', currentPrice: '', balance: '', apy: '' });
+    setFormData({ name: '', isStock: true, ticker: '', shares: '', price: '', balance: '', apy: '' });
     setShowModal(false);
   };
 
@@ -288,7 +383,7 @@ export default function Home() {
       isStock: asset.isStock,
       ticker: asset.ticker || '',
       shares: asset.shares?.toString() || '',
-      currentPrice: asset.currentPrice?.toString() || '',
+      price: asset.purchasePrice?.toString() || asset.currentPrice?.toString() || '',
       balance: asset.balance?.toString() || '',
       apy: asset.apy ? (asset.apy * 100).toString() : '' // Convert decimal to percentage
     });
@@ -307,20 +402,32 @@ export default function Home() {
     setUploadMode('manual');
     setSelectedImage(null);
     setParsedAssets([]);
-    setFormData({ name: '', isStock: true, ticker: '', shares: '', currentPrice: '', balance: '', apy: '' });
+    setFormData({ name: '', isStock: true, ticker: '', shares: '', price: '', balance: '', apy: '' });
   };
 
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <main className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <p className="mt-4 text-gray-600">Loading...</p>
+      </main>
+    );
+  }
+
   return (
-    <main className="flex flex-col items-center justify-between p-24 pt-8">
+    <main className="flex flex-col items-center justify-between p-4 sm:p-8 lg:p-24 lg:pt-8 pt-4 sm:pt-8">
+
+
       {/* Aurelo Header */}
-      <div className="w-full max-w-5xl mb-8">
-        <div className="rounded-xl p-6 bg-gradient-to-br from-slate-50 via-white to-slate-100 shadow-lg border border-gray-200/50">
-          <div className="flex items-center justify-between">
+      <div className="w-full max-w-5xl mb-4 sm:mb-8">
+        <div className="rounded-xl p-4 sm:p-6 bg-gradient-to-br from-slate-50 via-white to-slate-100 shadow-lg border border-gray-200/50">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
                       Aurelo
                     </h1>
                     <span className="px-2 py-1 bg-gradient-to-r from-orange-100 to-amber-100 text-orange-700 text-xs font-semibold rounded-full border border-orange-200 shadow-sm">
@@ -333,53 +440,89 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-6 text-sm">
-              {/* <div className="hidden sm:flex items-center gap-2 text-gray-600">
-                <span className="font-medium">Track</span>
-                <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                <span className="font-medium">Analyze</span>
-                <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                <span className="font-medium">Optimize</span>
-              </div> */}
-              <div className="flex items-center gap-2 text-gray-500">
+            <div className="flex items-center gap-4">
+              {isAuthenticated ? (
+                <UserProfile onLogout={() => {
+                  setAssets([]); // Immediately clear assets
+                  logout();
+                }} />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowAuthModal(true)}
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+                  >
+                    <LogIn size={16} />
+                    Sign In
+                  </button>
+                </div>
+              )}
+              {/* <div className="flex items-center gap-2 text-gray-500">
                 <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">v1.0.0</span>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
       </div>
 
       <div className="w-full max-w-5xl">
-        <div className="rounded-lg p-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl shadow-lg">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">Portfolio Allocation</h2>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => {if (assets.length > 0) {setIsEditMode(!isEditMode)}}}
-                className={`p-1 rounded-lg transition-colors ${
-                  isEditMode && assets.length > 0
-                    ? 'bg-blue-100 text-blue-600 cursor-pointer' 
-                    : 'text-gray-400 hover:text-gray-600 hover:scale-105 transition-all cursor-pointer'
-                }`}
-                title={isEditMode && assets.length > 0 ? "Exit Edit Mode" : "Edit Portfolio"}
-              >
-                <Edit2 size={16} />
-              </button>
-              <button
-                onClick={() => {
-                  setIsEditMode(false);
-                  setShowModal(true);
-                }}
-                disabled={isEditMode}
-                className={`p-1 pr-2 rounded-lg transition-colors ${
-                  isEditMode && assets.length > 0
-                    ? 'text-gray-200 cursor-not-allowed' 
-                    : 'text-gray-400 hover:text-gray-600 hover:scale-105 transition-all cursor-pointer'
-                }`}
-                title={isEditMode && assets.length > 0 ? "Exit edit mode to add assets" : "Add Asset"}
-              >
-                <Plus size={20} />
-              </button>
+        <div className="rounded-lg p-4 sm:p-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl shadow-lg">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Portfolio Allocation</h2>
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center bg-gray-100/60 backdrop-blur-sm rounded-full p-0.5 border border-gray-200/40">
+                <button
+                  onClick={() => setTimePeriod('all-time')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
+                    timePeriod === 'all-time' 
+                      ? 'bg-white text-gray-800 shadow-sm ring-1 ring-gray-200/60' 
+                      : 'text-gray-600 hover:text-gray-700 hover:bg-white/50'
+                  }`}
+                >
+                  All Time
+                </button>
+                <button
+                  onClick={() => setTimePeriod('today')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
+                    timePeriod === 'today' 
+                      ? 'bg-white text-gray-800 shadow-sm ring-1 ring-gray-200/60' 
+                      : 'text-gray-600 hover:text-gray-700 hover:bg-white/50'
+                  }`}
+                >
+                  Today
+                </button>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => {if (assets.length > 0) {setIsEditMode(!isEditMode)}}}
+                  disabled={assets.length === 0}
+                  className={`p-1.5 rounded-lg transition-all duration-200 ${
+                    assets.length === 0
+                      ? 'text-gray-200 cursor-not-allowed'
+                      : isEditMode && assets.length > 0
+                      ? 'text-blue-600 bg-blue-50 ring-2 ring-blue-200 shadow-sm cursor-pointer' 
+                      : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all cursor-pointer'
+                  }`}
+                  title={assets.length === 0 ? "No assets to edit" : isEditMode && assets.length > 0 ? "Exit Edit Mode" : "Edit Portfolio"}
+                >
+                  <Edit2 size={16} />
+                </button>
+                <button
+                  onClick={() => {
+                    setIsEditMode(false);
+                    setShowModal(true);
+                  }}
+                  disabled={isEditMode && assets.length > 0}
+                  className={`p-1 pr-2 rounded-lg transition-colors ${
+                    isEditMode && assets.length > 0
+                      ? 'text-gray-200 cursor-not-allowed' 
+                      : 'text-gray-400 hover:text-gray-600 transition-all cursor-pointer'
+                  }`}
+                  title={isEditMode && assets.length > 0 ? "Exit edit mode to add assets" : "Add Asset"}
+                >
+                  <Plus size={20} />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -389,6 +532,7 @@ export default function Home() {
             onEdit={handleEdit} 
             onDelete={handleDelete}
             isEditMode={isEditMode}
+            timePeriod={timePeriod}
           />
         </div>
 
@@ -399,45 +543,45 @@ export default function Home() {
       {/* Modal */}
       {showModal && (
         <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-all"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-all p-4"
         >
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 w-full max-w-lg mx-4 border border-gray-200/50">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold text-gray-800">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-4 sm:p-8 w-full max-w-lg mx-auto border border-gray-200/50 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
                 {editingAsset ? 'Edit Asset' : 'Add New Asset'}
               </h2>
               <button
                 onClick={closeModal}
                 className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
               >
-                <X size={28} />
+                <X size={24} className="sm:w-7 sm:h-7" />
               </button>
             </div>
 
             {!editingAsset && (
-              <div className="mb-6">
-                <div className="flex gap-3">
+              <div className="mb-4 sm:mb-6">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={() => setUploadMode('manual')}
-                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all cursor-pointer ${
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-3 rounded-lg border-2 transition-all cursor-pointer ${
                       uploadMode === 'manual'
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
                         : 'border-gray-300 text-gray-600 hover:border-gray-400'
                     }`}
                   >
-                    <FileText size={20} />
-                    <span className="font-medium">Manual Entry</span>
+                    <FileText size={18} className="sm:w-5 sm:h-5" />
+                    <span className="font-medium text-sm sm:text-base">Manual Entry</span>
                   </button>
                   <button
                     onClick={() => setUploadMode('image')}
-                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all cursor-pointer ${
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-3 rounded-lg border-2 transition-all cursor-pointer ${
                       uploadMode === 'image'
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
                         : 'border-gray-300 text-gray-600 hover:border-gray-400'
                     }`}
                   >
-                    <Upload size={20} />
-                    <span className="font-medium">Upload Image</span>
+                    <Upload size={18} className="sm:w-5 sm:h-5" />
+                    <span className="font-medium text-sm sm:text-base">Upload Image</span>
                   </button>
                 </div>
               </div>
@@ -520,14 +664,14 @@ export default function Home() {
                               </div>
                               <div className="text-sm text-gray-600">
                                 {asset.isStock 
-                                  ? `${asset.shares} shares @ $${asset.currentPrice}`
+                                  ? `${asset.shares} shares @ $${asset.currentPrice || asset.purchasePrice}`
                                   : `$${asset.balance} @ ${((asset.apy || 0) * 100).toFixed(2)}% APY`
                                 }
                               </div>
                             </div>
                           ))}
                         </div>
-                        <div className="flex gap-3">
+                        <div className="flex flex-col sm:flex-row gap-3">
                           <button
                             onClick={() => {
                               setParsedAssets([]);
@@ -573,7 +717,7 @@ export default function Home() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Asset Type
                   </label>
-                  <div className="flex gap-6">
+                  <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="radio"
@@ -602,7 +746,7 @@ export default function Home() {
                   <>
                     <InputField label="Ticker Symbol" name="ticker" value={formData.ticker} onChange={handleInputChange} placeholder="e.g., AAPL" />
                     <InputField label="Number of Shares" name="shares" value={formData.shares} onChange={handleInputChange} type="number" step="0.001" placeholder="e.g., 10.5" />
-                    <InputField label="Price per Share" name="currentPrice" value={formData.currentPrice} onChange={handleInputChange} type="number" step="0.01" placeholder="e.g., 150.00" />
+                    <InputField label="Price per Share" name="price" value={formData.price} onChange={handleInputChange} type="number" step="0.01" placeholder="e.g., 150.00" />
                   </>
                 ) : (
                   <>
@@ -612,7 +756,7 @@ export default function Home() {
                 )}
 
                 {/* Buttons */}
-                <div className="flex gap-3 pt-4">
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
                   <button
                     onClick={closeModal}
                     className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer"
@@ -631,6 +775,13 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Authentication Modal */}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)}
+        initialMode="login"
+      />
     </main>
   );
 }
