@@ -97,7 +97,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
           >
             <X size={24} />
           </button>
@@ -163,7 +163,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
@@ -179,7 +179,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
             <button
               type="button"
               onClick={switchMode}
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              className="text-blue-600 hover:text-blue-700 text-sm font-medium cursor-pointer"
             >
               {mode === 'login' 
                 ? "Don't have an account? Sign up" 

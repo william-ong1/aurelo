@@ -6,6 +6,18 @@ interface User {
   email: string;
 }
 
+interface Asset {
+  id: number;
+  name: string;
+  isStock: boolean;
+  ticker?: string;
+  shares?: number;
+  currentPrice?: number;
+  purchasePrice?: number;
+  balance?: number;
+  apy?: number;
+}
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
@@ -14,6 +26,7 @@ interface AuthContextType {
   register: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
+  syncLocalAssets: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -74,6 +87,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const syncLocalAssets = async (): Promise<void> => {
+    if (!token) return;
+
+    try {
+      // Load assets from localStorage
+      const storedAssets = localStorage.getItem('portfolio_assets');
+      if (!storedAssets) return;
+
+      const localAssets: Asset[] = JSON.parse(storedAssets);
+      if (localAssets.length === 0) return;
+
+      // Convert assets to backend format (remove id field)
+      const assetsForBackend = localAssets.map(({ id, ...asset }) => asset);
+
+      // Save to backend
+      const response = await fetch('http://localhost:8000/api/portfolio/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ assets: assetsForBackend })
+      });
+
+      if (response.ok) {
+        console.log('Local assets synced to database successfully');
+        // Clear local storage after successful sync
+        localStorage.removeItem('portfolio_assets');
+      } else {
+        console.error('Failed to sync local assets to database');
+      }
+    } catch (error) {
+      console.error('Error syncing local assets:', error);
+    }
+  };
+
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const response = await fetch('http://localhost:8000/api/auth/login', {
@@ -89,6 +138,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(data.user);
         setToken(data.access_token);
         localStorage.setItem('auth_token', data.access_token);
+        
+        // Sync local assets to database after successful login
+        await syncLocalAssets();
+        
         return true;
       } else {
         const errorData = await response.json();
@@ -115,10 +168,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const data = await response.json();
         setUser(data);
         
-        // If registration returns a token immediately, set it
+        // If registration returns a token immediately, set it and sync assets
         if (data.access_token) {
           setToken(data.access_token);
           localStorage.setItem('auth_token', data.access_token);
+          
+          // Sync local assets to database after successful registration
+          await syncLocalAssets();
         }
         
         return true;
@@ -150,8 +206,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-
-
   const value: AuthContextType = {
     user,
     token,
@@ -160,6 +214,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     isAuthenticated: !!user && !!token,
+    syncLocalAssets,
   };
 
   return (

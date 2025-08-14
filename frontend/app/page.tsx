@@ -91,11 +91,45 @@ export default function Home() {
     apy: ''
   });
   const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
+  const [isBannerMinimized, setIsBannerMinimized] = useState(true);
 
   // Load assets from backend when authenticated, localStorage when not
   useEffect(() => {
     if (isAuthenticated && token) {
-      loadPortfolioFromBackend();
+      // When user becomes authenticated, sync local assets first, then load from backend
+      const syncAndLoadAssets = async () => {
+        try {
+          // Check if there are local assets to sync
+          const storedAssets = loadAssetsFromStorage();
+          if (storedAssets.length > 0) {
+            // Sync local assets to backend
+            const assetsForBackend = storedAssets.map(({ id, ...asset }) => asset);
+            const syncResponse = await fetch('http://localhost:8000/api/portfolio/save', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ assets: assetsForBackend })
+            });
+            
+            if (syncResponse.ok) {
+              console.log('Local assets synced to database successfully');
+              // Clear local storage after successful sync
+              saveAssetsToStorage([]);
+            }
+          }
+          
+          // Load the complete portfolio from backend (including synced assets)
+          await loadPortfolioFromBackend();
+        } catch (error) {
+          console.error('Error syncing and loading assets:', error);
+          // Fallback to loading from backend only
+          await loadPortfolioFromBackend();
+        }
+      };
+      
+      syncAndLoadAssets();
     } else if (!isAuthenticated && !isLoading && !hasLoadedFromStorage && !token) {
       // Load from localStorage if not authenticated and no token
       const storedAssets = loadAssetsFromStorage();
@@ -275,7 +309,7 @@ export default function Home() {
           // Update existing asset
           if (asset.isStock) {
             const existingShares = newAssets[index].shares || 0;
-            const existingPrice = newAssets[index].currentPrice || 0;
+            const existingPrice = newAssets[index].purchasePrice || newAssets[index].currentPrice || 0;
             const newShares = asset.shares || 0;
             const newPrice = asset.currentPrice || 0;
             
@@ -286,14 +320,20 @@ export default function Home() {
             
             newAssets[index].shares = totalShares;
             newAssets[index].purchasePrice = weightedAveragePrice;
+            newAssets[index].currentPrice = asset.currentPrice;
           } else {
             newAssets[index].balance = (newAssets[index].balance || 0) + (asset.balance || 0);
             // Backend returns APY as decimal, so we keep it as is
             newAssets[index].apy = asset.apy;
           }
         } else {
-          // Add new asset with unique ID
-          newAssets.push({ ...asset, id: nextId++ });
+          // Add new asset with unique ID and proper Asset format
+          const newAsset: Asset = {
+            ...asset,
+            id: nextId++,
+            purchasePrice: asset.isStock ? (asset.currentPrice || 0) : undefined
+          };
+          newAssets.push(newAsset);
         }
       });
       
@@ -421,7 +461,7 @@ export default function Home() {
 
       {/* Aurelo Header */}
       <div className="w-full max-w-5xl mb-4 sm:mb-8">
-        <div className="rounded-xl p-4 sm:p-6 bg-gradient-to-br from-slate-50 via-white to-slate-100 shadow-lg border border-gray-200/50">
+        <div className="rounded-xl p-4 sm:p-6 bg-gradient-to-br from-slate-50 to-slate-100 shadow-lg border border-gray-200/50">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
@@ -466,11 +506,42 @@ export default function Home() {
       </div>
 
       <div className="w-full max-w-5xl">
+        {!isAuthenticated && (
+          <div className="mb-4 sm:mb-8 p-2 sm:p-6 sm:py-2 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 shadow-lg border border-gray-200/50">
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <p className="text-sm text-gray-700 font-medium">
+                  Your portfolio is currently saved locally
+                </p>
+                {!isBannerMinimized && (
+                  <p className="text-xs text-gray-600 mt-1">
+                    Sign in to save your portfolio to the cloud and access it across all your devices, or stay logged out to keep everything local.
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => setIsBannerMinimized(!isBannerMinimized)}
+                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded cursor-pointer"
+                title={isBannerMinimized ? "Expand" : "Minimize"}
+              >
+                {isBannerMinimized ? (
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                ) : (
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
         <div className="rounded-lg p-4 sm:p-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl shadow-lg">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Portfolio Allocation</h2>
             <div className="flex items-center space-x-3">
-              <div className="flex items-center bg-gray-100/60 backdrop-blur-sm rounded-full p-0.5 border border-gray-200/40">
+              <div className="flex items-center bg-gray-100/60 backdrop-blur-sm rounded-full p-0.5 border border-gray-200/90">
                 <button
                   onClick={() => setTimePeriod('all-time')}
                   className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
@@ -664,7 +735,7 @@ export default function Home() {
                               </div>
                               <div className="text-sm text-gray-600">
                                 {asset.isStock 
-                                  ? `${asset.shares} shares @ $${asset.currentPrice || asset.purchasePrice}`
+                                  ? `${asset.shares} shares @ $${asset.currentPrice}`
                                   : `$${asset.balance} @ ${((asset.apy || 0) * 100).toFixed(2)}% APY`
                                 }
                               </div>
