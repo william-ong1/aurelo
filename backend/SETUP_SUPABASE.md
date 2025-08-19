@@ -43,15 +43,38 @@ CREATE TABLE portfolio_assets (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Create trades table
+CREATE TABLE trades (
+    id SERIAL PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    date DATE NOT NULL,
+    ticker TEXT NOT NULL,
+    trade_type TEXT NOT NULL CHECK (trade_type IN ('buy', 'sell')),
+    shares DECIMAL NOT NULL,
+    price DECIMAL NOT NULL,
+    realized_pnl DECIMAL,
+    percent_diff DECIMAL,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Enable Row Level Security
 ALTER TABLE portfolio_assets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE trades ENABLE ROW LEVEL SECURITY;
 
 -- Create policy to allow users to only see their own assets
 CREATE POLICY "Users can only access their own portfolio assets" ON portfolio_assets
     FOR ALL USING (auth.uid() = user_id);
 
--- Create index for better performance
+-- Create policy to allow users to only see their own trades
+CREATE POLICY "Users can only access their own trades" ON trades
+    FOR ALL USING (auth.uid() = user_id);
+
+-- Create indexes for better performance
 CREATE INDEX idx_portfolio_assets_user_id ON portfolio_assets(user_id);
+CREATE INDEX idx_trades_user_id ON trades(user_id);
+CREATE INDEX idx_trades_date ON trades(date);
+CREATE INDEX idx_trades_ticker ON trades(ticker);
 ```
 
 ## 5. Install Dependencies
@@ -75,6 +98,9 @@ The server should start without errors. You can test the endpoints:
 - `POST /api/auth/login` - Login user
 - `GET /api/portfolio` - Get user's portfolio (requires auth)
 - `POST /api/portfolio/save` - Save user's portfolio (requires auth)
+- `GET /api/trades` - Get user's trades (requires auth)
+- `POST /api/trades` - Create new trade (requires auth)
+- `GET /api/trades/analytics` - Get trading analytics (requires auth)
 
 ## API Endpoints
 
@@ -88,6 +114,14 @@ The server should start without errors. You can test the endpoints:
 - `GET /api/portfolio` - Get user's portfolio
 - `POST /api/portfolio/save` - Save user's portfolio
 
+### Trade Management
+- `GET /api/trades` - Get user's trades
+- `POST /api/trades` - Create new trade
+- `PUT /api/trades/{trade_id}` - Update trade
+- `DELETE /api/trades/{trade_id}` - Delete trade
+- `GET /api/trades/analytics` - Get trading analytics
+- `POST /api/trades/parse-image` - Parse trade image
+
 ### Existing Endpoints (still work)
 - `GET /api/price` - Get stock price
 - `GET /api/prices` - Get multiple stock prices
@@ -98,4 +132,4 @@ The server should start without errors. You can test the endpoints:
 
 - **Row Level Security (RLS)**: Users can only access their own data
 - **JWT Authentication**: Secure token-based authentication
-- **Automatic User Isolation**: All portfolio data is automatically scoped to the authenticated user
+- **Automatic User Isolation**: All portfolio and trade data is automatically scoped to the authenticated user

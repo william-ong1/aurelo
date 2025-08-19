@@ -3,10 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { Plus, X, Edit2, Trash2, Upload, FileText, LogIn, UserPlus } from 'lucide-react';
 import PositionAnalytics from './components/PositionAnalytics';
 import PieChart from './components/PieChart';
+import TradingSection from './components/TradingSection';
 import { useRealTime } from './contexts/RealTimeContext';
 import { useAuth } from './contexts/AuthContext';
 import AuthModal from './components/AuthModal';
 import UserProfile from './components/UserProfile';
+import { disableBodyScroll, enableBodyScroll } from './utils/scrollLock';
+import { getApiUrl } from './config/api';
 
 interface Asset {
   id: number;
@@ -30,15 +33,15 @@ interface ParsedAsset {
   apy?: number;
 }
 
-function InputField({ label, ...props }: { label: string; [key: string]: any }) {
+function InputField({ label, ...props }: { label: string; [key: string]: unknown }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
         {label}
       </label>
       <input
         {...props}
-        className="w-full px-3 sm:px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-black focus:border-black hover:border-black transition-all text-base"
+        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-black focus:border-black hover:border-black transition-all text-sm"
       />
     </div>
   );
@@ -77,7 +80,7 @@ export default function Home() {
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [uploadMode, setUploadMode] = useState<'manual' | 'image'>('manual');
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [parsedAssets, setParsedAssets] = useState<ParsedAsset[]>([]);
   const [timePeriod, setTimePeriod] = useState<'all-time' | 'today'>('all-time');
@@ -92,19 +95,21 @@ export default function Home() {
   });
   const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
   const [isBannerMinimized, setIsBannerMinimized] = useState(true);
+  const [isLoadingAssets, setIsLoadingAssets] = useState(false);
 
   // Load assets from backend when authenticated, localStorage when not
   useEffect(() => {
     if (isAuthenticated && token) {
       // When user becomes authenticated, sync local assets first, then load from backend
       const syncAndLoadAssets = async () => {
+        setIsLoadingAssets(true);
         try {
           // Check if there are local assets to sync
           const storedAssets = loadAssetsFromStorage();
           if (storedAssets.length > 0) {
             // Sync local assets to backend
             const assetsForBackend = storedAssets.map(({ id, ...asset }) => asset);
-            const syncResponse = await fetch('http://localhost:8000/api/portfolio/save', {
+            const syncResponse = await fetch(getApiUrl('/api/portfolio/save'), {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -126,6 +131,8 @@ export default function Home() {
           console.error('Error syncing and loading assets:', error);
           // Fallback to loading from backend only
           await loadPortfolioFromBackend();
+        } finally {
+          setIsLoadingAssets(false);
         }
       };
       
@@ -143,6 +150,7 @@ export default function Home() {
     if (!isAuthenticated) {
       setHasLoadedFromStorage(false);
       setAssets([]); // Clear assets when user logs out
+      setIsLoadingAssets(false); // Reset loading state when user logs out
     }
   }, [isAuthenticated, token]); // Also depend on token to catch token removal
 
@@ -157,9 +165,23 @@ export default function Home() {
     }
   }, [assets, isAuthenticated, token, hasLoadedFromStorage]);
 
+  // Handle body scroll locking for modals
+  useEffect(() => {
+    if (showModal || showAuthModal) {
+      disableBodyScroll();
+    } else {
+      enableBodyScroll();
+    }
+
+    // Cleanup on unmount
+    return () => {
+      enableBodyScroll();
+    };
+  }, [showModal, showAuthModal]);
+
   const loadPortfolioFromBackend = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/portfolio', {
+              const response = await fetch(getApiUrl('/api/portfolio'), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -167,7 +189,7 @@ export default function Home() {
       
       if (response.ok) {
         const data = await response.json();
-        const backendAssets = data.assets.map((asset: any, index: number) => ({
+        const backendAssets = data.assets.map((asset: { [key: string]: unknown }, index: number) => ({
           ...asset,
           id: index + 1 // Generate local IDs
         }));
@@ -180,7 +202,7 @@ export default function Home() {
 
   const savePortfolioToBackend = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/portfolio/save', {
+      const response = await fetch(getApiUrl('/api/portfolio/save'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -203,7 +225,7 @@ export default function Home() {
     if (!token) return;
     
     try {
-      const response = await fetch('http://localhost:8000/api/portfolio/save', {
+      const response = await fetch(getApiUrl('/api/portfolio/save'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -249,45 +271,50 @@ export default function Home() {
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      setSelectedImage(file);
-    }
+    const files = Array.from(e.target.files || []);
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    setSelectedImages(imageFiles);
   };
 
-  const processImageWithGemini = async () => {
-    if (!selectedImage) return;
+  const processImagesWithGemini = async () => {
+    if (selectedImages.length === 0) return;
 
     setIsProcessing(true);
     try {
-      const base64Image = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (!selectedImage) return reject("Image removed before processing");
-          const result = reader.result as string;
-          resolve(result.split(',')[1]);
-        };
-        reader.readAsDataURL(selectedImage);
-      });
+      const imageRequests = [];
+      
+      for (const image of selectedImages) {
+        const base64Image = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            resolve(result.split(',')[1]);
+          };
+          reader.onerror = () => reject("Failed to read image");
+          reader.readAsDataURL(image);
+        });
+        
+        imageRequests.push({
+          image: base64Image,
+          mimeType: image.type
+        });
+      }
 
-      const response = await fetch('http://localhost:8000/api/parse-image', {
+      const response = await fetch(getApiUrl('/api/parse-multiple-images'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          image: base64Image,
-          mimeType: selectedImage.type
+          images: imageRequests
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to process image');
+      if (!response.ok) throw new Error('Failed to process images');
 
       const data = await response.json();
       setParsedAssets(data.assets || []);
     } catch (error) {
-      console.error('Error processing image:', error);
-      if (error !== "Image removed before processing") {
-        alert('Failed to process image. Please try again or use manual entry.');
-      }
+      console.error('Error processing images:', error);
+      alert('Failed to process images. Please try again or use manual entry.');
     } finally {
       setIsProcessing(false);
     }
@@ -341,7 +368,7 @@ export default function Home() {
     });
     
     setParsedAssets([]);
-    setSelectedImage(null);
+    setSelectedImages([]);
     setUploadMode('manual');
     setShowModal(false);
   };
@@ -440,7 +467,7 @@ export default function Home() {
     setShowModal(false);
     setEditingAsset(null);
     setUploadMode('manual');
-    setSelectedImage(null);
+    setSelectedImages([]);
     setParsedAssets([]);
     setFormData({ name: '', isStock: true, ticker: '', shares: '', price: '', balance: '', apy: '' });
   };
@@ -448,292 +475,305 @@ export default function Home() {
   // Show loading state while checking authentication
   if (isLoading) {
     return (
-      <main className="flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <p className="mt-4 text-gray-600">Loading...</p>
-      </main>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <main className="flex flex-col items-center justify-center min-h-screen p-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </main>
+      </div>
     );
   }
 
   return (
-    <main className="flex flex-col items-center justify-between p-4 sm:p-8 lg:p-24 lg:pt-8 pt-4 sm:pt-8">
-
-
-      {/* Aurelo Header */}
-      <div className="w-full max-w-5xl mb-4 sm:mb-8">
-        <div className="rounded-xl p-4 sm:p-6 bg-gradient-to-br from-slate-50 to-slate-100 shadow-lg border border-gray-200/50">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
-                      Aurelo
-                    </h1>
-                    <span className="px-2 py-1 bg-gradient-to-r from-orange-100 to-amber-100 text-orange-700 text-xs font-semibold rounded-full border border-orange-200 shadow-sm">
-                      Beta
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-500 font-medium">
-                    Your assets, simplified.
-                  </p>
+    <div className="min-h-screen bg-gray-50">
+      <main className="container mx-auto px-2 sm:px-6 lg:px-8 py-2 sm:py-8 lg:py-12 max-w-7xl">
+        
+        {/* Header Section */}
+        <section className="mb-6 sm:mb-12">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200/50 px-4 py-2 sm:p-8">
+            <div className="flex flex-col gap-0">
+              {/* Top Row: Aurelo Title and Auth */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1 sm:gap-3">
+                  <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-amber-500 tracking-tight relative">
+                    Aurelo
+                    {/* <div className="absolute -top-0 -right-2 w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div> */}
+                  </h1>
+                  <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-gradient-to-r from-orange-100 to-amber-100 text-orange-700 text-[.5rem] sm:text-xs font-semibold rounded-full border border-orange-200 shadow-sm">
+                    Beta
+                  </span>
+                </div>
+                
+                {/* Auth Section */}
+                <div className="flex items-center">
+                  {isAuthenticated ? (
+                    <UserProfile onLogout={() => {
+                      setAssets([]); // Immediately clear assets
+                      logout();
+                    }} />
+                  ) : (
+                    <button
+                      onClick={() => setShowAuthModal(true)}
+                      className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors cursor-pointer px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg"
+                    >
+                      <LogIn className='w-3 h-3 sm:w-5 sm:h-5' />
+                      Sign In
+                    </button>
+                  )}
                 </div>
               </div>
+              
+              {/* Bottom Row: Tagline */}
+              <p className="text-xs sm:text-sm text-gray-500 font-medium">
+                Your finances, simplified.
+              </p>
             </div>
-            <div className="flex items-center gap-4">
-              {isAuthenticated ? (
-                <UserProfile onLogout={() => {
-                  setAssets([]); // Immediately clear assets
-                  logout();
-                }} />
-              ) : (
-                <div className="flex items-center gap-2">
+          </div>
+        </section>
+
+        {/* Portfolio Allocation Section */}
+        <section className="mb-8 sm:mb-12">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200/50 p-4 sm:p-8">
+            <div className="flex flex-row justify-between items-center gap-4 mb-4 sm:mb-8">
+              <div className="flex items-center gap-3">
+                <h2 className="text-base sm:text-xl lg:text-2xl font-semibold text-gray-800">Portfolio Allocation</h2>
+                {/* {!isAuthenticated && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setIsBannerMinimized(!isBannerMinimized)}
+                      className="flex items-center gap-2 px-1 sm:px-2 py-.5 sm:py-1 bg-gray-100 border border-gray-200 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+                    >
+                      <svg className="w-2 h-2 sm:w-3 sm:h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                      <span className="text-[.5rem] sm:text-xs text-gray-600 font-medium">Local</span>
+                      <svg className={`w-2 h-2 sm:w-3 sm:h-3 text-gray-500 transition-transform ${isBannerMinimized ? 'rotate-0' : 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    
+                    {!isBannerMinimized && (
+                      <div className="absolute top-full w-96 left-0 mt-2 right-0 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-10">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-1">
+                            <h4 className="text-xs sm:text-sm font-semibold text-gray-900 mb-1">Portfolio Saved Locally</h4>
+                            <p className="text-xs text-gray-600 mb-3">
+                              Sign in to save your portfolio to the cloud and access it across all your devices.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )} */}
+              </div>
+              <div className="flex items-center gap-1.5 sm:gap-3">
+                <div className="flex items-center bg-gray-100 backdrop-blur-sm rounded-full p-1 border border-gray-200/90">
                   <button
-                    onClick={() => setShowAuthModal(true)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+                    onClick={() => setTimePeriod('all-time')}
+                    className={`px-1.5 sm:px-3 py-.7 sm:py-1.5 text-[.6rem] sm:text-xs font-medium rounded-full transition-all duration-200 cursor-pointer ${
+                      timePeriod === 'all-time' 
+                        ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-300 font-semibold' 
+                        : 'text-gray-600 hover:text-gray-800 hover:bg-white/80'
+                    }`}
                   >
-                    <LogIn size={16} />
-                    Sign In
+                    All Time
+                  </button>
+                  <button
+                    onClick={() => setTimePeriod('today')}
+                    className={`px-1.5 sm:px-3 py-.7 sm:py-1.5 text-[.6rem] sm:text-xs font-medium rounded-full transition-all duration-200 cursor-pointer ${
+                      timePeriod === 'today' 
+                        ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-300 font-semibold' 
+                        : 'text-gray-600 hover:text-gray-800 hover:bg-white/80'
+                    }`}
+                  >
+                    Today
                   </button>
                 </div>
-              )}
-              {/* <div className="flex items-center gap-2 text-gray-500">
-                <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">v1.0.0</span>
-              </div> */}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="w-full max-w-5xl">
-        {!isAuthenticated && (
-          <div className="mb-4 sm:mb-8 p-2 sm:p-6 sm:py-2 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 shadow-lg border border-gray-200/50">
-            <div className="flex items-center gap-3">
-              <div className="flex-1">
-                <p className="text-sm text-gray-700 font-medium">
-                  Your portfolio is currently saved locally
-                </p>
-                {!isBannerMinimized && (
-                  <p className="text-xs text-gray-600 mt-1">
-                    Sign in to save your portfolio to the cloud and access it across all your devices, or stay logged out to keep everything local.
-                  </p>
-                )}
-              </div>
-              <button
-                onClick={() => setIsBannerMinimized(!isBannerMinimized)}
-                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded cursor-pointer"
-                title={isBannerMinimized ? "Expand" : "Minimize"}
-              >
-                {isBannerMinimized ? (
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                ) : (
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                  </svg>
-                )}
-              </button>
-            </div>
-          </div>
-        )}
-        <div className="rounded-lg p-4 sm:p-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl shadow-lg">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Portfolio Allocation</h2>
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center bg-gray-100/60 backdrop-blur-sm rounded-full p-0.5 border border-gray-200/90">
-                <button
-                  onClick={() => setTimePeriod('all-time')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
-                    timePeriod === 'all-time' 
-                      ? 'bg-white text-gray-800 shadow-sm ring-1 ring-gray-200/60' 
-                      : 'text-gray-600 hover:text-gray-700 hover:bg-white/50'
-                  }`}
-                >
-                  All Time
-                </button>
-                <button
-                  onClick={() => setTimePeriod('today')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
-                    timePeriod === 'today' 
-                      ? 'bg-white text-gray-800 shadow-sm ring-1 ring-gray-200/60' 
-                      : 'text-gray-600 hover:text-gray-700 hover:bg-white/50'
-                  }`}
-                >
-                  Today
-                </button>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => {if (assets.length > 0) {setIsEditMode(!isEditMode)}}}
-                  disabled={assets.length === 0}
-                  className={`p-1.5 rounded-lg transition-all duration-200 ${
-                    assets.length === 0
-                      ? 'text-gray-200 cursor-not-allowed'
-                      : isEditMode && assets.length > 0
-                      ? 'text-blue-600 bg-blue-50 ring-2 ring-blue-200 shadow-sm cursor-pointer' 
-                      : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all cursor-pointer'
-                  }`}
-                  title={assets.length === 0 ? "No assets to edit" : isEditMode && assets.length > 0 ? "Exit Edit Mode" : "Edit Portfolio"}
-                >
-                  <Edit2 size={16} />
-                </button>
-                <button
-                  onClick={() => {
-                    setIsEditMode(false);
-                    setShowModal(true);
-                  }}
-                  disabled={isEditMode && assets.length > 0}
-                  className={`p-1 pr-2 rounded-lg transition-colors ${
-                    isEditMode && assets.length > 0
-                      ? 'text-gray-200 cursor-not-allowed' 
-                      : 'text-gray-400 hover:text-gray-600 transition-all cursor-pointer'
-                  }`}
-                  title={isEditMode && assets.length > 0 ? "Exit edit mode to add assets" : "Add Asset"}
-                >
-                  <Plus size={20} />
-                </button>
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <button
+                    onClick={() => {if (assets.length > 0) {setIsEditMode(!isEditMode)}}}
+                    disabled={assets.length === 0}
+                    className={`p-1 sm:p-1.5 rounded-lg transition-all duration-200 ${
+                      assets.length === 0
+                        ? 'text-gray-200 cursor-not-allowed'
+                        : isEditMode && assets.length > 0
+                        ? 'text-blue-600 bg-blue-50 ring-2 ring-blue-200 shadow-sm cursor-pointer' 
+                        : 'text-gray-400 hover:text-gray-600 transition-all cursor-pointer'
+                    }`}
+                    title={assets.length === 0 ? "No assets to edit" : isEditMode && assets.length > 0 ? "Exit Edit Mode" : "Edit Portfolio"}
+                  >
+                    <Edit2 className='w-3 h-3 sm:w-5 sm:h-5' />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsEditMode(false);
+                      setShowModal(true);
+                    }}
+                    disabled={isEditMode && assets.length > 0}
+                    className={`p-1 sm:p-1.5 rounded-lg transition-colors ${
+                      isEditMode && assets.length > 0
+                        ? 'text-gray-200 cursor-not-allowed' 
+                        : 'text-gray-400 hover:text-gray-600 transition-all cursor-pointer'
+                    }`}
+                    title={isEditMode && assets.length > 0 ? "Exit edit mode to add assets" : "Add Asset"}
+                  >
+                    <Plus className='w-4 h-4 sm:w-6 sm:h-6' />
+                  </button>
+                </div>
               </div>
             </div>
+
+            {/* Pie Chart */}
+            <PieChart 
+              assets={assets} 
+              onEdit={handleEdit} 
+              onDelete={handleDelete}
+              isEditMode={isEditMode}
+              timePeriod={timePeriod}
+              isLoadingAssets={isLoadingAssets}
+            />
           </div>
+        </section>
 
-          {/* Pie Chart */}
-          <PieChart 
-            assets={assets} 
-            onEdit={handleEdit} 
-            onDelete={handleDelete}
-            isEditMode={isEditMode}
-            timePeriod={timePeriod}
-          />
-        </div>
+        {/* Position Analytics Section */}
+        <section className="mb-8 sm:mb-12">
+          <PositionAnalytics assets={assets} isLoadingAssets={isLoadingAssets} />
+        </section>
 
-        {/* Position Analytics */}
-        <PositionAnalytics assets={assets} />
-      </div>
+        {/* Trading Analytics Section */}
+        <section>
+          <TradingSection />
+        </section>
+
+      </main>
 
       {/* Modal */}
       {showModal && (
         <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-all p-4"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-all p-3 sm:p-4"
         >
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-4 sm:p-8 w-full max-w-lg mx-auto border border-gray-200/50 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4 sm:mb-6">
-              <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-3 sm:p-8 w-full max-w-lg mx-auto border border-gray-200/50 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-3 sm:mb-6">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-800">
                 {editingAsset ? 'Edit Asset' : 'Add New Asset'}
               </h2>
               <button
                 onClick={closeModal}
                 className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
               >
-                <X size={24} className="sm:w-7 sm:h-7" />
+                <X size={20} className="sm:w-7 sm:h-7" />
               </button>
             </div>
 
             {!editingAsset && (
-              <div className="mb-4 sm:mb-6">
-                <div className="flex flex-col sm:flex-row gap-3">
+              <div className="mb-3 sm:mb-6">
+                <div className="flex flex-row gap-2 sm:gap-3">
                   <button
                     onClick={() => setUploadMode('manual')}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-3 rounded-lg border-2 transition-all cursor-pointer ${
+                    className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all cursor-pointer ${
                       uploadMode === 'manual'
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
                         : 'border-gray-300 text-gray-600 hover:border-gray-400'
                     }`}
                   >
-                    <FileText size={18} className="sm:w-5 sm:h-5" />
-                    <span className="font-medium text-sm sm:text-base">Manual Entry</span>
+                    <FileText size={16} className="sm:w-5 sm:h-5" />
+                    <span className="font-medium text-xs sm:text-base">Manual Entry</span>
                   </button>
                   <button
                     onClick={() => setUploadMode('image')}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-3 rounded-lg border-2 transition-all cursor-pointer ${
+                    className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all cursor-pointer ${
                       uploadMode === 'image'
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
                         : 'border-gray-300 text-gray-600 hover:border-gray-400'
                     }`}
                   >
-                    <Upload size={18} className="sm:w-5 sm:h-5" />
-                    <span className="font-medium text-sm sm:text-base">Upload Image</span>
+                    <Upload size={16} className="sm:w-5 sm:h-5" />
+                    <span className="font-medium text-xs sm:text-base">Upload Image</span>
                   </button>
                 </div>
               </div>
             )}
 
             {uploadMode === 'image' && !editingAsset ? (
-              <div className="space-y-5">
-                {!selectedImage ? (
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                    <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                    <div className="text-sm text-gray-600 mb-4">
-                      Upload a screenshot of your portfolio or account statement
+              <div className="space-y-4 sm:space-y-5">
+                {selectedImages.length === 0 ? (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-8 text-center">
+                    <Upload className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mb-3 sm:mb-4" />
+                    <div className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
+                      Upload screenshots of your portfolio or holdings
                     </div>
                     <input
                       type="file"
                       accept="image/*"
+                      multiple
                       onChange={handleImageUpload}
                       className="hidden"
                       id="image-upload"
                     />
                     <label
                       htmlFor="image-upload"
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                      className="inline-flex items-center px-3 sm:px-4 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
                     >
-                      Choose Image
+                      Choose Images
                     </label>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <Upload className="h-6 w-6 text-blue-600" />
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">{selectedImage.name}</div>
-                          <div className="text-sm text-gray-500">
-                            {(selectedImage.size / 1024 / 1024).toFixed(2)} MB
+                  <div className="space-y-3 sm:space-y-4">
+                    {selectedImages.map((image, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="w-8 h-8 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <Upload className="h-4 w-4 sm:h-6 sm:w-6 text-blue-600" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900 text-xs sm:text-sm">{image.name}</div>
+                            <div className="text-xs sm:text-sm text-gray-500">
+                              {(image.size / 1024 / 1024).toFixed(2)} MB
+                            </div>
                           </div>
                         </div>
+                        <button
+                          onClick={() => {
+                            setSelectedImages(selectedImages.filter((_, i) => i !== index));
+                            setParsedAssets([]);
+                            setIsProcessing(false);
+                          }}
+                          className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                        >
+                          <X size={16} className="sm:w-5 sm:h-5" />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => {
-                          setSelectedImage(null);
-                          setParsedAssets([]);
-                          setIsProcessing(false);
-                        }}
-                        className="text-gray-400 hover:text-gray-600 cursor-pointer"
-                      >
-                        <X size={20} />
-                      </button>
-                    </div>
+                    ))}
                     
                     {!isProcessing && parsedAssets.length === 0 && (
                       <button
-                        onClick={processImageWithGemini}
-                        className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer"
+                        onClick={processImagesWithGemini}
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-sm"
                       >
-                        Process Image
+                        Process {selectedImages.length} Image{selectedImages.length !== 1 ? 's' : ''}
                       </button>
                     )}
 
                     {isProcessing && (
-                      <div className="text-center py-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                        <div className="text-gray-600">Processing image ...</div>
+                      <div className="text-center py-6 sm:py-8">
+                        <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600 mx-auto mb-3 sm:mb-4"></div>
+                        <div className="text-gray-600 text-sm">Processing {selectedImages.length} image{selectedImages.length !== 1 ? 's' : ''}...</div>
                       </div>
                     )}
 
                     {parsedAssets.length > 0 && (
-                      <div className="space-y-4">
-                        <div className="text-sm font-medium text-gray-700">
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="text-xs sm:text-sm font-medium text-gray-700">
                           Found {parsedAssets.length} asset(s):
                         </div>
                         <div className="max-h-60 overflow-y-auto space-y-2">
                           {parsedAssets.map((asset, index) => (
-                            <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                              <div className="font-medium text-gray-900">
+                            <div key={index} className="p-2 sm:p-3 bg-gray-50 rounded-lg">
+                              <div className="font-medium text-gray-900 text-xs sm:text-sm">
                                 {asset.isStock ? asset.ticker : asset.name}
                               </div>
-                              <div className="text-sm text-gray-600">
+                              <div className="text-xs sm:text-sm text-gray-600">
                                 {asset.isStock 
                                   ? `${asset.shares} shares @ $${asset.currentPrice}`
                                   : `$${asset.balance} @ ${((asset.apy || 0) * 100).toFixed(2)}% APY`
@@ -742,21 +782,21 @@ export default function Home() {
                             </div>
                           ))}
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="flex flex-row gap-2 sm:gap-3">
                           <button
                             onClick={() => {
                               setParsedAssets([]);
-                              setSelectedImage(null);
+                              setSelectedImages([]);
                               setIsProcessing(false);
                             }}
-                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer"
+                            className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-xs sm:text-sm"
                           >
                             Try Again
                           </button>
 
                           <button
                             onClick={addParsedAssets}
-                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer"
+                            className="flex-1 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-xs sm:text-sm"
                           >
                             Add All Assets
                           </button>
@@ -767,10 +807,10 @@ export default function Home() {
                 )}
               </div>
             ) : (
-              <div className="space-y-5">
+              <div className="space-y-4 sm:space-y-5">
                 {/* Asset Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                     Asset Name
                   </label>
                   <input
@@ -778,17 +818,17 @@ export default function Home() {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-black focus:border-black hover:border-black transition-all"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-black focus:border-black hover:border-black transition-all text-sm"
                     placeholder="e.g., Apple Inc."
                   />
                 </div>
 
                 {/* Asset Type */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                     Asset Type
                   </label>
-                  <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                  <div className="flex flex-row gap-4 sm:gap-6">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="radio"
@@ -797,7 +837,7 @@ export default function Home() {
                         checked={formData.isStock === true}
                         onChange={() => setFormData(prev => ({ ...prev, isStock: true }))}
                       />
-                      <span>Stock / ETF</span>
+                      <span className="text-sm">Stock / ETF</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -807,7 +847,7 @@ export default function Home() {
                         checked={formData.isStock === false}
                         onChange={() => setFormData(prev => ({ ...prev, isStock: false }))}
                       />
-                      <span>Cash Account</span>
+                      <span className="text-sm">Cash Account</span>
                     </label>
                   </div>
                 </div>
@@ -815,7 +855,24 @@ export default function Home() {
                 {/* Stock Fields */}
                 {formData.isStock ? (
                   <>
-                    <InputField label="Ticker Symbol" name="ticker" value={formData.ticker} onChange={handleInputChange} placeholder="e.g., AAPL" />
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        Ticker Symbol
+                      </label>
+                      <input
+                        name="ticker"
+                        value={formData.ticker}
+                        onChange={(e) => {
+                          const { name, value } = e.target;
+                          setFormData(prev => ({
+                            ...prev,
+                            [name]: value.toUpperCase()
+                          }));
+                        }}
+                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                        placeholder="e.g., AAPL"
+                      />
+                    </div>
                     <InputField label="Number of Shares" name="shares" value={formData.shares} onChange={handleInputChange} type="number" step="0.001" placeholder="e.g., 10.5" />
                     <InputField label="Price per Share" name="price" value={formData.price} onChange={handleInputChange} type="number" step="0.01" placeholder="e.g., 150.00" />
                   </>
@@ -827,16 +884,16 @@ export default function Home() {
                 )}
 
                 {/* Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <div className="flex flex-row gap-2 sm:gap-3 pt-3 sm:pt-4">
                   <button
                     onClick={closeModal}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer"
+                    className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-xs sm:text-sm"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSubmit}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer"
+                    className="flex-1 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-xs sm:text-sm"
                   >
                     {editingAsset ? 'Update Asset' : 'Add Asset'}
                   </button>
@@ -853,6 +910,6 @@ export default function Home() {
         onClose={() => setShowAuthModal(false)}
         initialMode="login"
       />
-    </main>
+    </div>
   );
 }

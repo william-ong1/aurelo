@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { getApiUrl } from '../config/api';
 
 interface RealTimePrices {
   [ticker: string]: number;
@@ -44,7 +45,7 @@ export function RealTimeProvider({ children }: RealTimeProviderProps) {
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:8000/api/prices?tickers=${tickers.join(',')}`);
+      const response = await fetch(getApiUrl(`/api/prices?tickers=${tickers.join(',')}`));
       if (!response.ok) {
         throw new Error('Failed to fetch prices');
       }

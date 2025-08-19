@@ -12,7 +12,7 @@ import base64
 import json
 from typing import List, Dict, Optional
 import asyncio
-from datetime import datetime
+from datetime import datetime, UTC
 from supabase import create_client, Client
 from jose import jwt, JWTError
 
@@ -33,7 +33,12 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:5173", 
+        "http://localhost:3000",
+        "http://192.168.0.14:3000",
+        "http://192.168.0.14:8000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -74,9 +79,32 @@ class PortfolioAsset(BaseModel):
 class PortfolioSaveRequest(BaseModel):
     assets: List[PortfolioAsset]
 
+# Trade models
+class Trade(BaseModel):
+    id: Optional[int] = None
+    date: str
+    ticker: str
+    realized_pnl: Optional[float] = None
+    percent_diff: Optional[float] = None
+
+class TradeCreate(BaseModel):
+    date: str
+    ticker: str
+    realized_pnl: Optional[float] = None
+    percent_diff: Optional[float] = None
+
+class TradeUpdate(BaseModel):
+    date: Optional[str] = None
+    ticker: Optional[str] = None
+    realized_pnl: Optional[float] = None
+    percent_diff: Optional[float] = None
+
 class ImageParseRequest(BaseModel):
     image: str
     mimeType: str = "image/jpeg"
+
+class MultipleImageParseRequest(BaseModel):
+    images: List[ImageParseRequest]
 
 class PortfolioRequest(BaseModel):
     tickers: List[str]
@@ -328,7 +356,7 @@ async def get_prices(tickers: str):
         return {
             "prices": prices,
             "daily_data": daily_data,
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(UTC).isoformat(),
             "failed_tickers": failed_tickers
         }
         
@@ -373,6 +401,27 @@ async def parse_image(request: ImageParseRequest):
     except Exception as e:
         print(f"API error: {e}")
         raise HTTPException(status_code=500, detail="Failed to process image")
+
+@app.post("/api/parse-multiple-images")
+async def parse_multiple_images(request: MultipleImageParseRequest):
+    """Parse multiple portfolio images using Gemini Vision API"""
+    try:
+        if not request.images or len(request.images) == 0:
+            raise HTTPException(status_code=400, detail="No images provided")
+        
+        all_assets = []
+        
+        # Process each image
+        for image_request in request.images:
+            if image_request.image and image_request.mimeType:
+                assets = parse_portfolio_image(image_request.image, image_request.mimeType)
+                all_assets.extend(assets)
+        
+        return {"assets": all_assets}
+        
+    except Exception as e:
+        print(f"API error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process images")
 
 # Authentication endpoints
 @app.post("/api/auth/register")
@@ -488,7 +537,7 @@ async def save_portfolio(
                 "current_price": asset.currentPrice,
                 "balance": asset.balance,
                 "apy": asset.apy,
-                "created_at": datetime.utcnow().isoformat()
+                "created_at": datetime.now(UTC).isoformat()
             }
             assets_data.append(asset_dict)
         
@@ -531,6 +580,377 @@ async def get_portfolio(user_id: str = Depends(get_current_user)):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get portfolio: {str(e)}")
+
+# Trade management endpoints
+@app.post("/api/trades")
+async def create_trade(
+    trade_data: TradeCreate,
+    user_id: str = Depends(get_current_user)
+):
+    """Create a new trade"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+    
+    print(f"Received trade data: {trade_data}")
+    
+    try:
+        # Check for duplicate trade (same ticker, date, realized_pnl, and percent_diff)
+        existing_trades = supabase.table("trades").select("*").eq("user_id", user_id).execute()
+        
+        print(f"Checking for duplicates. New trade: {trade_data.ticker}, {trade_data.date}, {trade_data.realized_pnl}, {trade_data.percent_diff}")
+        
+        for existing_trade in existing_trades.data:
+            print(f"Comparing with existing: {existing_trade['ticker']}, {existing_trade['date']}, {existing_trade['realized_pnl']}, {existing_trade['percent_diff']}")
+            
+            if (existing_trade["ticker"].upper() == trade_data.ticker.upper() and
+                existing_trade["date"] == trade_data.date and
+                existing_trade["realized_pnl"] == trade_data.realized_pnl and
+                existing_trade["percent_diff"] == trade_data.percent_diff):
+                print("Duplicate found!")
+                # Duplicate found - return existing trade instead of creating new one
+                return {
+                    "trade": Trade(
+                        id=existing_trade["id"],
+                        date=existing_trade["date"],
+                        ticker=existing_trade["ticker"],
+                        realized_pnl=existing_trade["realized_pnl"],
+                        percent_diff=existing_trade["percent_diff"]
+                    ),
+                    "is_duplicate": True
+                }
+        
+        print("No duplicate found, creating new trade")
+        
+        # No duplicate found, create new trade
+        trade_dict = {
+            "user_id": user_id,
+            "date": trade_data.date,
+            "ticker": trade_data.ticker.upper(),
+            "realized_pnl": trade_data.realized_pnl,
+            "percent_diff": trade_data.percent_diff,
+            "created_at": datetime.now(UTC).isoformat()
+        }
+        
+        result = supabase.table("trades").insert(trade_dict).execute()
+        
+        if result.data:
+            created_trade = result.data[0]
+            return {
+                "trade": Trade(
+                    id=created_trade["id"],
+                    date=created_trade["date"],
+                    ticker=created_trade["ticker"],
+                    realized_pnl=created_trade["realized_pnl"],
+                    percent_diff=created_trade["percent_diff"]
+                ),
+                "is_duplicate": False
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create trade")
+            
+    except Exception as e:
+        print(f"Error creating trade: {e}")
+        # Check if it's a table not found error
+        if "relation" in str(e).lower() and "does not exist" in str(e).lower():
+            raise HTTPException(status_code=500, detail="Trades table not found. Please run the SQL script in SETUP_SUPABASE.md to create the trades table.")
+        raise HTTPException(status_code=500, detail=f"Failed to create trade: {str(e)}")
+
+@app.get("/api/trades")
+async def get_trades(user_id: str = Depends(get_current_user)):
+    """Get all trades for the user"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+    
+    try:
+        result = supabase.table("trades").select("*").eq("user_id", user_id).order("date", desc=True).execute()
+        
+        trades = []
+        for row in result.data:
+            trade = Trade(
+                id=row["id"],
+                date=row["date"],
+                ticker=row["ticker"],
+                realized_pnl=row["realized_pnl"],
+                percent_diff=row["percent_diff"]
+            )
+            trades.append(trade)
+        
+        return {"trades": trades}
+        
+    except Exception as e:
+        print(f"Error getting trades: {e}")
+        # Check if it's a table not found error
+        if "relation" in str(e).lower() and "does not exist" in str(e).lower():
+            raise HTTPException(status_code=500, detail="Trades table not found. Please run the SQL script in SETUP_SUPABASE.md to create the trades table.")
+        raise HTTPException(status_code=500, detail=f"Failed to get trades: {str(e)}")
+
+@app.put("/api/trades/{trade_id}")
+async def update_trade(
+    trade_id: int,
+    trade_data: TradeUpdate,
+    user_id: str = Depends(get_current_user)
+):
+    """Update a trade"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+    
+    try:
+        # Build update dictionary with only provided fields
+        update_data = {}
+        if trade_data.date is not None:
+            update_data["date"] = trade_data.date
+        if trade_data.ticker is not None:
+            update_data["ticker"] = trade_data.ticker.upper()
+        if trade_data.realized_pnl is not None:
+            update_data["realized_pnl"] = trade_data.realized_pnl
+        if trade_data.percent_diff is not None:
+            update_data["percent_diff"] = trade_data.percent_diff
+        
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No fields to update")
+        
+        result = supabase.table("trades").update(update_data).eq("id", trade_id).eq("user_id", user_id).execute()
+        
+        if result.data:
+            updated_trade = result.data[0]
+            return Trade(
+                id=updated_trade["id"],
+                date=updated_trade["date"],
+                ticker=updated_trade["ticker"],
+                realized_pnl=updated_trade["realized_pnl"],
+                percent_diff=updated_trade["percent_diff"]
+            )
+        else:
+            raise HTTPException(status_code=404, detail="Trade not found")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update trade: {str(e)}")
+
+@app.delete("/api/trades/{trade_id}")
+async def delete_trade(
+    trade_id: int,
+    user_id: str = Depends(get_current_user)
+):
+    """Delete a trade"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+    
+    try:
+        result = supabase.table("trades").delete().eq("id", trade_id).eq("user_id", user_id).execute()
+        
+        if result.data:
+            return {"message": "Trade deleted successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="Trade not found")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete trade: {str(e)}")
+
+@app.get("/api/trades/analytics")
+async def get_trade_analytics(user_id: str = Depends(get_current_user)):
+    """Get trading analytics and statistics"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+    
+    try:
+        # Get all trades for the user
+        result = supabase.table("trades").select("*").eq("user_id", user_id).execute()
+        trades = result.data
+        
+        if not trades:
+            return {
+                "total_trades": 0,
+                "winning_trades": 0,
+                "losing_trades": 0,
+                "success_rate": 0,
+                "total_pnl": 0,
+                "average_pnl": 0,
+                "monthly_performance": {}
+            }
+        
+        # Calculate analytics
+        total_trades = len(trades)
+        winning_trades = len([t for t in trades if t.get("realized_pnl", 0) > 0])
+        losing_trades = len([t for t in trades if t.get("realized_pnl", 0) < 0])
+        success_rate = (winning_trades / total_trades) * 100 if total_trades > 0 else 0
+        
+        total_pnl = sum(t.get("realized_pnl", 0) for t in trades)
+        average_pnl = total_pnl / total_trades if total_trades > 0 else 0
+        
+
+        
+        # Group trades by month
+        monthly_performance = {}
+        for trade in trades:
+            date = datetime.fromisoformat(trade["date"])
+            month_key = f"{date.year}-{date.month:02d}"
+            
+            if month_key not in monthly_performance:
+                monthly_performance[month_key] = {
+                    "total_pnl": 0,
+                    "total_trades": 0,
+                    "winning_trades": 0,
+                    "losing_trades": 0
+                }
+            
+            monthly_performance[month_key]["total_pnl"] += trade.get("realized_pnl", 0)
+            monthly_performance[month_key]["total_trades"] += 1
+            if trade.get("realized_pnl", 0) > 0:
+                monthly_performance[month_key]["winning_trades"] += 1
+            elif trade.get("realized_pnl", 0) < 0:
+                monthly_performance[month_key]["losing_trades"] += 1
+        
+        # Calculate success rates for each month
+        for month in monthly_performance:
+            total = monthly_performance[month]["total_trades"]
+            winning = monthly_performance[month]["winning_trades"]
+            monthly_performance[month]["success_rate"] = (winning / total) * 100 if total > 0 else 0
+        
+        return {
+            "total_trades": total_trades,
+            "winning_trades": winning_trades,
+            "losing_trades": losing_trades,
+            "success_rate": round(success_rate, 2),
+            "total_pnl": round(total_pnl, 2),
+            "average_pnl": round(average_pnl, 2),
+            "monthly_performance": monthly_performance
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get trade analytics: {str(e)}")
+
+@app.post("/api/trades/parse-image")
+async def parse_trade_image(request: ImageParseRequest, user_id: str = Depends(get_current_user)):
+    """Parse trade image using Gemini Vision API"""
+    try:
+        if not request.image:
+            raise HTTPException(status_code=400, detail="No image data provided")
+        
+        # Parse the image for trade data
+        trades = parse_trade_image_with_gemini(request.image, request.mimeType)
+        
+        return {"trades": trades}
+        
+    except Exception as e:
+        print(f"API error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process trade image")
+
+@app.post("/api/trades/parse-multiple-images")
+async def parse_multiple_trade_images(request: MultipleImageParseRequest, user_id: str = Depends(get_current_user)):
+    """Parse multiple trade images using Gemini Vision API"""
+    try:
+        if not request.images or len(request.images) == 0:
+            raise HTTPException(status_code=400, detail="No images provided")
+        
+        all_trades = []
+        
+        # Process each image
+        for image_request in request.images:
+            if image_request.image and image_request.mimeType:
+                trades = parse_trade_image_with_gemini(image_request.image, image_request.mimeType)
+                all_trades.extend(trades)
+        
+        return {"trades": all_trades}
+        
+    except Exception as e:
+        print(f"API error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process trade images")
+
+def parse_trade_image_with_gemini(image_data: str, mime_type: str):
+    """Parse trade image using Gemini Vision API"""
+    try:
+        # Decode base64 image
+        image_bytes = base64.b64decode(image_data)
+        image = Image.open(io.BytesIO(image_bytes))
+        
+        # Initialize Gemini model
+        model = genai.GenerativeModel('gemini-2.5-flash-lite')
+        
+        # Create prompt for trade parsing
+        prompt = """
+        Analyze this trading statement or profit/loss image and extract trade data with EXACT precision.
+        
+        CRITICAL: Extract ONLY the exact values shown in the image. Do NOT modify, estimate, or correct any numbers. Be as PRECISE as possible.
+        
+        EXTRACTION RULES:
+        - Copy numbers EXACTLY as they appear in the image
+        - Do not round, estimate, or "fix" any values
+        - If P&L shows as 150.25, use 150.25 (not 150.26 or 150.24)
+        - If percent shows as 5.5%, use 5.5 (not 5.4 or 5.6)
+        
+        REQUIRED FIELDS (must extract these):
+        - Date (in YYYY-MM-DD format)
+        - Ticker symbol (exactly as shown)
+        - Realized P&L (exact dollar amount from image)
+        - Percent difference (exact percentage from image)
+        
+        Return the data as a JSON array with this structure:
+        [
+          {
+            "date": "2024-01-15",
+            "ticker": "AAPL",
+            "realized_pnl": 1250.50,
+            "percent_diff": 8.5,
+          }
+        ]
+        
+        IMPORTANT: 
+        - Only extract trades where you can clearly see ALL required fields
+        - If you're unsure about any required value, omit that trade entirely
+        - Only return valid JSON, no other text or explanations
+        """
+        
+        # Generate response from Gemini
+        response = model.generate_content([prompt, image])
+        
+        # Parse the response
+        try:
+            # Extract JSON from response
+            response_text = response.text.strip()
+            # Remove any markdown formatting if present
+            if response_text.startswith('```json'):
+                response_text = response_text[7:]
+            if response_text.endswith('```'):
+                response_text = response_text[:-3]
+            
+            trades = json.loads(response_text)
+            
+            # Validate and clean the parsed trades
+            validated_trades = []
+            for trade in trades:
+                if not isinstance(trade, dict):
+                    continue
+                    
+                # Ensure required fields exist
+                required_fields = ['date', 'ticker', 'realized_pnl', 'percent_diff']
+                if not all(field in trade for field in required_fields):
+                    continue
+                
+                # Ensure numerical values are valid
+                try:
+                    realized_pnl = float(trade['realized_pnl'])
+                    percent_diff = float(trade['percent_diff'])
+                    trade['realized_pnl'] = realized_pnl
+                    trade['percent_diff'] = percent_diff
+                except (ValueError, TypeError):
+                    continue
+                
+                # Convert ticker to uppercase
+                trade['ticker'] = trade['ticker'].upper()
+                
+                validated_trades.append(trade)
+            
+            print(f"Parsed {len(validated_trades)} valid trades from image")
+            return validated_trades
+            
+        except json.JSONDecodeError as e:
+            print(f"JSON parsing error: {e}")
+            print(f"Response text: {response.text}")
+            return []
+            
+    except Exception as e:
+        print(f"Error processing trade image: {e}")
+        return []
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
