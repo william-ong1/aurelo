@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, DollarSign, Percent, ToggleLeft, ToggleRight } from 'lucide-react';
 
 interface Trade {
   id: number;
@@ -18,26 +18,51 @@ interface TradeCalendarProps {
   trades: Trade[];
 }
 
+// Utility function to format large numbers with K and M notation
+const formatLargeNumber = (value: number): string => {
+  const absValue = Math.abs(value);
+  if (absValue >= 1000000) {
+    return `$${(absValue / 1000000).toFixed(1)}M`;
+  } else if (absValue >= 1000) {
+    return `$${(absValue / 1000).toFixed(1)}K`;
+  }
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(value);
+};
+
 export default function TradeCalendar({ trades }: TradeCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [hasInitialized, setHasInitialized] = useState(false);
+  const [displayMode, setDisplayMode] = useState<'price' | 'percentage'>('price');
+
+  // Only auto-scroll to today on first mount, not on re-renders
+  React.useEffect(() => {
+    if (!hasInitialized) {
+      setHasInitialized(true);
+      // Don't auto-scroll to today on mount
+    }
+  }, [hasInitialized]);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
+    return formatLargeNumber(amount);
+  };
+
+  const formatPercent = (value: number) => {
+    return `${value.toFixed(1)}%`;
   };
 
   const getPnlColor = (pnl: number) => {
-    if (pnl > 0) return 'text-green-700';
-    if (pnl < 0) return 'text-red-700';
-    return 'text-gray-600';
+    if (pnl > 0) return 'text-emerald-600';
+    if (pnl < 0) return 'text-rose-600';
+    return 'text-slate-600';
   };
 
   const getDayBackgroundColor = (pnl: number) => {
-    if (pnl > 0) return 'bg-green-50 border-green-200';
-    if (pnl < 0) return 'bg-red-50 border-red-200';
-    return 'bg-white border-gray-100';
+    if (pnl > 0) return 'bg-emerald-50 border-emerald-200';
+    if (pnl < 0) return 'bg-rose-50 border-rose-200';
+    return 'bg-white border-slate-100';
   };
 
   const getPnlIntensity = (pnl: number) => {
@@ -85,29 +110,63 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
     return acc;
   }, {} as Record<string, { pnl: number; percentageReturn: number; totalInvested: number }>);
 
-  // Calendar logic
+  // Calendar logic - only weekdays
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
   const firstDayOfMonth = new Date(year, month, 1);
   const lastDayOfMonth = new Date(year, month + 1, 0);
+  
+  // Find the first Monday of the month (or the first day if it's a Monday)
   const startDate = new Date(firstDayOfMonth);
-  startDate.setDate(startDate.getDate() - firstDayOfMonth.getDay());
+  const firstDayOfWeek = firstDayOfMonth.getDay();
+  const daysToSubtract = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1; // Monday = 1, Sunday = 0
+  startDate.setDate(startDate.getDate() - daysToSubtract);
 
   const days = [];
   const currentDateObj = new Date(startDate);
 
-  while (currentDateObj <= lastDayOfMonth || currentDateObj.getDay() !== 0) {
-    days.push(new Date(currentDateObj));
+  // Generate calendar days (only weekdays)
+  while (currentDateObj <= lastDayOfMonth || currentDateObj.getDay() !== 6) {
+    // Only include weekdays (Monday = 1, Tuesday = 2, ..., Friday = 5)
+    if (currentDateObj.getDay() >= 1 && currentDateObj.getDay() <= 5) {
+      days.push(new Date(currentDateObj));
+    }
     currentDateObj.setDate(currentDateObj.getDate() + 1);
   }
 
+  // Calculate weekly stats
+  const weeklyStats = new Map<string, { pnl: number; trades: number; percentageReturn: number }>();
+  
+  days.forEach((day) => {
+    const weekStart = new Date(day);
+    const dayOfWeek = day.getDay();
+    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Monday = 1, Sunday = 0
+    weekStart.setDate(weekStart.getDate() - daysToSubtract);
+    const weekKey = weekStart.toISOString().split('T')[0];
+    
+    const dateString = day.toISOString().split('T')[0];
+    const dayStats = dailyStats[dateString];
+    
+    if (!weeklyStats.has(weekKey)) {
+      weeklyStats.set(weekKey, { pnl: 0, trades: 0, percentageReturn: 0 });
+    }
+    
+    if (dayStats) {
+      const weekData = weeklyStats.get(weekKey)!;
+      weekData.pnl += dayStats.pnl;
+      weekData.trades += tradesByDate[dateString]?.length || 0;
+      // For weekly percentage, we'll use a simple average for now
+      weekData.percentageReturn += dayStats.percentageReturn;
+    }
+  });
+
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
 
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Week'];
 
   const goToPreviousMonth = () => {
     setCurrentDate(new Date(year, month - 1, 1));
@@ -117,123 +176,189 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
     setCurrentDate(new Date(year, month + 1, 1));
   };
 
-  const goToToday = () => {
-    setCurrentDate(new Date());
+  const toggleDisplayMode = () => {
+    setDisplayMode(displayMode === 'price' ? 'percentage' : 'price');
   };
 
   return (
-    <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-200">
+    <div className="bg-white rounded-lg p-4 pt-3 shadow-sm border border-slate-200 flex-1 flex flex-col">
       {/* Calendar Header */}
-      <div className="flex items-center justify-between mb-2 sm:mb-6">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-900">P&L Calendar</h3>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={goToPreviousMonth}
-            className="p-0 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-50"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <button
-            onClick={goToToday}
-            className="px-0 py-1 text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            Today
-          </button>
-          <button
-            onClick={goToNextMonth}
-            className="p-0 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-50"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
+              <div className="flex items-center justify-between mb-3">
+          <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">P&L Calendar</h3>
+          <div className="flex items-center gap-2">
+            <div className="flex bg-slate-50 rounded-md p-0.5 mr-2">
+              <button
+                onClick={() => setDisplayMode('price')}
+                className={`flex items-center justify-center w-6 h-5 rounded-sm transition-all duration-200 ${
+                  displayMode === 'price' 
+                    ? 'bg-white text-slate-700 shadow-sm' 
+                    : 'text-slate-500 hover:text-slate-600'
+                }`}
+              >
+                <DollarSign className="h-2.5 w-2.5" />
+              </button>
+              <button
+                onClick={() => setDisplayMode('percentage')}
+                className={`flex items-center justify-center w-6 h-5 rounded-sm transition-all duration-200 ${
+                  displayMode === 'percentage' 
+                    ? 'bg-white text-slate-700 shadow-sm' 
+                    : 'text-slate-500 hover:text-slate-600'
+                }`}
+              >
+                <Percent className="h-2.5 w-2.5" />
+              </button>
+            </div>
+            <button
+              onClick={goToPreviousMonth}
+              className="text-slate-400 hover:text-slate-600 transition-all duration-200 rounded-lg"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="w-16 text-center px-0 py-1.5 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">
+              {monthNames[month]} {year}
+            </span>
+            <button
+              onClick={goToNextMonth}
+              className="text-slate-400 hover:text-slate-600 transition-all duration-200 rounded-lg"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
-      </div>
-
-      {/* Month/Year Display */}
-      <div className="text-center mb-2">
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-          {monthNames[month]} {year}
-        </h2>
-      </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-6 gap-1 flex-1">
         {/* Day Headers */}
         {dayNames.map((day) => (
           <div key={day} className="p-2 text-center">
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <span className="text-[.6rem] font-semibold text-slate-500 uppercase tracking-wider">
               {day}
             </span>
           </div>
         ))}
 
         {/* Calendar Days */}
-        {days.map((day, index) => {
-          const dateString = day.toISOString().split('T')[0];
-          const isCurrentMonth = day.getMonth() === month;
-          const isToday = day.toDateString() === new Date().toDateString();
-          const dayStats = dailyStats[dateString];
-          const hasTrades = dayStats && dayStats.pnl !== 0;
+        {(() => {
+          const calendarDays = [];
+          let weekIndex = 0;
+          
+          for (let i = 0; i < days.length; i += 5) {
+            const weekDays = days.slice(i, i + 5);
+            
+            // Add the 5 weekdays
+            weekDays.forEach((day, dayIndex) => {
+              const dateString = day.toISOString().split('T')[0];
+              const isCurrentMonth = day.getMonth() === month;
+              const isToday = day.toDateString() === new Date().toDateString();
+              const dayStats = dailyStats[dateString];
+              const hasTrades = dayStats && dayStats.pnl !== 0;
+              const sign = hasTrades ? (dayStats.pnl > 0 ? '+' : dayStats.pnl < 0 ? '-' : '') : '';
 
-          return (
-            <div
-              key={index}
-              className={`relative p-1 sm:p-2 min-h-[40px] sm:min-h-[0px] border rounded-lg transition-all ${
-                isCurrentMonth 
-                  ? hasTrades 
-                    ? getDayBackgroundColor(dayStats.pnl)
-                    : 'bg-white border-gray-100'
-                  : 'bg-gray-50 border-gray-100'
-              } ${isToday ? 'ring-2 ring-blue-200' : ''}`}
-            >
-              {/* Date Number */}
-              <div className={`text-[.5rem] sm:text-xs font-medium mb-1 ${
-                isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
-              }`}>
-                {day.getDate()}
+              calendarDays.push(
+                <div
+                  key={`day-${i + dayIndex}`}
+                  className={`relative p-2 pb-1 min-h-[60px] border rounded-md transition-all duration-200 cursor-pointer flex flex-col justify-between ${
+                    isCurrentMonth 
+                      ? hasTrades 
+                        ? getDayBackgroundColor(dayStats.pnl)
+                        : 'bg-white border-slate-100'
+                      : 'bg-slate-50 border-slate-100'
+                  } ${isToday ? 'ring-1 ring-blue-300 ring-offset-1' : ''}`}
+                >
+                  {/* Date Number */}
+                  <div className={`text-[.6rem] font-semibold text-left ${
+                    isCurrentMonth ? 'text-slate-900' : 'text-slate-400'
+                  }`}>
+                    {day.getDate()}
+                  </div>
+
+                  {/* P&L and Percentage Display */}
+                  {hasTrades && (
+                    <div className={`text-right ${getPnlColor(dayStats.pnl)} font-medium`} >
+                      <div className="text-[.75rem] uppercase">
+                        {sign}{displayMode === 'price' 
+                          ? formatCurrency(Math.abs(dayStats.pnl))
+                          : formatPercent(Math.abs(dayStats.percentageReturn))
+                        }
+                      </div>
+                      {/* Trade Count as gray text underneath */}
+                      {tradesByDate[dateString] && tradesByDate[dateString].length > 0 && (
+                        <div className="text-[.55rem] text-gray-500 font-medium -mt-0.5">
+                          {tradesByDate[dateString].length} trades
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            });
+            
+            // Add weekly recap column
+            const weekStart = new Date(weekDays[0]);
+            const weekKey = weekStart.toISOString().split('T')[0];
+            const weekData = weeklyStats.get(weekKey);
+            const hasWeekData = weekData && (weekData.pnl !== 0 || weekData.trades > 0);
+            const weekSign = hasWeekData ? (weekData.pnl > 0 ? '+' : weekData.pnl < 0 ? '-' : '') : '';
+            
+            calendarDays.push(
+              <div
+                key={`week-${weekIndex}`}
+                className={`relative p-2 pb-1 min-h-[60px] border rounded-md transition-all duration-200 flex flex-col justify-between ${
+                  hasWeekData 
+                    ? getDayBackgroundColor(weekData.pnl)
+                    : 'bg-slate-50 border-slate-100'
+                }`}
+              >
+                {/* Week Label */}
+                <div className="text-[.6rem] font-semibold text-slate-500 text-left">
+                  Week {weekIndex + 1}
+                </div>
+
+                {/* Weekly P&L and Percentage Display */}
+                {hasWeekData && (
+                  <div className={`text-right ${getPnlColor(weekData.pnl)} font-medium`}>
+                    <div className="text-[.75rem] uppercase">
+                      {weekSign}{displayMode === 'price' 
+                        ? formatCurrency(Math.abs(weekData.pnl))
+                        : formatPercent(Math.abs(weekData.percentageReturn / 5))
+                      }
+                    </div>
+                    {/* Weekly Trade Count */}
+                    {weekData.trades > 0 && (
+                      <div className="text-[.55rem] text-gray-500 font-medium -mt-0.5">
+                        {weekData.trades} trades
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-
-              {/* P&L and Percentage Display */}
-              {hasTrades && (
-                <div className={`text-center ${getPnlColor(dayStats.pnl)} ${getPnlIntensity(dayStats.pnl)}`}>
-                  <div className="text-[.45rem] sm:text-sm font-semibold">
-                    {formatCurrency(dayStats.pnl)} ({dayStats.percentageReturn > 0 ? '+' : ''}{dayStats.percentageReturn.toFixed(1)}%)
-                  </div>
-                </div>
-              )}
-
-              {/* Trade Count Indicator */}
-              {tradesByDate[dateString] && tradesByDate[dateString].length > 1 && (
-                <div className="absolute top-0.5 right-0.5">
-                  <div className="text-[.5rem] sm:text-xs font-semibold text-gray-800 bg-white shadow-sm px-1 py-0.3 sm:px-1.5 sm:py-0.5 rounded-sm border border-gray-300">
-                    {tradesByDate[dateString].length}
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
+            );
+            
+            weekIndex++;
+          }
+          
+          return calendarDays;
+        })()}
       </div>
 
       {/* Legend */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <div className="flex items-center justify-between text-xs text-gray-500">
-          <div className="flex items-center gap-2 sm:gap-4">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-green-50 border border-green-200 rounded"></div>
-              <span className='text-[.6rem] sm:text-xs'>Profit</span>
+      <div className="mt-2 pt-2 border-t border-slate-200">
+        <div className="flex items-center justify-between">
+          <div> </div>
+          {/* <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-0.5">
+              <div className="w-2 h-2 bg-emerald-50 border border-emerald-200 rounded"></div>
+              <span className="text-[.6rem] font-medium text-slate-600">Profit</span>
+            </div>
+            <div className="flex items-center gap-0.5">
+              <div className="w-2 h-2 bg-rose-50 border border-rose-200 rounded"></div>
+              <span className="text-[.6rem] font-medium text-slate-600">Loss</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-red-50 border border-red-200 rounded"></div>
-              <span className='text-[.6rem] sm:text-xs'>Loss</span>
+              <span className="text-[.55rem] font-medium text-gray-500">Multiple trades shown as gray text</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="text-[.6rem] sm:text-xs font-semibold text-gray-800 bg-white shadow-sm px-1 py-0.3 mr-1 rounded-sm border border-gray-300">
-                #
-              </div>
-              <span className='text-[.6rem] sm:text-xs'> Number of Trades</span>
-            </div>
-          </div>
-          <div className="text-right text-[.6rem] sm:text-xs text-gray-500">
+          </div> */}
+          <div className="text-[.55rem] text-slate-500 text-right">
             <div className="font-medium">Today: {new Date().toLocaleDateString()}</div>
           </div>
         </div>

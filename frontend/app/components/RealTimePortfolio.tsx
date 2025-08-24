@@ -137,7 +137,7 @@ export default function RealTimePortfolio({ assets }: RealTimePortfolioProps) {
 
   if (!portfolioValue) {
     return (
-      <div className="mt-6 sm:mt-8 rounded-xl p-4 sm:p-6 bg-gradient-to-br from-slate-50 to-slate-100 shadow-lg">
+      <div className="mt-6 sm:mt-8 rounded-lg p-4 sm:p-6 bg-gradient-to-br from-slate-50 to-slate-100 shadow-lg">
         <div className="flex items-center justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <span className="ml-3 text-gray-600">Loading portfolio data...</span>
@@ -147,7 +147,7 @@ export default function RealTimePortfolio({ assets }: RealTimePortfolioProps) {
   }
 
   return (
-    <div className="mt-6 sm:mt-8 rounded-xl p-4 sm:p-6 bg-gradient-to-br from-slate-50 to-slate-100 shadow-lg">
+    <div className="mt-6 sm:mt-8 rounded-lg p-4 sm:p-6 bg-gradient-to-br from-slate-50 to-slate-100 shadow-lg">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
         <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Real-Time Portfolio</h2>
         <button
@@ -174,7 +174,7 @@ export default function RealTimePortfolio({ assets }: RealTimePortfolioProps) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* Total Portfolio Value */}
-        <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-lg p-4 sm:p-5 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Value</h3>
             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -199,7 +199,7 @@ export default function RealTimePortfolio({ assets }: RealTimePortfolioProps) {
         </div>
 
         {/* Stock Value */}
-        <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-lg p-4 sm:p-5 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Stock Value</h3>
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -215,7 +215,7 @@ export default function RealTimePortfolio({ assets }: RealTimePortfolioProps) {
         </div>
 
         {/* Cash Value */}
-        <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-lg p-4 sm:p-5 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Cash Value</h3>
             <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
@@ -231,7 +231,7 @@ export default function RealTimePortfolio({ assets }: RealTimePortfolioProps) {
         </div>
 
         {/* Allocation */}
-        <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-lg p-4 sm:p-5 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Allocation</h3>
             <div className="w-2 h-2 bg-purple-500 rounded-full"></div>

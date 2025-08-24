@@ -316,7 +316,7 @@ export default function Home() {
       <Header />
       <div className="flex-1 p-6">
         <div className="w-full max-w-5xl mx-auto">
-          <div className="mt-8 rounded-lg p-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl shadow-lg">
+          <div className="mt-8 rounded-lg p-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg shadow-lg">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-gray-800">Portfolio Allocation</h2>
             <div className="flex items-center space-x-2">
@@ -367,7 +367,7 @@ export default function Home() {
         <div 
           className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 transition-all"
         >
-          <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-lg mx-4 animate-fadeIn">
+          <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-lg mx-4 animate-fadeIn">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold text-gray-800">
                 {editingAsset ? 'Edit Asset' : 'Add New Asset'}

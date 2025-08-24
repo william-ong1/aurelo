@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { RealTimeProvider } from "./contexts/RealTimeContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import SidebarLayout from "./components/SidebarLayout";
 
 export const metadata: Metadata = {
   title: "Aurelo",
@@ -39,7 +40,9 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <RealTimeProvider>
-            {children}
+            <SidebarLayout>
+              {children}
+            </SidebarLayout>
           </RealTimeProvider>
         </AuthProvider>
       </body>

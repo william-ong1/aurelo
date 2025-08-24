@@ -40,19 +40,19 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
   if (assets.length === 0) {
     if (isLoadingAssets) {
       return (
-        <div className="flex items-center justify-center rounded-xl w-full" style={{ height: '320px' }}>
+        <div className="flex items-center justify-center rounded-lg w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] 2xl:h-[360px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto mb-3 sm:mb-4"></div>
-            <div className="text-sm sm:text-base text-gray-600 font-medium">Retrieving portfolio...</div>
-            <div className="text-xs sm:text-sm text-gray-500 mt-1">Loading your assets</div>
+            <div className="text-xs sm:text-sm 2xl:text-base text-gray-600 font-medium">Retrieving portfolio...</div>
+            <div className="text-[10px] sm:text-xs 2xl:text-sm text-gray-500 mt-1">Loading your assets</div>
           </div>
         </div>
       );
     }
     return (
-      <div className="flex items-center justify-center rounded-xl w-full" style={{ height: '320px' }}>
+      <div className="flex items-center justify-center rounded-lg w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] 2xl:h-[360px]">
         <div className="text-center">
-          <div className="text-sm sm:text-base text-gray-500">No assets to display.</div>
+          <div className="text-xs sm:text-sm 2xl:text-base text-gray-500">No assets to display.</div>
         </div>
       </div>
     );
@@ -61,11 +61,11 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
   // Show loading state while fetching initial prices
   if (isInitialLoading && validStockAssets.length > 0) {
     return (
-      <div className="flex items-center justify-center rounded-xl w-full" style={{ height: '320px' }}>
+      <div className="flex items-center justify-center rounded-lg w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] 2xl:h-[360px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto mb-3 sm:mb-4"></div>
-          <div className="text-sm sm:text-base text-gray-600 font-medium">Loading prices...</div>
-          <div className="text-xs sm:text-sm text-gray-500 mt-1">Fetching real-time data</div>
+          <div className="text-xs sm:text-sm 2xl:text-base text-gray-600 font-medium">Loading prices...</div>
+          <div className="text-[10px] sm:text-xs 2xl:text-sm text-gray-500 mt-1">Fetching real-time data</div>
         </div>
       </div>
     );
@@ -280,6 +280,10 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
     },
     maintainAspectRatio: false,
     responsive: true,
+    layout: {
+      padding: 0,
+      autoPadding: false
+    },
     interaction: {
       intersect: true,
       mode: 'point',
@@ -307,12 +311,10 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
   };
 
   return (
-    <div className="flex flex-col lg:flex-row items-start rounded-xl">
+    <div className="flex flex-col lg:flex-row items-start">
       <div className="w-full lg:w-96 flex-shrink-0">
-
-        
         <div
-          className="mx-auto lg:-ml-4 relative mb-4 lg:mb-0 w-[90%] sm:w-[80%] md:w-[70%] lg:w-full h-[240px] sm:h-[280px] lg:h-[320px]"
+          className="relative mb-0 lg:mb-0 h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] 2xl:h-[360px] w-[200px] sm:w-[240px] md:w-[280px] lg:w-[320px] 2xl:w-[360px]"
         >          
           <Doughnut 
             key={`chart-${assets.length}-${totalValue.toFixed(2)}-${portfolioChange.toFixed(2)}-${timePeriod}-${JSON.stringify(values)}`} 
@@ -320,28 +322,17 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
             options={options} 
             plugins={[centerText]} 
           />
-          
-          {/* Refresh button overlay */}
-          {/* {lastUpdated && (
-            <button
-              onClick={handleRefresh}
-              disabled={isLoading}
-              className={`absolute top-4 left-4 p-1.5 rounded-full bg-white/80 backdrop-blur-sm shadow-sm transition-all ${
-                isLoading
-                  ? 'text-gray-300 cursor-not-allowed' 
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-white hover:shadow-md'
-              }`}
-              title="Refresh prices"
-            >
-              <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
-            </button>
-          )} */}
         </div>
-        
       </div>
       
       {/* Legend */}
-      <div className="flex-1 w-full overflow-y-auto" style={{ height: '320px' }}>
+      <div 
+        className="flex-1 w-full lg:pl-8 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400 relative h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] 2xl:h-[360px]" 
+        style={{ 
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#d1d5db #f3f4f6'
+        }}
+      >
         <div className="space-y-2">
           {(() => {
             // Separate assets into valid and invalid tickers
@@ -426,7 +417,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
                   return (
                     <div 
                       key={asset.id} 
-                      className={`flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 bg-white rounded-xl border border-gray-200 transition-all ${
+                      className={`flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 bg-white rounded-lg border border-slate-200 transition-all ${
                         isEditMode 
                           ? 'hover:shadow-md hover:bg-gray-50 cursor-pointer' 
                           : ''
@@ -440,17 +431,17 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <div className="flex items-baseline space-x-2 flex-1 min-w-0">
-                            <div className="text-xs sm:text-sm font-semibold text-gray-900 truncate">
+                            <div className="text-[8px] sm:text-[10px] 2xl:text-sm font-semibold text-gray-900 truncate">
                               {asset.isStock ? asset.ticker : "CASH"}
                             </div>
-                            <div className="text-xs text-gray-600 truncate">
+                            <div className="text-[8px] sm:text-[10px] 2xl:text-sm text-gray-600 truncate">
                               {asset.name}
                             </div>
                           </div>
                           <div className="flex items-center space-x-2 flex-shrink-0">
                             <div className="w-12 sm:w-16 flex justify-end">
                               {!isEditMode && (
-                                <div className="text-xs sm:text-sm font-semibold text-gray-900">
+                                <div className="text-[8px] sm:text-[10px] 2xl:text-sm font-semibold text-gray-900">
                                   {displayPercentage}
                                 </div>
                               )}
@@ -461,7 +452,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
                                       e.stopPropagation();
                                       onEdit?.(asset);
                                     }}
-                                    className="px-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                    className="px-1 text-gray-400 hover:text-blue-600 rounded transition-colors"
                                     title="Edit"
                                   >
                                     <Edit2 size={14} />
@@ -471,7 +462,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
                                       e.stopPropagation();
                                       onDelete?.(asset.id);
                                     }}
-                                    className="px-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                    className="px-1 text-gray-400 hover:text-red-600 rounded transition-colors"
                                     title="Delete"
                                   >
                                     <Trash2 size={14} />
@@ -481,7 +472,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
                             </div>
                           </div>
                         </div>
-                        <div className="flex flex-row items-center justify-between mt-1 text-xs text-gray-500 gap-1">
+                        <div className="flex flex-row items-center justify-between mt-1 text-[8px] sm:text-[10px] 2xl:text-sm text-gray-500 gap-1">
                           <span className="truncate">
                             {asset.isStock ? (
                               <div className="flex flex-col sm:flex-row">
@@ -526,7 +517,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
                 {processedInvalidAssets.length > 0 && (
                   <>
                     <div className="mt-4 mb-2">
-                      <div className="text-xs font-medium text-gray-500 tracking-wide px-3">
+                      <div className="text-[8px] sm:text-[10px] 2xl:text-sm font-medium text-gray-500 tracking-wide px-3">
                         Invalid Tickers (No Real-Time Data)
                       </div>
                     </div>
@@ -550,17 +541,17 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
                               <div className="flex items-baseline space-x-2 flex-1 min-w-0">
-                                <div className="text-xs sm:text-sm font-semibold text-gray-700 truncate">
+                                <div className="text-[8px] sm:text-[10px] 2xl:text-sm font-semibold text-gray-700 truncate">
                                   {asset.ticker}
                                 </div>
-                                <div className="text-xs text-gray-500 truncate hidden sm:block">
+                                <div className="text-[8px] sm:text-[10px] 2xl:text-sm text-gray-500 truncate hidden sm:block">
                                   {asset.name}
                                 </div>
                               </div>
                               <div className="flex items-center space-x-2 flex-shrink-0">
                                 <div className="w-12 sm:w-16 flex justify-end">
                                   {!isEditMode && (
-                                    <div className="text-xs sm:text-sm font-semibold text-gray-700">
+                                    <div className="text-[8px] sm:text-[10px] 2xl:text-sm font-semibold text-gray-700">
                                       {displayPercentage}
                                     </div>
                                   )}
@@ -591,7 +582,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
                                 </div>
                               </div>
                             </div>
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-1 text-xs text-gray-500 gap-1">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-1 text-[8px] sm:text-[10px] 2xl:text-sm text-gray-500 gap-1">
                               <span className="truncate">
                                 {(asset.shares || 0).toLocaleString()} @ ${(asset.purchasePrice || asset.currentPrice || 0).toFixed(2)} (No real-time data)
                               </span>

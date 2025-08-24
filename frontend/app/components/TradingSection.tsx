@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, Calendar } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import TradeList from './TradeList';
 import TradeAnalytics from './TradeAnalytics';
@@ -43,7 +43,7 @@ interface TradeAnalytics {
 }
 
 export default function TradingSection() {
-  const { token, isAuthenticated } = useAuth();
+  const { token, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [analytics, setAnalytics] = useState<TradeAnalytics>({
     total_trades: 0,
@@ -57,7 +57,7 @@ export default function TradingSection() {
   const [showTradeModal, setShowTradeModal] = useState(false);
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'trades'>('analytics');
+  const [isLoadingTrades, setIsLoadingTrades] = useState(true);
 
   // Load trades and analytics when authenticated
   useEffect(() => {
@@ -75,12 +75,14 @@ export default function TradingSection() {
         average_pnl: 0,
         monthly_performance: {}
       });
+      setIsLoadingTrades(false);
     }
   }, [isAuthenticated, token]);
 
   const loadTrades = async () => {
     if (!token) return;
     
+    setIsLoadingTrades(true);
     console.log('Loading trades...');
     try {
       const response = await fetch(getApiUrl('/api/trades'), {
@@ -100,6 +102,8 @@ export default function TradingSection() {
       }
     } catch (error) {
       console.error('Error loading trades:', error);
+    } finally {
+      setIsLoadingTrades(false);
     }
   };
 
@@ -304,7 +308,7 @@ export default function TradingSection() {
 
   const handleAddTrade = () => {
     if (!isAuthenticated) {
-      alert('Please sign in to add trades and track your trading performance.');
+      alert('Please sign in to add trades.');
       return;
     }
     setEditingTrade(null);
@@ -318,7 +322,7 @@ export default function TradingSection() {
 
   // if (!isAuthenticated) {
   //   return (
-  //     <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 text-center">
+  //     <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-200 text-center">
   //       <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
   //         <BarChart3 className="h-8 w-8 text-gray-400" />
   //       </div>
@@ -331,59 +335,49 @@ export default function TradingSection() {
   // }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200/50 p-4 sm:p-8 sm:pb-2">
-      {/* Header with Analytics */}
-      <div className="flex flex-row items-center justify-between gap-4">
-        <div>
-          <h2 className="text-base sm:text-lg lg:text-2xl font-semibold text-gray-800">Trading Dashboard</h2>
+    <div>
+      {/* Loading State for Authentication or Trades - Centered without background */}
+      {(isAuthLoading || isLoadingTrades) && (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-xs sm:text-sm 2xl:text-base text-gray-600 font-medium">
+              {isAuthLoading ? 'Checking authentication...' : 'Loading trades...'}
+            </p>
+            <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-500 mt-1">
+              {isAuthLoading ? 'Verifying your login status' : 'Retrieving your trading data'}
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-1 sm:gap-2">
-          <button
-            onClick={() => setActiveTab('analytics')}
-            className={`px-1.5 py-1 sm:px-3 sm:py-2 text-[.6rem] sm:text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer ${
-              activeTab === 'analytics'
-                ? 'text-blue-600 bg-blue-50 ring-2 ring-blue-200 shadow-sm'
-                : 'text-gray-600 hover:text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
-              Analytics
-            </div>
-          </button>
-          <button
-            onClick={() => setActiveTab('trades')}
-            className={`px-1.5 py-1 sm:px-3 sm:py-2 text-[.6rem] sm:text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer ${
-              activeTab === 'trades'
-                ? 'text-blue-600 bg-blue-50 ring-2 ring-blue-200 shadow-sm'
-                : 'text-gray-600 hover:text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-              Trade History
-            </div>
-          </button>
-        </div>
-      </div>
-
-      <p className="text-xs sm:text-sm text-gray-500 mt-1 mb-4 sm:mb-8">
-        Track trades and analyze performance over time.
-      </p>
-
-      {/* Analytics Content */}
-      {activeTab === 'analytics' && (
-        <TradeAnalytics trades={trades} analytics={analytics} />
       )}
 
-      {/* Trade List Content */}
-      {activeTab === 'trades' && (
-        <TradeList
-          trades={trades}
-          onEdit={handleEditTrade}
-          onDelete={handleDeleteTrade}
-          onAdd={handleAddTrade}
-        />
+      {/* Content - Only show after authentication and trades are loaded */}
+      {!isAuthLoading && !isLoadingTrades && (
+        <>
+          {/* Header */}
+          {/* <div className="flex flex-row justify-between items-center gap-4 mb-0">
+            <div className="flex items-center gap-3">
+              <h2 className="text-base text-lg 2xl:text-2xl font-semibold text-gray-800">Trading Dashboard</h2>
+            </div>
+          </div>
+
+          <p className="text-xs 2xl:text-sm -mt-0 text-gray-600 mb-6">Track your trades and analyze trading performance over time</p> */}
+
+          {/* Trade List Content */}
+          <div className="pt-1 mb-4">
+            <TradeList
+              trades={trades}
+              onEdit={handleEditTrade}
+              onDelete={handleDeleteTrade}
+              onAdd={handleAddTrade}
+            />
+          </div>
+
+          {/* Analytics Content */}
+          <div>
+            <TradeAnalytics trades={trades} analytics={analytics} />
+          </div>
+        </>
       )}
 
       {/* Trade Modal */}

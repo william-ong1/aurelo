@@ -99,6 +99,24 @@ class TradeUpdate(BaseModel):
     realized_pnl: Optional[float] = None
     percent_diff: Optional[float] = None
 
+# Watchlist models
+class WatchlistItem(BaseModel):
+    id: Optional[int] = None
+    ticker: str
+    notes: Optional[str] = None
+    chart_link: Optional[str] = None
+    created_at: Optional[str] = None
+
+class WatchlistCreate(BaseModel):
+    ticker: str
+    notes: Optional[str] = None
+    chart_link: Optional[str] = None
+
+class WatchlistUpdate(BaseModel):
+    ticker: Optional[str] = None
+    notes: Optional[str] = None
+    chart_link: Optional[str] = None
+
 class ImageParseRequest(BaseModel):
     image: str
     mimeType: str = "image/jpeg"
@@ -883,6 +901,9 @@ def parse_trade_image_with_gemini(image_data: str, mime_type: str):
         - Ticker symbol (exactly as shown)
         - Realized P&L (exact dollar amount from image)
         - Percent difference (exact percentage from image)
+
+        If the image includes an options trade (put or call), use the option as the ticker (ex. QQQ $571 PUT 8/22), then include realized_pnl, and percent_diff.
+        If the image includes a stock trade, use the stock as the ticker (ex. AAPL), then include date, realized_pnl, and percent_diff.
         
         Return the data as a JSON array with this structure:
         [
@@ -951,6 +972,117 @@ def parse_trade_image_with_gemini(image_data: str, mime_type: str):
     except Exception as e:
         print(f"Error processing trade image: {e}")
         return []
+
+# Watchlist API endpoints
+@app.post("/api/watchlist")
+async def create_watchlist_item(item: WatchlistCreate, user_id: str = Depends(get_current_user)):
+    """Create a new watchlist item"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        # Clean ticker symbol
+        ticker = item.ticker.strip().upper()
+        
+        # Check if item already exists for this user
+        existing = supabase.table('watchlist').select('*').eq('user_id', user_id).eq('ticker', ticker).execute()
+        if existing.data:
+            raise HTTPException(status_code=400, detail="Ticker already in watchlist")
+        
+        # Insert new item
+        data = {
+            'user_id': user_id,
+            'ticker': ticker,
+            'notes': item.notes if item.notes and item.notes.strip() else None,
+            'chart_link': item.chart_link if item.chart_link and item.chart_link.strip() else None
+        }
+        
+        result = supabase.table('watchlist').insert(data).execute()
+        
+        if result.data:
+            return {"message": "Watchlist item created successfully", "item": result.data[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create watchlist item")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error creating watchlist item: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/api/watchlist")
+async def get_watchlist(user_id: str = Depends(get_current_user)):
+    """Get user's watchlist"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        result = supabase.table('watchlist').select('*').eq('user_id', user_id).order('created_at', desc=True).execute()
+        return {"watchlist": result.data}
+    except Exception as e:
+        print(f"Error fetching watchlist: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.put("/api/watchlist/{item_id}")
+async def update_watchlist_item(item_id: int, item: WatchlistUpdate, user_id: str = Depends(get_current_user)):
+    """Update a watchlist item"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        # Check if item exists and belongs to user
+        existing = supabase.table('watchlist').select('*').eq('id', item_id).eq('user_id', user_id).execute()
+        if not existing.data:
+            raise HTTPException(status_code=404, detail="Watchlist item not found")
+        
+        # Prepare update data
+        update_data = {}
+        if item.ticker is not None:
+            update_data['ticker'] = item.ticker.strip().upper()
+        if item.notes is not None:
+            update_data['notes'] = item.notes if item.notes.strip() else None
+        if item.chart_link is not None:
+            update_data['chart_link'] = item.chart_link if item.chart_link.strip() else None
+        
+        # Update item
+        result = supabase.table('watchlist').update(update_data).eq('id', item_id).eq('user_id', user_id).execute()
+        
+        if result.data:
+            return {"message": "Watchlist item updated successfully", "item": result.data[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to update watchlist item")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error updating watchlist item: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.delete("/api/watchlist/{item_id}")
+async def delete_watchlist_item(item_id: int, user_id: str = Depends(get_current_user)):
+    """Delete a watchlist item"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        # Check if item exists and belongs to user
+        existing = supabase.table('watchlist').select('*').eq('id', item_id).eq('user_id', user_id).execute()
+        if not existing.data:
+            raise HTTPException(status_code=404, detail="Watchlist item not found")
+        
+        # Delete item
+        result = supabase.table('watchlist').delete().eq('id', item_id).eq('user_id', user_id).execute()
+        
+        if result.data:
+            return {"message": "Watchlist item deleted successfully"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to delete watchlist item")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error deleting watchlist item: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

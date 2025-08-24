@@ -1,13 +1,11 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Edit2, Trash2, Upload, FileText, LogIn, UserPlus } from 'lucide-react';
+import { Plus, X, Edit2, Upload, FileText } from 'lucide-react';
 import PositionAnalytics from './components/PositionAnalytics';
 import PieChart from './components/PieChart';
-import TradingSection from './components/TradingSection';
+import PerformanceSection from './components/PerformanceSection';
 import { useRealTime } from './contexts/RealTimeContext';
 import { useAuth } from './contexts/AuthContext';
-import AuthModal from './components/AuthModal';
-import UserProfile from './components/UserProfile';
 import { disableBodyScroll, enableBodyScroll } from './utils/scrollLock';
 import { getApiUrl } from './config/api';
 
@@ -41,7 +39,7 @@ function InputField({ label, ...props }: { label: string; [key: string]: unknown
       </label>
       <input
         {...props}
-        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
       />
     </div>
   );
@@ -76,7 +74,6 @@ export default function Home() {
   const { user, token, isAuthenticated, isLoading, logout } = useAuth();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [uploadMode, setUploadMode] = useState<'manual' | 'image'>('manual');
@@ -84,6 +81,7 @@ export default function Home() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [parsedAssets, setParsedAssets] = useState<ParsedAsset[]>([]);
   const [timePeriod, setTimePeriod] = useState<'all-time' | 'today'>('all-time');
+
   const [formData, setFormData] = useState({
     name: '',
     isStock: true,
@@ -95,7 +93,7 @@ export default function Home() {
   });
   const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
   const [isBannerMinimized, setIsBannerMinimized] = useState(true);
-  const [isLoadingAssets, setIsLoadingAssets] = useState(false);
+  const [isLoadingAssets, setIsLoadingAssets] = useState(true);
 
   // Load assets from backend when authenticated, localStorage when not
   useEffect(() => {
@@ -142,6 +140,7 @@ export default function Home() {
       const storedAssets = loadAssetsFromStorage();
       setAssets(storedAssets);
       setHasLoadedFromStorage(true);
+      setIsLoadingAssets(false);
     }
   }, [isAuthenticated, token, isLoading, hasLoadedFromStorage]);
 
@@ -167,17 +166,16 @@ export default function Home() {
 
   // Handle body scroll locking for modals
   useEffect(() => {
-    if (showModal || showAuthModal) {
+    if (showModal) {
       disableBodyScroll();
     } else {
       enableBodyScroll();
     }
 
-    // Cleanup on unmount
     return () => {
       enableBodyScroll();
     };
-  }, [showModal, showAuthModal]);
+  }, [showModal]);
 
   const loadPortfolioFromBackend = async () => {
     try {
@@ -472,13 +470,20 @@ export default function Home() {
     setFormData({ name: '', isStock: true, ticker: '', shares: '', price: '', balance: '', apy: '' });
   };
 
-  // Show loading state while checking authentication
-  if (isLoading) {
+  // Show loading state while checking authentication or loading assets
+  if (isLoading || isLoadingAssets) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <main className="flex flex-col items-center justify-center min-h-screen p-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-xs sm:text-sm 2xl:text-base text-gray-600 font-medium">
+              {isLoading ? 'Checking authentication...' : 'Loading portfolio...'}
+            </p>
+            <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-500 mt-1">
+              {isLoading ? 'Verifying your login status' : 'Retrieving your portfolio data'}
+            </p>
+          </div>
         </main>
       </div>
     );
@@ -486,92 +491,19 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="container mx-auto px-2 sm:px-6 lg:px-8 py-2 sm:py-8 lg:py-12 max-w-7xl">
-        
-        {/* Header Section */}
-        <section className="mb-6 sm:mb-12">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200/50 px-4 py-2 sm:p-8">
-            <div className="flex flex-col gap-0">
-              {/* Top Row: Aurelo Title and Auth */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1 sm:gap-3">
-                  <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-amber-500 tracking-tight relative">
-                    Aurelo
-                    {/* <div className="absolute -top-0 -right-2 w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div> */}
-                  </h1>
-                  <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-gradient-to-r from-orange-100 to-amber-100 text-orange-700 text-[.5rem] sm:text-xs font-semibold rounded-full border border-orange-200 shadow-sm">
-                    Beta
-                  </span>
-                </div>
-                
-                {/* Auth Section */}
-                <div className="flex items-center">
-                  {isAuthenticated ? (
-                    <UserProfile onLogout={() => {
-                      setAssets([]); // Immediately clear assets
-                      logout();
-                    }} />
-                  ) : (
-                    <button
-                      onClick={() => setShowAuthModal(true)}
-                      className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors cursor-pointer px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg"
-                    >
-                      <LogIn className='w-3 h-3 sm:w-5 sm:h-5' />
-                      Sign In
-                    </button>
-                  )}
-                </div>
-              </div>
-              
-              {/* Bottom Row: Tagline */}
-              <p className="text-xs sm:text-sm text-gray-500 font-medium">
-                Your finances, simplified.
-              </p>
-            </div>
-          </div>
-        </section>
+      <main className="mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-6xl 2xl:max-w-7xl">
 
-        {/* Portfolio Allocation Section */}
-        <section className="mb-8 sm:mb-12">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200/50 p-4 sm:p-8">
-            <div className="flex flex-row justify-between items-center gap-4 mb-4 sm:mb-8">
-              <div className="flex items-center gap-3">
-                <h2 className="text-base sm:text-xl lg:text-2xl font-semibold text-gray-800">Portfolio Allocation</h2>
-                {/* {!isAuthenticated && (
-                  <div className="relative">
-                    <button
-                      onClick={() => setIsBannerMinimized(!isBannerMinimized)}
-                      className="flex items-center gap-2 px-1 sm:px-2 py-.5 sm:py-1 bg-gray-100 border border-gray-200 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
-                    >
-                      <svg className="w-2 h-2 sm:w-3 sm:h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                      <span className="text-[.5rem] sm:text-xs text-gray-600 font-medium">Local</span>
-                      <svg className={`w-2 h-2 sm:w-3 sm:h-3 text-gray-500 transition-transform ${isBannerMinimized ? 'rotate-0' : 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    
-                    {!isBannerMinimized && (
-                      <div className="absolute top-full w-96 left-0 mt-2 right-0 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-10">
-                        <div className="flex items-start gap-3">
-                          <div className="flex-1">
-                            <h4 className="text-xs sm:text-sm font-semibold text-gray-900 mb-1">Portfolio Saved Locally</h4>
-                            <p className="text-xs text-gray-600 mb-3">
-                              Sign in to save your portfolio to the cloud and access it across all your devices.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )} */}
+          {/* Portfolio Allocation Section */}
+          <section className="mb-8 sm:mb-12">
+            <div className="flex flex-row justify-between items-center gap-4 mb-0">
+            <div className="flex items-center gap-3">
+                <h2 className="text-base text-lg 2xl:text-2xl font-semibold text-gray-800">Overview</h2>
               </div>
               <div className="flex items-center gap-1.5 sm:gap-3">
-                <div className="flex items-center bg-gray-100 backdrop-blur-sm rounded-full p-1 border border-gray-200/90">
+                <div className="flex items-center bg-gray-100 backdrop-blur-sm rounded-full p-1 border border-gray-200/90 gap-1">
                   <button
                     onClick={() => setTimePeriod('all-time')}
-                    className={`px-1.5 sm:px-3 py-.7 sm:py-1.5 text-[.6rem] sm:text-xs font-medium rounded-full transition-all duration-200 cursor-pointer ${
+                    className={`px-1.5 sm:px-2 2xl:px-3 py-.7 sm:py-1 2xl:py-1.5 text-[.5rem] sm:text-[.6rem] 2xl:text-[.8rem] font-medium rounded-full transition-all duration-200 cursor-pointer ${
                       timePeriod === 'all-time' 
                         ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-300 font-semibold' 
                         : 'text-gray-600 hover:text-gray-800 hover:bg-white/80'
@@ -581,7 +513,7 @@ export default function Home() {
                   </button>
                   <button
                     onClick={() => setTimePeriod('today')}
-                    className={`px-1.5 sm:px-3 py-.7 sm:py-1.5 text-[.6rem] sm:text-xs font-medium rounded-full transition-all duration-200 cursor-pointer ${
+                    className={`px-1.5 sm:px-2 2xl:px-3 py-.7 sm:py-1 2xl:py-1.5 text-[.5rem] sm:text-[.6rem] 2xl:text-[.8rem] font-medium rounded-full transition-all duration-200 cursor-pointer ${
                       timePeriod === 'today' 
                         ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-300 font-semibold' 
                         : 'text-gray-600 hover:text-gray-800 hover:bg-white/80'
@@ -598,12 +530,12 @@ export default function Home() {
                       assets.length === 0
                         ? 'text-gray-200 cursor-not-allowed'
                         : isEditMode && assets.length > 0
-                        ? 'text-blue-600 bg-blue-50 ring-2 ring-blue-200 shadow-sm cursor-pointer' 
+                        ? 'text-gray-900 bg-white shadow-sm ring-1 ring-gray-300 cursor-pointer' 
                         : 'text-gray-400 hover:text-gray-600 transition-all cursor-pointer'
                     }`}
                     title={assets.length === 0 ? "No assets to edit" : isEditMode && assets.length > 0 ? "Exit Edit Mode" : "Edit Portfolio"}
                   >
-                    <Edit2 className='w-3 h-3 sm:w-5 sm:h-5' />
+                    <Edit2 className='w-3 h-3 sm:w-4 sm:h-4 2xl:w-5 2xl:h-5' />
                   </button>
                   <button
                     onClick={() => {
@@ -618,11 +550,12 @@ export default function Home() {
                     }`}
                     title={isEditMode && assets.length > 0 ? "Exit edit mode to add assets" : "Add Asset"}
                   >
-                    <Plus className='w-4 h-4 sm:w-6 sm:h-6' />
+                    <Plus className='w-4 h-4 sm:w-5 sm:h-5 2xl:w-6 2xl:h-6' />
                   </button>
                 </div>
               </div>
             </div>
+            <p className="text-xs 2xl:text-sm -mt-1 text-gray-600 mb-6">Breakdown of your asset allocation and performance</p>
 
             {/* Pie Chart */}
             <PieChart 
@@ -633,20 +566,20 @@ export default function Home() {
               timePeriod={timePeriod}
               isLoadingAssets={isLoadingAssets}
             />
-          </div>
-        </section>
+          </section>
 
-        {/* Position Analytics Section */}
-        <section className="mb-8 sm:mb-12">
-          <PositionAnalytics assets={assets} isLoadingAssets={isLoadingAssets} />
-        </section>
+          {/* Position Analytics Section */}
+          <div className="border-t border-gray-200 my-8 sm:my-8"></div>
+          <section className="mb-8 sm:mb-12">
+            <PositionAnalytics assets={assets} isLoadingAssets={isLoadingAssets} />
+          </section>
 
-        {/* Trading Analytics Section */}
-        <section>
-          <TradingSection />
-        </section>
+          <div className="border-t border-gray-200 my-8 sm:my-8"></div>
+          <PerformanceSection />
 
-      </main>
+                     {/* Trading moved to /trading page */}
+
+         </main>
 
       {/* Modal */}
       {showModal && (
@@ -655,14 +588,14 @@ export default function Home() {
         >
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-3 sm:p-8 w-full max-w-lg mx-auto border border-gray-200/50 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-3 sm:mb-6">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-800">
+              <h2 className="text-lg 2xl:text-2xl font-semibold text-gray-800">
                 {editingAsset ? 'Edit Asset' : 'Add New Asset'}
               </h2>
               <button
                 onClick={closeModal}
                 className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
               >
-                <X size={20} className="sm:w-7 sm:h-7" />
+                <X size={20} className="h-6 w-6" />
               </button>
             </div>
 
@@ -678,7 +611,7 @@ export default function Home() {
                     }`}
                   >
                     <FileText size={16} className="sm:w-5 sm:h-5" />
-                    <span className="font-medium text-xs sm:text-base">Manual Entry</span>
+                    <span className="font-medium text-xs sm:text-sm 2xl:text-base">Manual Entry</span>
                   </button>
                   <button
                     onClick={() => setUploadMode('image')}
@@ -689,7 +622,7 @@ export default function Home() {
                     }`}
                   >
                     <Upload size={16} className="sm:w-5 sm:h-5" />
-                    <span className="font-medium text-xs sm:text-base">Upload Image</span>
+                    <span className="font-medium text-xs sm:text-sm 2xl:text-base">Upload Image</span>
                   </button>
                 </div>
               </div>
@@ -818,7 +751,7 @@ export default function Home() {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
                     placeholder="e.g., Apple Inc."
                   />
                 </div>
@@ -869,7 +802,7 @@ export default function Home() {
                             [name]: value.toUpperCase()
                           }));
                         }}
-                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
                         placeholder="e.g., AAPL"
                       />
                     </div>
@@ -904,12 +837,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Authentication Modal */}
-      <AuthModal 
-        isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)}
-        initialMode="login"
-      />
+      {/* Auth modal moved to global sidebar layout */}
     </div>
   );
 }
