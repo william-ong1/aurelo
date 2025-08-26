@@ -243,6 +243,7 @@ export default function WatchlistSection() {
 
       {/* Content - Only show after authentication and watchlist are loaded */}
       {!isAuthLoading && !isLoadingWatchlist && (
+        <div className="py-9">
         <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Watchlist</h3>
@@ -344,6 +345,7 @@ export default function WatchlistSection() {
             </tbody>
           </table>
         </div>
+      </div>
       </div>
       )}
 

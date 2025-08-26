@@ -104,63 +104,59 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto border border-gray-200/50">
-        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-100">
-          <h2 className="text-lg sm:text-2xl font-semibold text-gray-800">
-            {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-all p-3 sm:p-4">
+      <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-2xl p-3 sm:p-6 w-full max-w-xs mx-auto border border-gray-200/50 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-3 sm:mb-4">
+          <h2 className="text-sm sm:text-lg 2xl:text-lg font-semibold text-gray-800">
+            {mode === 'login' ? 'Sign In' : 'Create Account'}
           </h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
           >
-            <X size={20} className="sm:w-6 sm:h-6" />
+            <X size={16} className="sm:w-5 sm:h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-[12px]">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-[12px]">
               {success}
             </div>
           )}
 
 
 
-          <div className="relative">
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+          <div>
+            <label className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-700 mb-1">
               Email Address
             </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 sm:w-[18px] sm:h-[18px]" size={16} />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                placeholder="Enter your email"
-                required
-              />
-            </div>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-[12px]"
+              placeholder="Enter your email"
+              required
+            />
           </div>
 
-          <div className="relative">
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+          <div>
+            <label className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 sm:w-[18px] sm:h-[18px]" size={16} />
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-9 sm:pl-10 pr-12 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-[12px] pr-12"
                 placeholder="Enter your password"
                 required
                 minLength={6}
@@ -170,31 +166,41 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
-                {showPassword ? <EyeOff size={16} className="sm:w-[18px] sm:h-[18px]" /> : <Eye size={16} className="sm:w-[18px] sm:h-[18px]" />}
+                {showPassword ? <EyeOff size={16} className="sm:w-4 sm:h-4" /> : <Eye size={16} className="sm:w-4 sm:h-4" />}
               </button>
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-2 sm:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-sm"
-          >
-            {isLoading ? (
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white mr-2"></div>
-                <span className="text-sm">{mode === 'login' ? 'Signing In...' : 'Creating Account...'}</span>
-              </div>
-            ) : (
-              mode === 'login' ? 'Sign In' : 'Create Account'
-            )}
-          </button>
+          <div className="flex flex-row gap-2 sm:gap-3 pt-2 sm:pt-3">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isLoading}
+              className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-[10px] sm:text-xs 2xl:text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-xs 2xl:text-sm"
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  <span className="text-[10px] sm:text-xs 2xl:text-sm">{mode === 'login' ? 'Signing In...' : 'Creating Account...'}</span>
+                </div>
+              ) : (
+                mode === 'login' ? 'Sign In' : 'Create Account'
+              )}
+            </button>
+          </div>
 
           <div className="text-center">
             <button
               type="button"
               onClick={switchMode}
-              className="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium cursor-pointer"
+              className="text-blue-600 hover:text-blue-700 text-[10px] sm:text-xs 2xl:text-sm font-medium cursor-pointer"
             >
               {mode === 'login' 
                 ? "Don't have an account? Sign up" 

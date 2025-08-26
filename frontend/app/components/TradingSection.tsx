@@ -58,6 +58,8 @@ export default function TradingSection() {
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingTrades, setIsLoadingTrades] = useState(true);
+  const [tradesLoaded, setTradesLoaded] = useState(false);
+  const [analyticsLoaded, setAnalyticsLoaded] = useState(false);
 
   // Load trades and analytics when authenticated
   useEffect(() => {
@@ -76,13 +78,26 @@ export default function TradingSection() {
         monthly_performance: {}
       });
       setIsLoadingTrades(false);
+      setTradesLoaded(false);
+      setAnalyticsLoaded(false);
     }
   }, [isAuthenticated, token]);
+
+  // Check if both trades and analytics are loaded, then add small delay for calculations
+  useEffect(() => {
+    if (tradesLoaded && analyticsLoaded) {
+      const timer = setTimeout(() => {
+        setIsLoadingTrades(false);
+      }, 50); // Small delay to ensure all calculations are complete
+      return () => clearTimeout(timer);
+    }
+  }, [tradesLoaded, analyticsLoaded]);
 
   const loadTrades = async () => {
     if (!token) return;
     
     setIsLoadingTrades(true);
+    setTradesLoaded(false);
     console.log('Loading trades...');
     try {
       const response = await fetch(getApiUrl('/api/trades'), {
@@ -103,13 +118,14 @@ export default function TradingSection() {
     } catch (error) {
       console.error('Error loading trades:', error);
     } finally {
-      setIsLoadingTrades(false);
+      setTradesLoaded(true);
     }
   };
 
   const loadAnalytics = async () => {
     if (!token) return;
     
+    setAnalyticsLoaded(false);
     try {
       const response = await fetch(getApiUrl('/api/trades/analytics'), {
         headers: {
@@ -123,6 +139,8 @@ export default function TradingSection() {
       }
     } catch (error) {
       console.error('Error loading analytics:', error);
+    } finally {
+      setAnalyticsLoaded(true);
     }
   };
 
@@ -353,7 +371,7 @@ export default function TradingSection() {
 
       {/* Content - Only show after authentication and trades are loaded */}
       {!isAuthLoading && !isLoadingTrades && (
-        <>
+        <div className="py-8">
           {/* Header */}
           {/* <div className="flex flex-row justify-between items-center gap-4 mb-0">
             <div className="flex items-center gap-3">
@@ -364,20 +382,27 @@ export default function TradingSection() {
           <p className="text-xs 2xl:text-sm -mt-0 text-gray-600 mb-6">Track your trades and analyze trading performance over time</p> */}
 
           {/* Trade List Content */}
-          <div className="pt-1 mb-4">
+          {/* <div className="pt-1 mb-4">
             <TradeList
               trades={trades}
               onEdit={handleEditTrade}
               onDelete={handleDeleteTrade}
               onAdd={handleAddTrade}
             />
-          </div>
+          </div> */}
 
           {/* Analytics Content */}
-          <div>
+          <div className="pt-1 mb-4">
             <TradeAnalytics trades={trades} analytics={analytics} />
           </div>
-        </>
+
+          <TradeList
+            trades={trades}
+            onEdit={handleEditTrade}
+            onDelete={handleDeleteTrade}
+            onAdd={handleAddTrade}
+          />
+        </div>
       )}
 
       {/* Trade Modal */}
@@ -388,16 +413,6 @@ export default function TradingSection() {
         editingTrade={editingTrade}
         onAddParsedTrades={handleAddParsedTrades}
       />
-
-      {/* Loading Overlay */}
-      {isLoading && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 shadow-lg">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Processing...</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

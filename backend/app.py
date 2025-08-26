@@ -893,31 +893,52 @@ def parse_trade_image_with_gemini(image_data: str, mime_type: str):
         EXTRACTION RULES:
         - Copy numbers EXACTLY as they appear in the image
         - Do not round, estimate, or "fix" any values
-        - If P&L shows as 150.25, use 150.25 (not 150.26 or 150.24)
-        - If percent shows as 5.5%, use 5.5 (not 5.4 or 5.6)
+        - If P&L shows as +$2.00, use 2.00 (positive)
+        - If P&L shows as -$34.21, use -34.21 (negative)
+        - If percent shows as +5.13%, use 5.13 (positive)
+        - If percent shows as -6.29%, use -6.29 (negative)
         
         REQUIRED FIELDS (must extract these):
-        - Date (in YYYY-MM-DD format)
-        - Ticker symbol (exactly as shown)
-        - Realized P&L (exact dollar amount from image)
-        - Percent difference (exact percentage from image)
+        - Date (in YYYY-MM-DD format, convert from "Aug 25, 2025" to "2025-08-25")
+        - Ticker symbol (extract ONLY the stock symbol, not the full description):
+          * For stock trades like "OPEN market sell" → use "OPEN"
+          * For stock trades like "IXHL market sell" → use "IXHL"
+          * For options trades like "QQQ $572 Put 8/25" → use "QQQ $572 Put 8/25"
+        - Realized P&L (exact dollar amount from image, include sign)
+        - Percent difference (exact percentage from image, include sign)
 
-        If the image includes an options trade (put or call), use the option as the ticker (ex. QQQ $571 PUT 8/22), then include realized_pnl, and percent_diff.
-        If the image includes a stock trade, use the stock as the ticker (ex. AAPL), then include date, realized_pnl, and percent_diff.
+        FORMAT EXAMPLES:
+        - Stock trade: "OPEN market sell" → ticker: "OPEN", date: "2025-08-25"
+        - Stock trade: "IXHL market sell" → ticker: "IXHL", date: "2025-08-25"
+        - Stock trade: "THAR market sell" → ticker: "THAR", date: "2025-08-25"
+        - Options trade: "QQQ $572 Put 8/25" → ticker: "QQQ $572 Put 8/25", date: "2025-08-25"
+        - P&L: "+$27.82" → realized_pnl: 27.82
+        - P&L: "-$34.21" → realized_pnl: -34.21
+        - Percent: "+3.30%" → percent_diff: 3.30
+        - Percent: "-6.29%" → percent_diff: -6.29
         
         Return the data as a JSON array with this structure:
         [
           {
-            "date": "2024-01-15",
-            "ticker": "AAPL",
-            "realized_pnl": 1250.50,
-            "percent_diff": 8.5,
+            "date": "2025-08-25",
+            "ticker": "OPEN",
+            "realized_pnl": 27.82,
+            "percent_diff": 3.30
+          },
+          {
+            "date": "2025-08-25",
+            "ticker": "QQQ $572 Put 8/25",
+            "realized_pnl": 2.00,
+            "percent_diff": 5.13
           }
         ]
         
         IMPORTANT: 
-        - Only extract trades where you can clearly see ALL required fields
-        - If you're unsure about any required value, omit that trade entirely
+        - Extract ALL trades visible in the list
+        - Convert date format from "Aug 25, 2025" to "2025-08-25"
+        - Include the sign (+ or -) for P&L and percentage values
+        - For stock trades, extract ONLY the ticker symbol (e.g., "OPEN" not "OPEN market sell")
+        - For options trades, use the full option description as ticker
         - Only return valid JSON, no other text or explanations
         """
         

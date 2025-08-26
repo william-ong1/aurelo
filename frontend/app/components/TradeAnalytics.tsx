@@ -66,7 +66,7 @@ const InfoTooltip = ({ children, tooltip }: { children: React.ReactNode; tooltip
         >
           <Info className="h-3 w-3 text-gray-400 hover:text-gray-600" />
           {showTooltip && (
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1.5 px-2 py-1.5 bg-gray-700 text-gray-100 text-[10px] rounded-md shadow-sm z-10 whitespace-nowrap opacity-90">
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1.5 px-2 py-1.5 bg-gray-900 text-gray-100 text-[10px] rounded-md shadow-sm z-10 whitespace-nowrap opacity-90">
               {tooltip}
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-t-3 border-transparent border-t-gray-700"></div>
             </div>
@@ -79,7 +79,19 @@ const InfoTooltip = ({ children, tooltip }: { children: React.ReactNode; tooltip
 
 export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProps) {
   const { token } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAnalyticsReady, setIsAnalyticsReady] = useState(false);
+
+  // Set analytics as ready after a short delay to ensure calculations are complete
+  useEffect(() => {
+    if (trades.length > 0 && analytics.total_trades > 0) {
+      const timer = setTimeout(() => {
+        setIsAnalyticsReady(true);
+      }, 50); // Small delay to ensure all calculations are complete
+      return () => clearTimeout(timer);
+    } else if (trades.length === 0) {
+      setIsAnalyticsReady(true); // Show empty state immediately if no trades
+    }
+  }, [trades, analytics]);
 
   const formatCurrency = (amount: number) => {
     return formatLargeNumber(amount);
@@ -273,6 +285,43 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
     return { avgPositionSize, largestPosition, concentration };
   };
 
+  // Calculate total invested and percentage gain
+  const getTotalInvestedAndGain = () => {
+    if (trades.length === 0) return { totalInvested: 0, percentageGain: 0 };
+    
+    // Calculate maximum capital deployed at any one time
+    // Sort trades by date to simulate sequential trading
+    const sortedTrades = trades.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+    let maxCapitalDeployed = 0;
+    let currentCapital = 0;
+    
+    sortedTrades.forEach(trade => {
+      // Estimate position size for this trade
+      let positionSize = 0;
+      if (trade.percent_diff && trade.percent_diff !== 0) {
+        positionSize = Math.abs((trade.realized_pnl || 0) / (trade.percent_diff / 100));
+      } else {
+        positionSize = Math.abs(trade.realized_pnl || 0) * 10; // Rough estimate
+      }
+      
+      // Add to current capital (simulating using available capital)
+      currentCapital += positionSize;
+      maxCapitalDeployed = Math.max(maxCapitalDeployed, currentCapital);
+      
+      // After trade, capital becomes available again (minus P&L)
+      currentCapital = Math.max(0, currentCapital - positionSize + (trade.realized_pnl || 0));
+    });
+    
+    // Use maximum capital deployed as the "total invested" base
+    const totalInvested = maxCapitalDeployed;
+    
+    // Calculate percentage gain based on maximum capital deployed
+    const percentageGain = totalInvested > 0 ? (analytics.total_pnl / totalInvested) * 100 : 0;
+    
+    return { totalInvested, percentageGain };
+  };
+
   const topPerformer = getTopPerformer();
   const mostTraded = getMostTraded();
   const uniqueTickers = getUniqueTickers();
@@ -280,6 +329,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
   const { profitFactor, riskRewardRatio, avgPositionReturn, avgPercentReturn } = getRiskMetrics();
   const { maxConsecutiveWins, maxConsecutiveLosses, bestDay } = getBehavioralMetrics();
   const { avgPositionSize, largestPosition, concentration } = getPositionSizing();
+  const { totalInvested, percentageGain } = getTotalInvestedAndGain();
 
   return (
     <>
@@ -445,57 +495,54 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             <div className="mb-3">
               <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Monthly Performance</h3>
             </div>
-            <div className={`${Object.keys(analytics.monthly_performance).length > 2 ? 'overflow-y-auto' : ''} flex-1`}>
+            <div className={`overflow-y-auto flex-1 ${Object.keys(analytics.monthly_performance).length > 2 ? 'max-h-[115px]' : ''}`}>
               <table className="w-full">
-                <thead className="sticky top-0 bg-white">
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600">Month</th>
-                                          <th className="text-right py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600">Trades</th>
+                                  <thead className="sticky top-0 bg-white">
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600">Month</th>
+                      <th className="text-right py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600">Trades</th>
                       <th className="text-right py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600">Win Rate</th>
                       <th className="text-right py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600">Total P&L</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(() => {
-                    const months = Object.entries(analytics.monthly_performance)
-                      .sort(([a], [b]) => b.localeCompare(a));
+                    </tr>
+                  </thead>
+                                  <tbody>
+                    {(() => {
+                      const months = Object.entries(analytics.monthly_performance)
+                        .sort(([a], [b]) => b.localeCompare(a));
                     
                     const monthCount = months.length;
-                    let displayMonths: Array<[string, { total_pnl: number; total_trades: number; winning_trades: number; losing_trades: number; success_rate: number }]> = [];
                     
                     if (monthCount === 0) {
                       // No data - show 2 empty rows
-                      displayMonths = [
-                        ['', { total_pnl: 0, total_trades: 0, winning_trades: 0, losing_trades: 0, success_rate: 0 }],
-                        ['', { total_pnl: 0, total_trades: 0, winning_trades: 0, losing_trades: 0, success_rate: 0 }]
+                      return [
+                        <tr key="empty-1" className="border-b border-slate-200">
+                          <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900">-</td>
+                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 text-right">-</td>
+                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 text-right">-</td>
+                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 text-right">-</td>
+                        </tr>,
+                        <tr key="empty-2" className="border-b border-slate-200">
+                          <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900">-</td>
+                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 text-right">-</td>
+                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 text-right">-</td>
+                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 text-right">-</td>
+                        </tr>
                       ];
-                    } else if (monthCount === 1) {
-                      // 1 month - show the month + 1 empty row
-                      displayMonths = [
-                        months[0],
-                        ['', { total_pnl: 0, total_trades: 0, winning_trades: 0, losing_trades: 0, success_rate: 0 }]
-                      ];
-                    } else if (monthCount === 2) {
-                      // 2 months - show both
-                      displayMonths = months;
-                    } else {
-                      // More than 2 months - show first 2
-                      displayMonths = months.slice(0, 2);
                     }
                     
-                    return displayMonths.map(([monthKey, data], index) => (
-                      <tr key={monthKey || `empty-${index}`} className="border-b border-slate-200">
+                    return months.map(([monthKey, data], index) => (
+                      <tr key={monthKey} className="border-b border-slate-200">
                         <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900">
-                          {monthKey ? formatMonth(monthKey) : '-'}
+                          {formatMonth(monthKey)}
                         </td>
                         <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 text-right">
-                          {monthKey ? data.total_trades : '-'}
+                          {data.total_trades}
                         </td>
                         <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 text-right">
-                          {monthKey ? formatPercent(data.success_rate) : '-'}
+                          {formatPercent(data.success_rate)}
                         </td>
-                        <td className={`py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-right ${monthKey ? getPnlColor(data.total_pnl) : 'text-gray-900'}`}>
-                          {monthKey ? formatCurrency(data.total_pnl) : '-'}
+                        <td className={`py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-right ${getPnlColor(data.total_pnl)}`}>
+                          {formatCurrency(data.total_pnl)}
                         </td>
                       </tr>
                     ));

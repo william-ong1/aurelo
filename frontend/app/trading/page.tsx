@@ -25,7 +25,7 @@ export default function TradingPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Only render content after authentication is checked */}
       {isPageReady && (
-        <main className="mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-6xl 2xl:max-w-7xl">
+        <main className="mx-auto px-4 sm:px-6 lg:px-8 py-0 max-w-6xl 2xl:max-w-7xl">
           <section>
             <TradingSection />
           </section>

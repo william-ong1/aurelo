@@ -3,13 +3,13 @@ import React from 'react';
 
 export default function PerformanceSection() {
   return (
-    <section className="mb-0">
-      <div className="flex flex-row justify-between items-center gap-4 mb-0">
-        <div className="flex items-center gap-3">
-          <h2 className="text-base text-lg 2xl:text-2xl font-semibold text-gray-800">Performance</h2>
+    <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Performance</h3>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-3">
-          <div className="flex items-center bg-gray-100 backdrop-blur-sm rounded-full p-1 border border-slate-200/90">
+          <div className="flex items-center bg-gray-100 backdrop-blur-sm rounded-full p-1 border border-gray-200/90 gap-1">
             {(['1D', '1W', '1M', '3M', '1Y', 'ALL'] as const).map((period) => (
               <button
                 key={period}
@@ -26,8 +26,8 @@ export default function PerformanceSection() {
           </div>
         </div>
       </div>
-      <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-600 -mt-1 mb-4 sm:mb-6">Track your portfolio performance over time</p>
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+      
+      <div className="">
         <div className="flex items-center justify-between mb-6">
           <div> </div>
           <div className="text-right">
@@ -39,7 +39,7 @@ export default function PerformanceSection() {
         <div className="h-48 relative">
           <div className="absolute inset-0 flex items-center justify-center z-10">
             <div className="text-center">
-              <div className="text-xl sm:text-2xl 2xl:text-3xl font-bold text-gray-400 tracking-wider mb-4">COMING SOON</div>
+              <div className="text-xl sm:text-2xl 2xl:text-3xl font-bold text-gray-400 tracking-wider mb-16">COMING SOON</div>
             </div>
           </div>
           
@@ -74,6 +74,6 @@ export default function PerformanceSection() {
           <span>Current: $0</span>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

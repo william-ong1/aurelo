@@ -49,6 +49,17 @@ export default function WatchlistModal({
     }
   }, [editingItem]);
 
+  // Clear form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setFormData({
+        ticker: '',
+        notes: '',
+        chart_link: ''
+      });
+    }
+  }, [isOpen]);
+
   // Handle body scroll locking
   useEffect(() => {
     if (isOpen) {
@@ -124,7 +135,13 @@ export default function WatchlistModal({
               id="ticker"
               name="ticker"
               value={formData.ticker}
-              onChange={handleInputChange}
+              onChange={(e) => {
+                const { name, value } = e.target;
+                setFormData(prev => ({
+                  ...prev,
+                  [name]: value.toUpperCase()
+                }));
+              }}
               disabled={isLoading}
               className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
               placeholder="e.g., AAPL"
@@ -145,7 +162,7 @@ export default function WatchlistModal({
               disabled={isLoading}
               rows={3}
               className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-xs resize-none"
-              placeholder="Add notes about why you're watching this stock..."
+              placeholder="e.g. Technical analysis, support/resistance levels, entry/exit points ..."
               maxLength={500}
             />
             <p className="text-[10px] sm:text-[11px] 2xl:text-sm text-gray-500">
@@ -179,14 +196,14 @@ export default function WatchlistModal({
               type="button"
               onClick={handleClose}
               disabled={isLoading}
-              className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-[10px] sm:text-sm 2xl:text-sm"
+              className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading || !formData.ticker.trim()}
-              className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-sm 2xl:text-sm"
+              className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">

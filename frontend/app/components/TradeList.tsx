@@ -27,8 +27,26 @@ interface TradeListProps {
 
 export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeListProps) {
   const { token } = useAuth();
-  const [sortField, setSortField] = useState<SortField>('date');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [sortField, setSortField] = useState<SortField>(() => {
+    // Load sort field preference from localStorage on component mount
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tradeListSortField');
+      if (saved && ['date', 'ticker', 'realized_pnl', 'percent_diff'].includes(saved)) {
+        return saved as SortField;
+      }
+    }
+    return 'date';
+  });
+  const [sortDirection, setSortDirection] = useState<SortDirection>(() => {
+    // Load sort direction preference from localStorage on component mount
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tradeListSortDirection');
+      if (saved && ['asc', 'desc'].includes(saved)) {
+        return saved as SortDirection;
+      }
+    }
+    return 'desc';
+  });
   const [displayCount, setDisplayCount] = useState(5);
   const [showSelector, setShowSelector] = useState(false);
   
@@ -51,11 +69,21 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
   };
 
   const handleSort = (field: SortField) => {
+    let newSortDirection: SortDirection;
+    
     if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      newSortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
     } else {
       setSortField(field);
-      setSortDirection('desc');
+      newSortDirection = 'desc';
+    }
+    
+    setSortDirection(newSortDirection);
+    
+    // Save preferences to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('tradeListSortField', field);
+      localStorage.setItem('tradeListSortDirection', newSortDirection);
     }
   };
 
@@ -146,7 +174,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
       'Shares',
       'Price',
       'Realized P&L',
-      '% Diff',
+      '% Return',
       'Notes',
       'ID'
     ];
@@ -241,7 +269,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                   onClick={() => handleSort('percent_diff')}
                 >
                   <div className="flex items-center gap-1 justify-end">
-                    % Diff
+                    % Return
                     {getSortIcon('percent_diff')}
                   </div>
                 </th>

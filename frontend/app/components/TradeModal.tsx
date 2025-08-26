@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { X, Upload, FileText, Plus } from 'lucide-react';
+import { X, Upload, FileText, Plus, Calendar, DollarSign } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { disableBodyScroll, enableBodyScroll } from '../utils/scrollLock';
 import { getApiUrl } from '../config/api';
@@ -44,30 +44,35 @@ export default function TradeModal({
   const [formData, setFormData] = useState({
     date: '',
     ticker: '',
-    pnl_type: 'profit' as 'profit' | 'loss',
+    input_mode: 'pnl' as 'pnl' | 'buy_sell',
     realized_pnl: '',
-    percent_diff: ''
+    percent_diff: '',
+    buy_amount: '',
+    sell_amount: ''
   });
 
   // Reset form when editing trade changes
   React.useEffect(() => {
     if (editingTrade) {
-      const pnlType = (editingTrade.realized_pnl || 0) >= 0 ? 'profit' : 'loss';
       setFormData({
         date: editingTrade.date,
         ticker: editingTrade.ticker,
-        pnl_type: pnlType,
-        realized_pnl: Math.abs(editingTrade.realized_pnl || 0).toString(),
-        percent_diff: Math.abs(editingTrade.percent_diff || 0).toString()
+        input_mode: 'pnl',
+        realized_pnl: (editingTrade.realized_pnl || 0).toString(),
+        percent_diff: (editingTrade.percent_diff || 0).toString(),
+        buy_amount: '',
+        sell_amount: ''
       });
       setUploadMode('manual');
     } else {
       setFormData({
-        date: new Date().toLocaleDateString('en-CA'), // Today's date in YYYY-MM-DD format
+        date: new Date().toLocaleDateString('en-CA'),
         ticker: '',
-        pnl_type: 'profit',
+        input_mode: 'pnl',
         realized_pnl: '',
-        percent_diff: ''
+        percent_diff: '',
+        buy_amount: '',
+        sell_amount: ''
       });
     }
   }, [editingTrade]);
@@ -80,7 +85,6 @@ export default function TradeModal({
       enableBodyScroll();
     }
 
-    // Cleanup on unmount
     return () => {
       enableBodyScroll();
     };
@@ -88,10 +92,27 @@ export default function TradeModal({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [name]: value
+      };
+      
+      // Calculate percentage when buy/sell amounts change
+      if (name === 'buy_amount' || name === 'sell_amount') {
+        const buyAmount = parseFloat(newData.buy_amount) || 0;
+        const sellAmount = parseFloat(newData.sell_amount) || 0;
+        
+        if (buyAmount > 0 && sellAmount > 0) {
+          const pnl = sellAmount - buyAmount;
+          const percentage = (pnl / buyAmount) * 100;
+          newData.realized_pnl = pnl.toString();
+          newData.percent_diff = percentage.toString();
+        }
+      }
+      
+      return newData;
+    });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,30 +182,52 @@ export default function TradeModal({
   };
 
   const handleSubmit = () => {
-    if (!formData.date || !formData.ticker || !formData.realized_pnl || !formData.percent_diff) {
-      alert('Please fill in all required fields');
+    if (!formData.date || !formData.ticker) {
       return;
     }
 
-    const pnlValue = parseFloat(formData.realized_pnl);
-    const percentValue = parseFloat(formData.percent_diff);
+    let pnlValue: number;
+    let percentValue: number;
+
+    if (formData.input_mode === 'pnl') {
+      if (!formData.realized_pnl || !formData.percent_diff) {
+        return;
+      }
+      pnlValue = parseFloat(formData.realized_pnl);
+      percentValue = parseFloat(formData.percent_diff);
+    } else {
+      if (!formData.buy_amount || !formData.sell_amount) {
+        return;
+      }
+      const buyAmount = parseFloat(formData.buy_amount);
+      const sellAmount = parseFloat(formData.sell_amount);
+      pnlValue = sellAmount - buyAmount;
+      percentValue = (pnlValue / buyAmount) * 100;
+    }
+    
+    // Check if dollar amount and percentage have different signs
+    if ((pnlValue >= 0 && percentValue < 0) || (pnlValue < 0 && percentValue >= 0)) {
+      alert('Dollar amount and percentage must have the same sign (both positive for profit, both negative for loss)');
+      return;
+    }
     
     const tradeData = {
       date: formData.date,
       ticker: formData.ticker.toUpperCase(),
-      realized_pnl: formData.pnl_type === 'profit' ? pnlValue : -pnlValue,
-      percent_diff: formData.pnl_type === 'profit' ? percentValue : -percentValue
+      realized_pnl: pnlValue,
+      percent_diff: percentValue
     };
 
     onSave(tradeData);
     
-    // Reset form data after successful submission
     setFormData({
       date: new Date().toLocaleDateString('en-CA'),
       ticker: '',
-      pnl_type: 'profit',
+      input_mode: 'pnl',
       realized_pnl: '',
-      percent_diff: ''
+      percent_diff: '',
+      buy_amount: '',
+      sell_amount: ''
     });
     
     onClose();
@@ -206,7 +249,7 @@ export default function TradeModal({
       <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-2xl p-3 sm:p-6 w-full max-w-sm mx-auto border border-gray-200/50 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-3 sm:mb-4">
           <h2 className="text-sm sm:text-lg 2xl:text-lg font-semibold text-gray-800">
-            {editingTrade ? 'Edit Trade' : 'Record Completed Trade'}
+            {editingTrade ? 'Edit Trade' : 'Record Trade'}
           </h2>
           <button
             onClick={closeModal}
@@ -228,7 +271,7 @@ export default function TradeModal({
                 }`}
               >
                 <FileText size={14} className="sm:w-4 sm:h-4" />
-                <span className="font-medium text-[10px] sm:text-xs 2xl:text-sm">Manual Entry</span>
+                <span className="font-medium text-[10px] sm:text-[12px] 2xl:text-sm">Manual Entry</span>
               </button>
               <button
                 onClick={() => setUploadMode('image')}
@@ -239,7 +282,7 @@ export default function TradeModal({
                 }`}
               >
                 <Upload size={14} className="sm:w-4 sm:h-4" />
-                <span className="font-medium text-[10px] sm:text-xs 2xl:text-sm">Upload Image</span>
+                <span className="font-medium text-[10px] sm:text-[12px] 2xl:text-sm">Upload Image</span>
               </button>
             </div>
           </div>
@@ -250,8 +293,8 @@ export default function TradeModal({
             {selectedImages.length === 0 ? (
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 sm:p-6 text-center">
                 <Upload className="mx-auto h-6 w-6 sm:h-10 sm:w-10 text-gray-400 mb-2 sm:mb-3" />
-                <div className="text-[10px] sm:text-xs 2xl:text-sm text-gray-600 mb-2 sm:mb-3">
-                  Upload an image of your completed trades from your broker or trading platform.
+                <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-600 mb-2 sm:mb-3">
+                  Upload an image of your completed trades.
                 </div>
                 <input
                   type="file"
@@ -263,7 +306,7 @@ export default function TradeModal({
                 />
                 <label
                   htmlFor="trade-image-upload"
-                  className="inline-flex items-center px-2 sm:px-3 py-1.5 border border-transparent text-[10px] sm:text-xs 2xl:text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                  className="inline-flex items-center px-2 sm:px-3 py-1.5 border border-transparent text-[10px] sm:text-[12px] 2xl:text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
                 >
                   Choose Images
                 </label>
@@ -277,29 +320,29 @@ export default function TradeModal({
                         <Upload className="h-3 w-3 sm:h-5 sm:w-5 text-blue-600" />
                       </div>
                       <div>
-                        <div className="font-medium text-gray-900 text-[10px] sm:text-xs 2xl:text-sm">{image.name}</div>
-                        <div className="text-[10px] sm:text-xs 2xl:text-sm text-gray-500">
+                        <div className="font-medium text-gray-900 text-[10px] sm:text-[12px] 2xl:text-sm">{image.name}</div>
+                        <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-500">
                           {(image.size / 1024 / 1024).toFixed(2)} MB
                         </div>
                       </div>
                     </div>
-                                          <button
-                        onClick={() => {
-                          setSelectedImages(selectedImages.filter((_, i) => i !== index));
-                          setParsedTrades([]);
-                          setIsProcessing(false);
-                        }}
-                        className="text-gray-400 hover:text-gray-600 cursor-pointer"
-                      >
-                        <X size={14} className="sm:w-4 sm:h-4" />
-                      </button>
+                    <button
+                      onClick={() => {
+                        setSelectedImages(selectedImages.filter((_, i) => i !== index));
+                        setParsedTrades([]);
+                        setIsProcessing(false);
+                      }}
+                      className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                    >
+                      <X size={14} className="sm:w-4 sm:h-4" />
+                    </button>
                   </div>
                 ))}
                 
                 {!isProcessing && parsedTrades.length === 0 && !noTradesFound && (
                   <button
                     onClick={processImagesWithGemini}
-                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-xs 2xl:text-sm"
+                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
                   >
                     Process {selectedImages.length} Image{selectedImages.length !== 1 ? 's' : ''}
                   </button>
@@ -308,8 +351,8 @@ export default function TradeModal({
                 {!isProcessing && noTradesFound && (
                   <div className="text-center py-4 sm:py-6 space-y-2 sm:space-y-3">
                     <div className="text-gray-600">
-                      <p className="font-medium mb-2 text-[10px] sm:text-xs 2xl:text-sm">No trades found in the uploaded images.</p>
-                      <p className="text-[10px] sm:text-xs 2xl:text-sm">Please try again with different images or use manual entry.</p>
+                      <p className="font-medium mb-2 text-[10px] sm:text-[12px] 2xl:text-sm">No trades found in the uploaded images.</p>
+                      <p className="text-[10px] sm:text-[12px] 2xl:text-sm">Please try again with different images or use manual entry.</p>
                     </div>
                     <div className="flex flex-row gap-2 sm:gap-3">
                       <button
@@ -317,7 +360,7 @@ export default function TradeModal({
                           setNoTradesFound(false);
                           setSelectedImages([]);
                         }}
-                        className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-[10px] sm:text-xs 2xl:text-sm"
+                        className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
                       >
                         Try Again
                       </button>
@@ -327,7 +370,7 @@ export default function TradeModal({
                           setNoTradesFound(false);
                           setSelectedImages([]);
                         }}
-                        className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-xs 2xl:text-sm"
+                        className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
                       >
                         Use Manual Entry
                       </button>
@@ -338,26 +381,26 @@ export default function TradeModal({
                 {isProcessing && (
                   <div className="text-center py-4 sm:py-6">
                     <div className="animate-spin rounded-full h-5 w-5 sm:h-7 sm:w-7 border-b-2 border-blue-600 mx-auto mb-2 sm:mb-3"></div>
-                    <div className="text-gray-600 text-[10px] sm:text-xs 2xl:text-sm">Processing {selectedImages.length} image{selectedImages.length !== 1 ? 's' : ''}...</div>
+                    <div className="text-gray-600 text-[10px] sm:text-[12px] 2xl:text-sm">Processing {selectedImages.length} image{selectedImages.length !== 1 ? 's' : ''}...</div>
                   </div>
                 )}
 
                 {parsedTrades.length > 0 && (
                   <div className="space-y-2 sm:space-y-3">
-                    <div className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-700">
+                    <div className="text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700">
                       Found {parsedTrades.length} trade(s):
                     </div>
                     <div className="max-h-60 overflow-y-auto space-y-1.5">
                       {parsedTrades.map((trade, index) => (
                         <div key={index} className="p-1.5 sm:p-2 bg-gray-50 rounded-lg">
-                          <div className="font-medium text-gray-900 text-[10px] sm:text-xs 2xl:text-sm">
+                          <div className="font-medium text-gray-900 text-[10px] sm:text-[12px] 2xl:text-sm">
                             {trade.ticker}
                           </div>
-                          <div className="text-[10px] sm:text-xs 2xl:text-sm text-gray-600">
+                          <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-600">
                             {trade.date}
                           </div>
                           {trade.realized_pnl && (
-                            <div className="text-[10px] sm:text-xs 2xl:text-sm text-gray-600">
+                            <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-600">
                               P&L: ${trade.realized_pnl}
                             </div>
                           )}
@@ -371,13 +414,13 @@ export default function TradeModal({
                           setSelectedImages([]);
                           setIsProcessing(false);
                         }}
-                        className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-[10px] sm:text-xs 2xl:text-sm"
+                        className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
                       >
                         Try Again
                       </button>
                       <button
                         onClick={addParsedTrades}
-                        className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-xs 2xl:text-sm"
+                        className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
                       >
                         Add All Trades
                       </button>
@@ -389,119 +432,203 @@ export default function TradeModal({
           </div>
         ) : (
           <div className="space-y-3 sm:space-y-4">
-            {/* Date */}
-            <div>
-              <label className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-700 mb-1">
-                Date *
-              </label>
-              <input
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleInputChange}
-                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
-                required
-              />
-            </div>
-
-            {/* Ticker */}
-            <div>
-              <label className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-700 mb-1">
-                Ticker Symbol *
-              </label>
-              <input
-                type="text"
-                name="ticker"
-                value={formData.ticker}
-                onChange={(e) => {
-                  const { name, value } = e.target;
-                  setFormData(prev => ({
-                    ...prev,
-                    [name]: value.toUpperCase()
-                  }));
-                }}
-                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
-                placeholder="e.g., AAPL"
-                required
-              />
-            </div>
-
-            {/* Profit/Loss Type */}
-            <div>
-              <label className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-700 mb-2">
-                Trade Result *
-              </label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="pnl_type"
-                    value="profit"
-                    checked={formData.pnl_type === 'profit'}
-                    onChange={handleInputChange}
-                    className='cursor-pointer'
-                  />
-                  <span className="text-[10px] sm:text-sm 2xl:text-base">Profit</span>
+            {/* Divider */}
+            <div className="border-t border-gray-200 my-2 sm:my-3"></div>
+            
+            {/* Date and Ticker in same row */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              {/* Date */}
+              <div>
+                <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">
+                  Date *
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
-                    type="radio"
-                    name="pnl_type"
-                    value="loss"
-                    checked={formData.pnl_type === 'loss'}
+                    type="date"
+                    name="date"
+                    value={formData.date}
                     onChange={handleInputChange}
-                    className='cursor-pointer'
+                    className="w-full pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                    required
                   />
-                  <span className="text-[10px] sm:text-sm 2xl:text-base">Loss</span>
+                </div>
+              </div>
+
+              {/* Ticker */}
+              <div>
+                <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">
+                  Ticker Symbol *
                 </label>
+                <input
+                  type="text"
+                  name="ticker"
+                  value={formData.ticker}
+                  onChange={(e) => {
+                    const { name, value } = e.target;
+                    setFormData(prev => ({
+                      ...prev,
+                      [name]: value.toUpperCase()
+                    }));
+                  }}
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                  placeholder="e.g. AAPL"
+                  required
+                />
               </div>
             </div>
 
-            {/* Dollar Amount */}
+            {/* Input Mode Selector */}
             <div>
-              <label className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-700 mb-1">
-                Amount (Dollars) *
+              <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-2">
+                Input Method *
               </label>
-              <input
-                type="number"
-                name="realized_pnl"
-                value={formData.realized_pnl}
-                onChange={handleInputChange}
-                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
-                step="0.01"
-                placeholder="e.g., 1250.50"
-                required
-              />
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, input_mode: 'pnl' }))}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border-2 transition-all cursor-pointer ${
+                    formData.input_mode === 'pnl'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                  }`}
+                >
+                  <span className="font-medium text-[10px] sm:text-[12px] 2xl:text-sm">P&L Entry</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, input_mode: 'buy_sell' }))}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border-2 transition-all cursor-pointer ${
+                    formData.input_mode === 'buy_sell'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                  }`}
+                >
+                  <span className="font-medium text-[10px] sm:text-[12px] 2xl:text-sm">Buy/Sell Entry</span>
+                </button>
+              </div>
             </div>
 
-            {/* Percentage */}
-            <div>
-              <label className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-700 mb-1">
-                Amount (Percentage) *
-              </label>
-              <input
-                type="number"
-                name="percent_diff"
-                value={formData.percent_diff}
-                onChange={handleInputChange}
-                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
-                step="0.1"
-                placeholder="e.g., 8.5"
-                required
-              />
-            </div>
+
+
+            {/* Amount Fields - Dynamic based on input mode */}
+            {formData.input_mode === 'pnl' ? (
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                {/* P&L Amount */}
+                <div>
+                  <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">
+                    P&L Amount *
+                  </label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="number"
+                      name="realized_pnl"
+                      value={formData.realized_pnl}
+                      onChange={handleInputChange}
+                      className="w-full pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                      step="0.01"
+                      placeholder="0.00"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Percentage */}
+                <div>
+                  <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">
+                    Return % *
+                  </label>
+                  <input
+                    type="number"
+                    name="percent_diff"
+                    value={formData.percent_diff}
+                    onChange={handleInputChange}
+                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                    step="0.1"
+                    placeholder="0.0"
+                    required
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                {/* Buy Amount */}
+                <div>
+                  <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">
+                    Buy Amount *
+                  </label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="number"
+                      name="buy_amount"
+                      value={formData.buy_amount}
+                      onChange={handleInputChange}
+                      className="w-full pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                      step="0.01"
+                      placeholder="0.00"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Sell Amount */}
+                <div>
+                  <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">
+                    Sell Amount *
+                  </label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="number"
+                      name="sell_amount"
+                      value={formData.sell_amount}
+                      onChange={handleInputChange}
+                      className="w-full pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                      step="0.01"
+                      placeholder="0.00"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Calculated Results Display (for Buy/Sell mode) */}
+            {formData.input_mode === 'buy_sell' && formData.buy_amount && formData.sell_amount && (
+              <div className="">
+                {/* <div className="text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700">
+                  Calculated Results:
+                </div> */}
+                <div className="grid grid-cols-2 gap-3 text-[10px] sm:text-[12px] 2xl:text-sm">
+                  <div>
+                    <span className="text-gray-600">P&L:</span>
+                    <span className={`ml-1 font-medium ${parseFloat(formData.realized_pnl) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {parseFloat(formData.realized_pnl) >= 0 ? '+' : ''}${parseFloat(formData.realized_pnl).toFixed(2)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Return:</span>
+                    <span className={`ml-1 font-medium ${parseFloat(formData.percent_diff) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {parseFloat(formData.percent_diff) >= 0 ? '+' : ''}{parseFloat(formData.percent_diff).toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Buttons */}
             <div className="flex flex-row gap-2 sm:gap-3 pt-2 sm:pt-3">
               <button
                 onClick={closeModal}
-                className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-[10px] sm:text-sm 2xl:text-sm"
+                className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
-                className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-sm 2xl:text-sm"
+                className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
               >
                 {editingTrade ? 'Update Trade' : 'Record Trade'}
               </button>
