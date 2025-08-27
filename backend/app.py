@@ -92,6 +92,7 @@ class TradeCreate(BaseModel):
     ticker: str
     realized_pnl: Optional[float] = None
     percent_diff: Optional[float] = None
+    is_image_upload: Optional[bool] = False
 
 class TradeUpdate(BaseModel):
     date: Optional[str] = None
@@ -106,6 +107,7 @@ class WatchlistItem(BaseModel):
     notes: Optional[str] = None
     chart_link: Optional[str] = None
     created_at: Optional[str] = None
+    updated_at: Optional[str] = None
 
 class WatchlistCreate(BaseModel):
     ticker: str
@@ -612,32 +614,35 @@ async def create_trade(
     print(f"Received trade data: {trade_data}")
     
     try:
-        # Check for duplicate trade (same ticker, date, realized_pnl, and percent_diff)
-        existing_trades = supabase.table("trades").select("*").eq("user_id", user_id).execute()
-        
-        print(f"Checking for duplicates. New trade: {trade_data.ticker}, {trade_data.date}, {trade_data.realized_pnl}, {trade_data.percent_diff}")
-        
-        for existing_trade in existing_trades.data:
-            print(f"Comparing with existing: {existing_trade['ticker']}, {existing_trade['date']}, {existing_trade['realized_pnl']}, {existing_trade['percent_diff']}")
+        # Only perform duplicate check for image uploads
+        if trade_data.is_image_upload:
+            # Check for duplicate trade - only query trades with same date and ticker for efficiency
+            existing_trades = supabase.table("trades").select("*").eq("user_id", user_id).eq("date", trade_data.date).eq("ticker", trade_data.ticker.upper()).execute()
             
-            if (existing_trade["ticker"].upper() == trade_data.ticker.upper() and
-                existing_trade["date"] == trade_data.date and
-                existing_trade["realized_pnl"] == trade_data.realized_pnl and
-                existing_trade["percent_diff"] == trade_data.percent_diff):
-                print("Duplicate found!")
-                # Duplicate found - return existing trade instead of creating new one
-                return {
-                    "trade": Trade(
-                        id=existing_trade["id"],
-                        date=existing_trade["date"],
-                        ticker=existing_trade["ticker"],
-                        realized_pnl=existing_trade["realized_pnl"],
-                        percent_diff=existing_trade["percent_diff"]
-                    ),
-                    "is_duplicate": True
-                }
-        
-        print("No duplicate found, creating new trade")
+            print(f"Checking for duplicates (image upload). New trade: {trade_data.ticker}, {trade_data.date}, {trade_data.realized_pnl}, {trade_data.percent_diff}")
+            
+            # Check if any existing trade matches all criteria (date, ticker, realized_pnl, percent_diff)
+            for existing_trade in existing_trades.data:
+                print(f"Comparing with existing: {existing_trade['ticker']}, {existing_trade['date']}, {existing_trade['realized_pnl']}, {existing_trade['percent_diff']}")
+                
+                if (existing_trade["realized_pnl"] == trade_data.realized_pnl and
+                    existing_trade["percent_diff"] == trade_data.percent_diff):
+                    print("Duplicate found!")
+                    # Duplicate found - return existing trade instead of creating new one
+                    return {
+                        "trade": Trade(
+                            id=existing_trade["id"],
+                            date=existing_trade["date"],
+                            ticker=existing_trade["ticker"],
+                            realized_pnl=existing_trade["realized_pnl"],
+                            percent_diff=existing_trade["percent_diff"]
+                        ),
+                        "is_duplicate": True
+                    }
+            
+            print("No duplicate found, creating new trade")
+        else:
+            print("Manual entry - skipping duplicate check")
         
         # No duplicate found, create new trade
         trade_dict = {
@@ -1064,6 +1069,9 @@ async def update_watchlist_item(item_id: int, item: WatchlistUpdate, user_id: st
             update_data['notes'] = item.notes if item.notes.strip() else None
         if item.chart_link is not None:
             update_data['chart_link'] = item.chart_link if item.chart_link.strip() else None
+        
+        # Always set updated_at when updating
+        update_data['updated_at'] = datetime.now(UTC).isoformat()
         
         # Update item
         result = supabase.table('watchlist').update(update_data).eq('id', item_id).eq('user_id', user_id).execute()

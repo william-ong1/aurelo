@@ -1,9 +1,10 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Edit2, Upload, FileText } from 'lucide-react';
+import { Plus, X, Edit2, Upload, FileText, DollarSign } from 'lucide-react';
 import PositionAnalytics from './components/PositionAnalytics';
 import PieChart from './components/PieChart';
 import PerformanceSection from './components/PerformanceSection';
+import HoldingsSection from './components/HoldingsSection';
 import { useRealTime } from './contexts/RealTimeContext';
 import { useAuth } from './contexts/AuthContext';
 import { disableBodyScroll, enableBodyScroll } from './utils/scrollLock';
@@ -509,78 +510,68 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50">
       {isPageReady && (
         <main className="mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-9 max-w-6xl 2xl:max-w-7xl">
-          {/* Top Block - Overview and Controls */}
-          <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200 mb-4">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Overview</h3>
+          {/* Top Row - Overview and Holdings */}
+          <div className="flex flex-col lg:flex-row gap-4 mb-4">
+            {/* Overview Box - Fixed size */}
+            <div className="lg:w-2/5 bg-white rounded-lg p-4 pt-3 shadow-sm border border-slate-200 h-[400px]">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Overview</h3>
+                </div>
+                <div className="flex items-center gap-1.5 sm:gap-3">
+                  <div className="flex bg-slate-50 rounded-lg p-1">
+                    <button
+                      onClick={() => setTimePeriod('all-time')}
+                      className={`px-3 py-1 text-[10px] 2xl:text-sm font-medium rounded-md transition-all duration-200 cursor-pointer ${
+                        timePeriod === 'all-time' 
+                          ? 'bg-white text-slate-700 shadow-sm' 
+                          : 'text-slate-500 hover:text-slate-600'
+                      }`}
+                    >
+                      All Time
+                    </button>
+                    <button
+                      onClick={() => setTimePeriod('today')}
+                      className={`px-3 py-1 text-[10px]  2xl:text-sm font-medium rounded-md transition-all duration-200 cursor-pointer ${
+                        timePeriod === 'today' 
+                          ? 'bg-white text-slate-700 shadow-sm' 
+                          : 'text-slate-500 hover:text-slate-600'
+                      }`}
+                    >
+                      Today
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5 sm:gap-3">
-                <div className="flex bg-slate-50 rounded-md p-0.5">
-                  <button
-                    onClick={() => setTimePeriod('all-time')}
-                    className={`px-2 py-1 text-[.6rem] sm:text-[.7rem] 2xl:text-[.8rem] font-medium rounded-sm transition-all duration-200 cursor-pointer ${
-                      timePeriod === 'all-time' 
-                        ? 'bg-white text-slate-700 shadow-sm' 
-                        : 'text-slate-500 hover:text-slate-600'
-                    }`}
-                  >
-                    All Time
-                  </button>
-                  <button
-                    onClick={() => setTimePeriod('today')}
-                    className={`px-2 py-1 text-[.6rem] sm:text-[.7rem] 2xl:text-[.8rem] font-medium rounded-sm transition-all duration-200 cursor-pointer ${
-                      timePeriod === 'today' 
-                        ? 'bg-white text-slate-700 shadow-sm' 
-                        : 'text-slate-500 hover:text-slate-600'
-                    }`}
-                  >
-                    Today
-                  </button>
-                </div>
-                <div className="flex items-center gap-1 sm:gap-2">
-                  <button
-                    onClick={() => {if (assets.length > 0) {setIsEditMode(!isEditMode)}}}
-                    disabled={assets.length === 0}
-                    className={`p-1 sm:p-1.5 rounded-md transition-all duration-200 ${
-                      assets.length === 0
-                        ? 'text-gray-200 cursor-not-allowed'
-                        : isEditMode && assets.length > 0
-                        ? 'text-gray-900 bg-white shadow-sm ring-1 ring-gray-300 cursor-pointer' 
-                        : 'text-gray-400 hover:text-gray-600 transition-all cursor-pointer'
-                    }`}
-                    title={assets.length === 0 ? "No assets to edit" : isEditMode && assets.length > 0 ? "Exit Edit Mode" : "Edit Portfolio"}
-                  >
-                    <Edit2 className='w-3 h-3 sm:w-3 sm:h-3 2xl:w-5 2xl:h-5' />
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsEditMode(false);
-                      setShowModal(true);
-                    }}
-                    disabled={isEditMode && assets.length > 0}
-                    className={`p-1 sm:p-1.5 rounded-md transition-colors ${
-                      isEditMode && assets.length > 0
-                        ? 'text-gray-200 cursor-not-allowed' 
-                        : 'text-gray-400 hover:text-gray-600 transition-all cursor-pointer'
-                    }`}
-                    title={isEditMode && assets.length > 0 ? "Exit edit mode to add assets" : "Add Asset"}
-                  >
-                    <Plus className='w-3 h-3 sm:w-4 sm:h-4 2xl:w-5 2xl:h-5' />
-                  </button>
-                </div>
+              
+              {/* Pie Chart */}
+              <div className="flex items-center justify-center h-[calc(400px-80px)]">
+                <PieChart 
+                  assets={assets} 
+                  onEdit={handleEdit} 
+                  onDelete={handleDelete}
+                  isEditMode={isEditMode}
+                  timePeriod={timePeriod}
+                  isLoadingAssets={isLoadingAssets}
+                />
               </div>
             </div>
-            
-            {/* Pie Chart */}
-            <PieChart 
-              assets={assets} 
-              onEdit={handleEdit} 
-              onDelete={handleDelete}
-              isEditMode={isEditMode}
-              timePeriod={timePeriod}
-              isLoadingAssets={isLoadingAssets}
-            />
+
+            {/* Holdings Box - Takes remaining space */}
+            <div className="lg:w-3/5">
+              <HoldingsSection 
+                assets={assets} 
+                isLoadingAssets={isLoadingAssets}
+                isEditMode={isEditMode}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onToggleEditMode={() => {if (assets.length > 0) {setIsEditMode(!isEditMode)}}}
+                onAddAsset={() => {
+                  setIsEditMode(false);
+                  setShowModal(true);
+                }}
+              />
+            </div>
           </div>
 
           {/* Position Analytics */}
@@ -596,55 +587,56 @@ export default function Home() {
           <div 
             className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-all p-3 sm:p-4"
           >
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-3 sm:p-8 w-full max-w-lg mx-auto border border-gray-200/50 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-3 sm:mb-6">
-                <h2 className="text-lg 2xl:text-2xl font-semibold text-gray-800">
+            <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-2xl p-3 sm:p-6 w-full max-w-sm mx-auto border border-gray-200/50 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-3 sm:mb-4">
+                <h2 className="text-sm sm:text-lg 2xl:text-lg font-semibold text-gray-800">
                   {editingAsset ? 'Edit Asset' : 'Add New Asset'}
                 </h2>
                 <button
                   onClick={closeModal}
                   className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                 >
-                  <X size={20} className="h-6 w-6" />
+                  <X size={16} className="sm:w-5 sm:h-5" />
                 </button>
               </div>
 
               {!editingAsset && (
-                <div className="mb-3 sm:mb-6">
+                <div className="mb-3 sm:mb-4">
                   <div className="flex flex-row gap-2 sm:gap-3">
                     <button
                       onClick={() => setUploadMode('manual')}
-                      className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all cursor-pointer ${
+                      className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-2 transition-all cursor-pointer ${
                         uploadMode === 'manual'
                           ? 'border-blue-500 bg-blue-50 text-blue-700'
                           : 'border-gray-300 text-gray-600 hover:border-gray-400'
                       }`}
                     >
-                      <FileText size={16} className="sm:w-5 sm:h-5" />
-                      <span className="font-medium text-xs sm:text-sm 2xl:text-base">Manual Entry</span>
+                      <FileText size={14} className="sm:w-4 sm:h-4" />
+                      <span className="font-medium text-[10px] sm:text-[12px] 2xl:text-sm">Manual Entry</span>
                     </button>
                     <button
                       onClick={() => setUploadMode('image')}
-                      className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all cursor-pointer ${
+                      className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-2 transition-all cursor-pointer ${
                         uploadMode === 'image'
                           ? 'border-blue-500 bg-blue-50 text-blue-700'
                           : 'border-gray-300 text-gray-600 hover:border-gray-400'
                       }`}
                     >
-                      <Upload size={16} className="sm:w-5 sm:h-5" />
-                      <span className="font-medium text-xs sm:text-sm 2xl:text-base">Upload Image</span>
+                      <Upload size={14} className="sm:w-4 sm:h-4" />
+                      <span className="font-medium text-[10px] sm:text-[12px] 2xl:text-sm">Upload Image</span>
                     </button>
                   </div>
+                  <div className="border-t border-gray-200 mt-3 sm:mt-4"></div>
                 </div>
               )}
 
               {uploadMode === 'image' && !editingAsset ? (
-                <div className="space-y-4 sm:space-y-5">
+                <div className="space-y-3 sm:space-y-4">
                   {selectedImages.length === 0 ? (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-8 text-center">
-                      <Upload className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mb-3 sm:mb-4" />
-                      <div className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
-                        Upload screenshots of your portfolio or holdings
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 sm:p-6 text-center">
+                      <Upload className="mx-auto h-6 w-6 sm:h-10 sm:w-10 text-gray-400 mb-2 sm:mb-3" />
+                      <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-600 mb-2 sm:mb-3">
+                        Upload images of your portfolio or holdings
                       </div>
                       <input
                         type="file"
@@ -656,22 +648,22 @@ export default function Home() {
                       />
                       <label
                         htmlFor="image-upload"
-                        className="inline-flex items-center px-3 sm:px-4 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                        className="inline-flex items-center px-2 sm:px-3 py-1.5 border border-transparent text-[10px] sm:text-[12px] 2xl:text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
                       >
                         Choose Images
                       </label>
                     </div>
                   ) : (
-                    <div className="space-y-3 sm:space-y-4">
+                    <div className="space-y-2 sm:space-y-3">
                       {selectedImages.map((image, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg">
+                        <div key={index} className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
                           <div className="flex items-center gap-2 sm:gap-3">
-                            <div className="w-8 h-8 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                              <Upload className="h-4 w-4 sm:h-6 sm:w-6 text-blue-600" />
+                            <div className="w-6 h-6 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <Upload className="h-3 w-3 sm:h-5 sm:w-5 text-blue-600" />
                             </div>
                             <div>
-                              <div className="font-medium text-gray-900 text-xs sm:text-sm">{image.name}</div>
-                              <div className="text-xs sm:text-sm text-gray-500">
+                              <div className="font-medium text-gray-900 text-[10px] sm:text-[12px] 2xl:text-sm">{image.name}</div>
+                              <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-500">
                                 {(image.size / 1024 / 1024).toFixed(2)} MB
                               </div>
                             </div>
@@ -684,7 +676,7 @@ export default function Home() {
                             }}
                             className="text-gray-400 hover:text-gray-600 cursor-pointer"
                           >
-                            <X size={16} className="sm:w-5 sm:h-5" />
+                            <X size={14} className="sm:w-4 sm:h-4" />
                           </button>
                         </div>
                       ))}
@@ -692,31 +684,31 @@ export default function Home() {
                       {!isProcessing && parsedAssets.length === 0 && (
                         <button
                           onClick={processImagesWithGemini}
-                          className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-sm"
+                          className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
                         >
                           Process {selectedImages.length} Image{selectedImages.length !== 1 ? 's' : ''}
                         </button>
                       )}
 
                       {isProcessing && (
-                        <div className="text-center py-6 sm:py-8">
-                          <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600 mx-auto mb-3 sm:mb-4"></div>
-                          <div className="text-gray-600 text-sm">Processing {selectedImages.length} image{selectedImages.length !== 1 ? 's' : ''}...</div>
+                        <div className="text-center py-4 sm:py-6">
+                          <div className="animate-spin rounded-full h-5 w-5 sm:h-7 sm:w-7 border-b-2 border-blue-600 mx-auto mb-2 sm:mb-3"></div>
+                          <div className="text-gray-600 text-[10px] sm:text-[12px] 2xl:text-sm">Processing {selectedImages.length} image{selectedImages.length !== 1 ? 's' : ''}...</div>
                         </div>
                       )}
 
                       {parsedAssets.length > 0 && (
-                        <div className="space-y-3 sm:space-y-4">
-                          <div className="text-xs sm:text-sm font-medium text-gray-700">
+                        <div className="space-y-2 sm:space-y-3">
+                          <div className="text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700">
                             Found {parsedAssets.length} asset(s):
                           </div>
                           <div className="max-h-60 overflow-y-auto space-y-2">
                             {parsedAssets.map((asset, index) => (
-                              <div key={index} className="p-2 sm:p-3 bg-gray-50 rounded-lg">
-                                <div className="font-medium text-gray-900 text-xs sm:text-sm">
+                              <div key={index} className="p-1.5 sm:p-2 bg-gray-50 rounded-lg">
+                                <div className="font-medium text-gray-900 text-[10px] sm:text-[12px] 2xl:text-sm">
                                   {asset.isStock ? asset.ticker : asset.name}
                                 </div>
-                                <div className="text-xs sm:text-sm text-gray-600">
+                                <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-600">
                                   {asset.isStock 
                                     ? `${asset.shares} shares @ $${asset.currentPrice}`
                                     : `$${asset.balance} @ ${((asset.apy || 0) * 100).toFixed(2)}% APY`
@@ -732,14 +724,14 @@ export default function Home() {
                                 setSelectedImages([]);
                                 setIsProcessing(false);
                               }}
-                              className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-xs sm:text-sm"
+                              className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
                             >
                               Try Again
                             </button>
 
                             <button
                               onClick={addParsedAssets}
-                              className="flex-1 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-xs sm:text-sm"
+                              className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
                             >
                               Add All Assets
                             </button>
@@ -750,96 +742,125 @@ export default function Home() {
                   )}
                 </div>
               ) : (
-                <div className="space-y-4 sm:space-y-5">
-                  {/* Asset Name */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                      Asset Name
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
-                      placeholder="e.g., Apple Inc."
-                    />
-                  </div>
-
+                <div className="space-y-3 sm:space-y-4">
                   {/* Asset Type */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                      Asset Type
-                    </label>
+                    <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-2">Asset Type *</label>
                     <div className="flex flex-row gap-4 sm:gap-6">
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="isStock"
-                          value="true"
-                          checked={formData.isStock === true}
-                          onChange={() => setFormData(prev => ({ ...prev, isStock: true }))}
-                        />
-                        <span className="text-sm">Stock / ETF</span>
+                        <input type="radio" name="isStock" value="true" checked={formData.isStock === true} onChange={() => setFormData(prev => ({ ...prev, isStock: true }))} />
+                        <span className="text-[10px] sm:text-[12px] 2xl:text-sm">Stock / ETF</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="isStock"
-                          value="false"
-                          checked={formData.isStock === false}
-                          onChange={() => setFormData(prev => ({ ...prev, isStock: false }))}
-                        />
-                        <span className="text-sm">Cash Account</span>
+                        <input type="radio" name="isStock" value="false" checked={formData.isStock === false} onChange={() => setFormData(prev => ({ ...prev, isStock: false }))} />
+                        <span className="text-[10px] sm:text-[12px] 2xl:text-sm">Cash Account</span>
                       </label>
                     </div>
                   </div>
 
-                  {/* Stock Fields */}
+                  {/* Row: Name + Ticker */}
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                      <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">Asset Name *</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                        placeholder="e.g. Apple Inc."
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">Ticker {formData.isStock ? '*' : ''}</label>
+                      <input
+                        type="text"
+                        name="ticker"
+                        value={formData.ticker}
+                        onChange={(e) => {
+                          const { name, value } = e.target;
+                          setFormData(prev => ({ ...prev, [name]: value.toUpperCase() }));
+                        }}
+                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                        placeholder="e.g. AAPL"
+                        required={formData.isStock}
+                        disabled={!formData.isStock}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Row: Shares + Price (for Stock) or Balance + APY (for Cash) */}
                   {formData.isStock ? (
-                    <>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
                       <div>
-                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                          Ticker Symbol
-                        </label>
+                        <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">Number of Shares *</label>
                         <input
-                          name="ticker"
-                          value={formData.ticker}
-                          onChange={(e) => {
-                            const { name, value } = e.target;
-                            setFormData(prev => ({
-                              ...prev,
-                              [name]: value.toUpperCase()
-                            }));
-                          }}
+                          type="number"
+                          name="shares"
+                          value={formData.shares}
+                          onChange={handleInputChange}
                           className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
-                          placeholder="e.g., AAPL"
+                          step="0.001"
+                          placeholder="e.g., 10.5"
+                          required
                         />
                       </div>
-                      <InputField label="Number of Shares" name="shares" value={formData.shares} onChange={handleInputChange} type="number" step="0.001" placeholder="e.g., 10.5" />
-                      <InputField label="Price per Share" name="price" value={formData.price} onChange={handleInputChange} type="number" step="0.01" placeholder="e.g., 150.00" />
-                    </>
+                      <div>
+                        <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">Price per Share *</label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <input
+                            type="number"
+                            name="price"
+                            value={formData.price}
+                            onChange={handleInputChange}
+                            className="w-full pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                            step="0.01"
+                            placeholder="0.00"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
                   ) : (
-                    <>
-                      <InputField label="Account Balance" name="balance" value={formData.balance} onChange={handleInputChange} type="number" step="0.01" placeholder="e.g., 5000.00" />
-                      <InputField label="Annual Percentage Yield (APY)" name="apy" value={formData.apy} onChange={handleInputChange} type="number" step="0.1" placeholder="e.g., 4.5 (for 4.5%)" />
-                    </>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                      <div>
+                        <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">Account Balance *</label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <input
+                            type="number"
+                            name="balance"
+                            value={formData.balance}
+                            onChange={handleInputChange}
+                            className="w-full pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                            step="0.01"
+                            placeholder="0.00"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">APY (%) *</label>
+                        <input
+                          type="number"
+                          name="apy"
+                          value={formData.apy}
+                          onChange={handleInputChange}
+                          className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                          step="0.1"
+                          placeholder="0.0"
+                          required
+                        />
+                      </div>
+                    </div>
                   )}
 
                   {/* Buttons */}
-                  <div className="flex flex-row gap-2 sm:gap-3 pt-3 sm:pt-4">
-                    <button
-                      onClick={closeModal}
-                      className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-xs sm:text-sm"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleSubmit}
-                      className="flex-1 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-xs sm:text-sm"
-                    >
-                      {editingAsset ? 'Update Asset' : 'Add Asset'}
-                    </button>
+                  <div className="flex flex-row gap-2 sm:gap-3 pt-2 sm:pt-3">
+                    <button onClick={closeModal} className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm">Cancel</button>
+                    <button onClick={handleSubmit} className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm">{editingAsset ? 'Update Asset' : 'Add Asset'}</button>
                   </div>
                 </div>
               )}

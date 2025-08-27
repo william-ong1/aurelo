@@ -58,6 +58,7 @@ export default function TradingSection() {
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingTrades, setIsLoadingTrades] = useState(true);
+  const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
   const [tradesLoaded, setTradesLoaded] = useState(false);
   const [analyticsLoaded, setAnalyticsLoaded] = useState(false);
 
@@ -192,6 +193,10 @@ export default function TradingSection() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token.substring(0, 20)}...`
         });
+        
+        // Show duplicate checking animation
+        setIsCheckingDuplicates(true);
+        
         const response = await fetch(getApiUrl('/api/trades'), {
           method: 'POST',
           headers: {
@@ -227,6 +232,7 @@ export default function TradingSection() {
       alert('Failed to save trade. Please try again.');
     } finally {
       setIsLoading(false);
+      setIsCheckingDuplicates(false);
     }
   };
 
@@ -240,12 +246,16 @@ export default function TradingSection() {
       
       // Add all parsed trades
       for (const parsedTrade of parsedTrades) {
+        // Show duplicate checking animation for each trade
+        setIsCheckingDuplicates(true);
+        
         // Convert ParsedTrade to full Trade structure
         const tradeData = {
           ...parsedTrade,
           trade_type: 'sell' as const,
           shares: 0, // Default values for required fields
-          price: 0
+          price: 0,
+          is_image_upload: true // Mark as image upload for duplicate checking
         };
         console.log('Sending trade data:', tradeData);
         const response = await fetch(getApiUrl('/api/trades'), {
@@ -271,6 +281,9 @@ export default function TradingSection() {
         } else {
           console.error('Failed to add trade:', await response.text());
         }
+        
+        // Hide duplicate checking animation after each trade
+        setIsCheckingDuplicates(false);
       }
       
       await loadTrades();
@@ -287,6 +300,7 @@ export default function TradingSection() {
       alert('Failed to add some trades. Please try again.');
     } finally {
       setIsLoading(false);
+      setIsCheckingDuplicates(false);
     }
   };
 
@@ -365,6 +379,23 @@ export default function TradingSection() {
             <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-500 mt-1">
               {isAuthLoading ? 'Verifying your login status' : 'Retrieving your trading data'}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Duplicate Check Loading State */}
+      {isCheckingDuplicates && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-2xl p-6 w-full max-w-sm mx-auto border border-gray-200/50">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-sm 2xl:text-base text-gray-600 font-medium">
+                Checking for duplicates...
+              </p>
+              <p className="text-xs 2xl:text-sm text-gray-500 mt-1">
+                Verifying this trade doesn't already exist
+              </p>
+            </div>
           </div>
         </div>
       )}

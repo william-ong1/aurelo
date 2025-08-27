@@ -49,11 +49,63 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
         </div>
       );
     }
+    
+    // Default doughnut chart when no assets
+    const defaultData = {
+      labels: ['No Assets'],
+      datasets: [
+        {
+          data: [1],
+          backgroundColor: ['#E5E7EB'], // Light gray
+          borderColor: "#ffffff",
+          borderWidth: 1,
+          hoverBorderColor: "#ffffff",
+          hoverBackgroundColor: ['#D1D5DB'],
+          hoverBorderWidth: 1,
+        },
+      ],
+    };
+
+    const defaultCenterText: Plugin<"doughnut"> = {
+      id: "defaultCenterText",
+      beforeDraw: (chart) => {
+        const { width, height, ctx } = chart;
+        ctx.save();
+        
+        const fontSize = Math.min(width, height) * 0.06;
+        ctx.font = `600 ${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+        ctx.fillStyle = "#9CA3AF"; // Lighter gray for a more sleek look
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("No Assets", width / 2, height / 2);
+        
+        ctx.restore();
+      },
+    };
+
+    const defaultOptions: ChartOptions<"doughnut"> = {
+      cutout: "75%",
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          enabled: false, // Disable tooltips for default chart
+        },
+      },
+      maintainAspectRatio: false,
+      responsive: true,
+      layout: {
+        padding: 0,
+        autoPadding: false
+      },
+      interaction: {
+        intersect: true,
+        mode: 'point',
+      },
+    };
+
     return (
-      <div className="flex items-center justify-center rounded-lg w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] 2xl:h-[360px]">
-        <div className="text-center">
-          <div className="text-xs sm:text-sm 2xl:text-base text-gray-500">No assets to display.</div>
-        </div>
+      <div className="w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] 2xl:h-[360px]">
+        <Doughnut data={defaultData} options={defaultOptions} plugins={[defaultCenterText]} />
       </div>
     );
   }
@@ -140,6 +192,11 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
 
   // Fall back to HSL generation for more colors
   const finalColors = values.length <= backgroundColors.length ? backgroundColors : values.map((_, i) => `hsl(${(i * 360) / values.length}, 65%, 55%)`);
+
+  // Export colors for use in other components
+  if (typeof window !== 'undefined') {
+    (window as any).pieChartColors = finalColors;
+  }
 
   const data = {
     labels: assets.map(a => {
@@ -311,22 +368,18 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
   };
 
   return (
-    <div className="flex flex-col lg:flex-row items-start">
-      <div className="w-full lg:w-96 flex-shrink-0">
-        <div
-          className="relative mb-0 lg:mb-0 h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] 2xl:h-[360px] w-[200px] sm:w-[240px] md:w-[280px] lg:w-[320px] 2xl:w-[360px]"
-        >          
-          <Doughnut 
-            key={`chart-${assets.length}-${totalValue.toFixed(2)}-${portfolioChange.toFixed(2)}-${timePeriod}-${JSON.stringify(values)}`} 
-            data={data} 
-            options={options} 
-            plugins={[centerText]} 
-          />
-        </div>
+    <div className="flex items-center justify-center w-full h-full">
+      <div className="relative w-[300px] h-[300px]">
+        <Doughnut 
+          key={`chart-${assets.length}-${totalValue.toFixed(2)}-${portfolioChange.toFixed(2)}-${timePeriod}-${JSON.stringify(values)}`} 
+          data={data} 
+          options={options} 
+          plugins={[centerText]} 
+        />
       </div>
       
       {/* Legend */}
-      <div 
+      {/* <div 
         className="flex-1 w-full lg:pl-8 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400 relative h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] 2xl:h-[360px]" 
         style={{ 
           scrollbarWidth: 'thin',
@@ -335,7 +388,6 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
       >
         <div className="space-y-2">
           {(() => {
-            // Separate assets into valid and invalid tickers
             const validAssets = assets.filter(asset => 
               !asset.isStock || !asset.ticker || !failedTickers.includes(asset.ticker)
             );
@@ -344,7 +396,6 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
               asset.isStock && asset.ticker && failedTickers.includes(asset.ticker)
             );
 
-            // Process valid assets
             const processedValidAssets = validAssets
               .map((asset, index) => {  
                 let value: number;
@@ -393,7 +444,6 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
               })
               .sort((a, b) => b.percentage - a.percentage);
 
-            // Process invalid assets
             const processedInvalidAssets = invalidAssets.map((asset, index) => {
               const value = (asset.shares || 0) * (asset.currentPrice || 0);
               const percentage = ((value / totalValue) * 100);
@@ -410,7 +460,6 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
 
             return (
               <>
-                {/* Valid Assets */}
                 {processedValidAssets.map((asset) => {
                   const displayPercentage = asset.percentage < 1 ? "<1%" : `${asset.percentage.toFixed(1)}%`;
                   
@@ -513,7 +562,6 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
                   );
                 })}
 
-                {/* Invalid Tickers Section */}
                 {processedInvalidAssets.length > 0 && (
                   <>
                     <div className="mt-4 mb-2">
@@ -605,7 +653,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
             );
           })()}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

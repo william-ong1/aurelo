@@ -11,9 +11,10 @@ interface WatchlistItem {
   notes?: string;
   chart_link?: string;
   created_at: string;
+  updated_at?: string;
 }
 
-type SortField = 'ticker' | 'created_at';
+type SortField = 'ticker' | 'updated_at';
 type SortDirection = 'asc' | 'desc';
 
 export default function WatchlistSection() {
@@ -23,7 +24,7 @@ export default function WatchlistSection() {
   const [editingItem, setEditingItem] = useState<WatchlistItem | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingWatchlist, setIsLoadingWatchlist] = useState(true);
-  const [sortField, setSortField] = useState<SortField>('created_at');
+  const [sortField, setSortField] = useState<SortField>('updated_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   // Load watchlist when authenticated
@@ -55,9 +56,12 @@ export default function WatchlistSection() {
           aValue = a.ticker.toLowerCase();
           bValue = b.ticker.toLowerCase();
           break;
-        case 'created_at':
-          aValue = new Date(a.created_at).getTime();
-          bValue = new Date(b.created_at).getTime();
+        case 'updated_at':
+          // Use updated_at if available, otherwise fall back to created_at
+          const aDate = a.updated_at || a.created_at;
+          const bDate = b.updated_at || b.created_at;
+          aValue = new Date(aDate).getTime();
+          bValue = new Date(bDate).getTime();
           break;
         default:
           return 0;
@@ -278,11 +282,11 @@ export default function WatchlistSection() {
                 <th className="text-center py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 select-none">Chart</th>
                 <th 
                   className="text-left py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-800 transition-colors select-none"
-                  onClick={() => handleSort('created_at')}
+                  onClick={() => handleSort('updated_at')}
                 >
                   <div className="flex items-center gap-1">
-                    Added
-                    {getSortIcon('created_at')}
+                    Last Modified
+                    {getSortIcon('updated_at')}
                   </div>
                 </th>
                 <th className="text-center py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 select-none">Actions</th>
@@ -313,7 +317,7 @@ export default function WatchlistSection() {
                       </a>
                     </td>
                     <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-500">
-                      {formatDate(item.created_at)}
+                      {formatDate(item.updated_at || item.created_at)}
                     </td>
                     <td className="py-2 sm:py-2 px-2 sm:px-4 text-center">
                       <div className="flex items-center justify-center gap-1 sm:gap-2">
