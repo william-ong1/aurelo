@@ -210,92 +210,93 @@ export default function HoldingsSection({
               <>
                 {validAssets.map((asset, index) => {
                   const displayPercentage = asset.portfolioPercentage < 1 ? "<1%" : `${asset.portfolioPercentage.toFixed(1)}%`;
+                  const currentPrice = asset.ticker && realTimePrices[asset.ticker] ? realTimePrices[asset.ticker] : (asset.currentPrice || 0);
+                  const purchasePrice = asset.purchasePrice || asset.currentPrice || 0;
                   
                   return (
                     <div 
                       key={asset.id} 
-                      className={`flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 bg-white rounded-lg border border-slate-200 transition-all ${
+                      className={`flex items-center space-x-3 px-4 py-0 bg-white border-b border-gray-100 transition-all ${
                         isEditMode 
-                          ? 'hover:shadow-md hover:bg-gray-50 cursor-pointer' 
-                          : 'hover:shadow-md hover:bg-gray-50'
+                          ? 'hover:bg-gray-50 cursor-pointer' 
+                          : 'hover:bg-gray-50'
                       }`}
                       onClick={isEditMode ? () => onEdit?.(asset) : undefined}
                     >
-                      <div 
-                        className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: getPieChartColor(index) }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-baseline space-x-2 flex-1 min-w-0">
-                            <div className="text-[8px] sm:text-[10px] 2xl:text-sm font-semibold text-gray-900 truncate">
+                      {/* Left side - Icon and Details */}
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        {/* Circular Icon */}
+                        <div 
+                          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                          style={{ backgroundColor: getPieChartColor(index) }}
+                        >
+                                                      <span className="text-white font-bold text-[10px]">
                               {asset.isStock ? asset.ticker : "CASH"}
-                            </div>
-                            <div className="text-[8px] sm:text-[10px] 2xl:text-sm text-gray-600 truncate">
-                              {asset.name}
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2 flex-shrink-0">
-                            <div className="w-12 sm:w-16 flex justify-end">
-                              {!isEditMode && (
-                                <div className="text-[8px] sm:text-[10px] 2xl:text-sm font-semibold text-gray-900">
-                                  ${asset.currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </div>
-                              )}
-                              {isEditMode && (
-                                <div className="flex items-center space-x-1">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onEdit?.(asset);
-                                    }}
-                                    className="px-1 text-gray-400 hover:text-blue-600 rounded transition-colors"
-                                    title="Edit"
-                                  >
-                                    <Edit2 size={14} />
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onDelete?.(asset.id);
-                                    }}
-                                    className="px-1 text-gray-400 hover:text-red-600 rounded transition-colors"
-                                    title="Delete"
-                                  >
-                                    <Trash2 size={14} />
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
+                            </span>
                         </div>
-                        <div className="flex flex-row items-center justify-between mt-1 text-[8px] sm:text-[10px] 2xl:text-sm text-gray-500 gap-1">
-                          <span className="truncate">
+                        
+                        {/* Asset Details */}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-bold text-gray-900 truncate">
+                            {asset.isStock ? asset.ticker : "CASH"}
+                          </div>
+                          <div className="text-[10px] text-gray-600 truncate">
+                            {asset.name}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
                             {asset.isStock ? (
-                              <div className="flex flex-col sm:flex-row">
-                                {(asset.shares || 0).toLocaleString()} @ ${(asset.purchasePrice || asset.currentPrice || 0).toFixed(2)} → ${(asset.ticker && realTimePrices[asset.ticker]) ? realTimePrices[asset.ticker].toFixed(2) : (asset.currentPrice || 0).toFixed(2)}
-
-                                {asset.gainLoss !== 0 && (
-                                  <div className="flex flex-row gap-1 sm:gap-0">
-                                    <span className={`sm:ml-2 font-medium ${asset.gainLoss > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                      {asset.gainLoss > 0 ? '↗' : '↘'}
-                                    </span>
-                                    <span className={`sm:ml-1 font-medium ${asset.gainLoss > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                      ${Math.abs(asset.gainLoss).toFixed(2)} ({asset.gainLossPercent >= 0 ? '+' : ''}{asset.gainLossPercent.toFixed(1)}%)
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
+                              `${(asset.shares || 0).toLocaleString()} @ $${purchasePrice.toFixed(2)} → $${currentPrice.toFixed(2)}`
                             ) : (
                               `APY: ${((asset.apy || 0) * 100).toFixed(2)}%`
                             )}
-                          </span>
-                          {!isEditMode && (
-                            <span className="font-medium flex-shrink-0">
-                              {displayPercentage}
-                            </span>
-                          )}
+                          </div>
                         </div>
+                      </div>
+
+                      {/* Right side - Financial Values */}
+                      <div className="flex flex-col items-end space-y-1 flex-shrink-0">
+                        {!isEditMode ? (
+                          <>
+                            <div className="text-xs font-bold text-gray-900">
+                              ${asset.currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              {displayPercentage}
+                            </div>
+                            {asset.gainLoss !== 0 && (
+                              <div className={`text-xs flex items-center space-x-1 ${asset.gainLoss > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {asset.gainLoss > 0 && <TrendingUp className="w-3 h-3" />}
+                                {asset.gainLoss < 0 && <TrendingDown className="w-3 h-3" />}
+                                <span>
+                                  ${Math.abs(asset.gainLoss).toFixed(2)} ({asset.gainLossPercent >= 0 ? '+' : ''}{asset.gainLossPercent.toFixed(1)}%)
+                                </span>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="flex items-center space-x-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onEdit?.(asset);
+                              }}
+                              className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                              title="Edit"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onDelete?.(asset.id);
+                              }}
+                              className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -303,82 +304,86 @@ export default function HoldingsSection({
 
                 {invalidAssets.length > 0 && (
                   <>
-                    <div className="mt-4 mb-2">
-                      <div className="text-[8px] sm:text-[10px] 2xl:text-sm font-medium text-gray-500 tracking-wide px-3">
+                    <div className="mt-6 mb-3 px-4">
+                      <div className="text-sm font-medium text-gray-500 tracking-wide">
                         Invalid Tickers (No Real-Time Data)
                       </div>
                     </div>
                     {invalidAssets.map((asset, index) => {
                       const displayPercentage = asset.portfolioPercentage < 1 ? "<1%" : `${asset.portfolioPercentage.toFixed(1)}%`;
+                      const currentValue = (asset.shares || 0) * (asset.currentPrice || 0);
                       
                       return (
                         <div 
                           key={asset.id} 
-                          className={`flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 bg-gray-50 rounded-lg shadow-sm border border-gray-300 transition-all ${
+                          className={`flex items-center space-x-3 px-4 py-3 bg-gray-50 border-b border-gray-200 transition-all ${
                             isEditMode 
-                              ? 'hover:shadow-md hover:bg-gray-100 cursor-pointer' 
-                              : 'hover:shadow-md hover:bg-gray-100'
+                              ? 'hover:bg-gray-100 cursor-pointer' 
+                              : 'hover:bg-gray-100'
                           }`}
                           onClick={isEditMode ? () => onEdit?.(asset) : undefined}
                         >
-                          <div 
-                            className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0"
-                            style={{ backgroundColor: getPieChartColor(validAssets.length + index) }}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-baseline space-x-2 flex-1 min-w-0">
-                                <div className="text-[8px] sm:text-[10px] 2xl:text-sm font-semibold text-gray-700 truncate">
-                                  {asset.ticker}
-                                </div>
-                                <div className="text-[8px] sm:text-[10px] 2xl:text-sm text-gray-500 truncate hidden sm:block">
-                                  {asset.name}
-                                </div>
-                              </div>
-                              <div className="flex items-center space-x-2 flex-shrink-0">
-                                <div className="w-12 sm:w-16 flex justify-end">
-                                  {!isEditMode && (
-                                    <div className="text-[8px] sm:text-[10px] 2xl:text-sm font-semibold text-gray-700">
-                                      ${((asset.shares || 0) * (asset.currentPrice || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                    </div>
-                                  )}
-                                  {isEditMode && (
-                                    <div className="flex items-center space-x-1">
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          onEdit?.(asset);
-                                        }}
-                                        className="px-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                        title="Edit"
-                                      >
-                                        <Edit2 size={14} />
-                                      </button>
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          onDelete?.(asset.id);
-                                        }}
-                                        className="px-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                                        title="Delete"
-                                      >
-                                        <Trash2 size={14} />
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-1 text-[8px] sm:text-[10px] 2xl:text-sm text-gray-500 gap-1">
-                              <span className="truncate">
-                                {(asset.shares || 0).toLocaleString()} @ ${(asset.purchasePrice || asset.currentPrice || 0).toFixed(2)} (No real-time data)
+                          {/* Left side - Icon and Details */}
+                          <div className="flex items-center space-x-3 flex-1 min-w-0">
+                            {/* Circular Icon */}
+                            <div 
+                              className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 opacity-60"
+                              style={{ backgroundColor: getPieChartColor(validAssets.length + index) }}
+                            >
+                              <span className="text-white font-bold text-[10px]">
+                                {asset.ticker}
                               </span>
-                              {!isEditMode && (
-                                <span className="font-medium flex-shrink-0">
-                                  {displayPercentage}
-                                </span>
-                              )}
                             </div>
+                            
+                            {/* Asset Details */}
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs font-bold text-gray-700 truncate">
+                                {asset.ticker}
+                              </div>
+                              <div className="text-[10px] text-gray-500 truncate">
+                                {asset.name}
+                              </div>
+                              <div className="text-xs text-gray-400 mt-1">
+                                {(asset.shares || 0).toLocaleString()} @ ${(asset.purchasePrice || asset.currentPrice || 0).toFixed(2)} (No real-time data)
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right side - Financial Values */}
+                          <div className="flex flex-col items-end space-y-1 flex-shrink-0">
+                            {!isEditMode ? (
+                              <>
+                                                              <div className="text-xs font-bold text-gray-700">
+                                ${currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {displayPercentage}
+                              </div>
+                              </>
+                            ) : (
+                              <div className="flex items-center space-x-1">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEdit?.(asset);
+                                  }}
+                                  className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                  title="Edit"
+                                >
+                                  <Edit2 size={16} />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDelete?.(asset.id);
+                                  }}
+                                  className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                  title="Delete"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       );

@@ -1,7 +1,7 @@
 "use client";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, ChartOptions, Plugin } from "chart.js";
-import { Edit2, Trash2, RefreshCw, Clock } from 'lucide-react';
+import { Edit2, Trash2, RefreshCw, Clock, TrendingUp, TrendingDown } from 'lucide-react';
 import { useRealTime } from '../contexts/RealTimeContext';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -62,6 +62,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
           hoverBorderColor: "#ffffff",
           hoverBackgroundColor: ['#D1D5DB'],
           hoverBorderWidth: 1,
+          hoverOffset: 8, // Keep hover animation
         },
       ],
     };
@@ -100,6 +101,12 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
       interaction: {
         intersect: true,
         mode: 'point',
+      },
+      animation: {
+        animateRotate: true,
+        // animateScale: true,
+        duration: 1000,
+        easing: 'easeOutQuart'
       },
     };
 
@@ -177,21 +184,106 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
     portfolioChangePercent = totalStoredValue > 0 ? (portfolioChange / totalStoredValue) * 100 : 0;
   }
 
+  // Extended modern color palette
   const backgroundColors = [
-    '#3B82F6', // Blue
-    '#EF4444', // Red
-    '#10B981', // Emerald
-    '#F59E0B', // Amber
-    '#8B5CF6', // Violet
-    '#EC4899', // Pink
-    '#06B6D4', // Cyan
-    '#84CC16', // Lime
-    '#F97316', // Orange
-    '#6366F1', // Indigo
+    '#6366f1', // Indigo
+    '#8b5cf6', // Violet
+    '#ec4899', // Pink
+    '#ef4444', // Red
+    '#f97316', // Orange
+    '#f59e0b', // Amber
+    '#84cc16', // Lime
+    '#10b981', // Emerald
+    '#06b6d4', // Cyan
+    '#3b82f6', // Blue
+    '#7c3aed', // Purple
+    '#be185d', // Rose
+    '#dc2626', // Red
+    '#ea580c', // Orange
+    '#d97706', // Amber
+    '#65a30d', // Lime
+    '#059669', // Emerald
+    '#0891b2', // Cyan
+    '#2563eb', // Blue
+    '#4f46e5', // Indigo
+    '#7c2d12', // Brown
+    '#1e40af', // Dark Blue
+    '#166534', // Dark Green
+    '#9d174d', // Dark Pink
+    '#92400e', // Dark Orange
+    '#a855f7', // Purple
+    '#f43f5e', // Rose
+    '#f97316', // Orange
+    '#eab308', // Yellow
+    '#22c55e', // Green
+    '#14b8a6', // Teal
+    '#0ea5e9', // Sky
+    '#6366f1', // Indigo
+    '#8b5cf6', // Violet
+    '#ec4899', // Pink
+    '#ef4444', // Red
+    '#f97316', // Orange
+    '#f59e0b', // Amber
+    '#84cc16', // Lime
+    '#10b981', // Emerald
+    '#06b6d4', // Cyan
+    '#3b82f6', // Blue
   ].slice(0, values.length);
 
-  // Fall back to HSL generation for more colors
-  const finalColors = values.length <= backgroundColors.length ? backgroundColors : values.map((_, i) => `hsl(${(i * 360) / values.length}, 65%, 55%)`);
+  // Extended fallback colors for more assets
+  const fallbackColors = [
+    '#7c3aed', // Purple
+    '#be185d', // Rose
+    '#dc2626', // Red
+    '#ea580c', // Orange
+    '#d97706', // Amber
+    '#65a30d', // Lime
+    '#059669', // Emerald
+    '#0891b2', // Cyan
+    '#2563eb', // Blue
+    '#4f46e5', // Indigo
+    '#7c2d12', // Brown
+    '#1e40af', // Dark Blue
+    '#166534', // Dark Green
+    '#9d174d', // Dark Pink
+    '#92400e', // Dark Orange
+    '#a855f7', // Purple
+    '#f43f5e', // Rose
+    '#f97316', // Orange
+    '#eab308', // Yellow
+    '#22c55e', // Green
+    '#14b8a6', // Teal
+    '#0ea5e9', // Sky
+    '#6366f1', // Indigo
+    '#8b5cf6', // Violet
+    '#ec4899', // Pink
+    '#ef4444', // Red
+    '#f97316', // Orange
+    '#f59e0b', // Amber
+    '#84cc16', // Lime
+    '#10b981', // Emerald
+    '#06b6d4', // Cyan
+    '#3b82f6', // Blue
+    '#7c3aed', // Purple
+    '#be185d', // Rose
+    '#dc2626', // Red
+    '#ea580c', // Orange
+    '#d97706', // Amber
+    '#65a30d', // Lime
+    '#059669', // Emerald
+    '#0891b2', // Cyan
+    '#2563eb', // Blue
+    '#4f46e5', // Indigo
+    '#7c2d12', // Brown
+    '#1e40af', // Dark Blue
+    '#166534', // Dark Green
+    '#9d174d', // Dark Pink
+    '#92400e', // Dark Orange
+  ];
+  
+  const finalColors = values.length <= backgroundColors.length 
+    ? backgroundColors 
+    : values.map((_, i) => fallbackColors[i % fallbackColors.length]);
 
   // Export colors for use in other components
   if (typeof window !== 'undefined') {
@@ -214,6 +306,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
         hoverBorderColor: "#ffffff",
         hoverBackgroundColor: finalColors.map(color => `${color}99`), // Add transparency on hover
         hoverBorderWidth: 1,
+        hoverOffset: 0, // Add hover animation
         // Store the original assets data for tooltip access
         assets: assets,
       },
@@ -326,9 +419,8 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
             const purchasePrice = asset.purchasePrice || asset.currentPrice || 0;
 
             return [
-              `${context.label}: ${percentage}%`,
-              `${(asset.shares || 0).toLocaleString()} shares @ $${currentPrice.toFixed(2)} (${priceSource})`,
-              `Purchase Price: $${purchasePrice.toFixed(2)}`,
+              `${context.label} • ${percentage}%`,
+              `${(asset.shares || 0).toLocaleString()} shares @ $${currentPrice.toFixed(2)}`,
               `Value: $${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             ];
           },
@@ -344,6 +436,12 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
     interaction: {
       intersect: true,
       mode: 'point',
+    },
+    animation: {
+      animateRotate: true,
+      // animateScale: true,
+      duration: 1000,
+      easing: 'easeOutQuart'
     },
   };
 

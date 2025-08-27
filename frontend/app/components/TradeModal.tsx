@@ -106,8 +106,8 @@ export default function TradeModal({
         if (buyAmount > 0 && sellAmount > 0) {
           const pnl = sellAmount - buyAmount;
           const percentage = (pnl / buyAmount) * 100;
-          newData.realized_pnl = pnl.toString();
-          newData.percent_diff = percentage.toString();
+          newData.realized_pnl = pnl.toFixed(2);
+          newData.percent_diff = percentage.toFixed(2);
         }
       }
       
@@ -201,8 +201,8 @@ export default function TradeModal({
       }
       const buyAmount = parseFloat(formData.buy_amount);
       const sellAmount = parseFloat(formData.sell_amount);
-      pnlValue = sellAmount - buyAmount;
-      percentValue = (pnlValue / buyAmount) * 100;
+      pnlValue = Number((sellAmount - buyAmount).toFixed(2));
+      percentValue = Number(((pnlValue / buyAmount) * 100).toFixed(2));
     }
     
     // Check if dollar amount and percentage have different signs
@@ -214,8 +214,8 @@ export default function TradeModal({
     const tradeData = {
       date: formData.date,
       ticker: formData.ticker.toUpperCase(),
-      realized_pnl: pnlValue,
-      percent_diff: percentValue
+      realized_pnl: Number(pnlValue.toFixed(2)),
+      percent_diff: Number(percentValue.toFixed(2))
     };
 
     onSave(tradeData);
@@ -611,7 +611,7 @@ export default function TradeModal({
                   <div>
                     <span className="text-gray-600">Return:</span>
                     <span className={`ml-1 font-medium ${parseFloat(formData.percent_diff) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {parseFloat(formData.percent_diff) >= 0 ? '+' : ''}{parseFloat(formData.percent_diff).toFixed(1)}%
+                      {parseFloat(formData.percent_diff) >= 0 ? '+' : ''}{parseFloat(formData.percent_diff).toFixed(2)}%
                     </span>
                   </div>
                 </div>

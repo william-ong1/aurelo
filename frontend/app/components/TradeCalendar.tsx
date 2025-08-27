@@ -232,11 +232,11 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
 
   return (
     <div className="bg-white rounded-lg p-4 pt-3 shadow-sm border border-slate-200 flex-1 flex flex-col">
-      {/* Calendar Header */}
-              <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">P&L Calendar</h3>
+          {/* Calendar Header */}
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="flex bg-slate-50 rounded-md p-0.5 mr-2">
+            <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">P&L Calendar</h3>
+            <div className="flex bg-slate-50 rounded-md p-0.5 ml-28 relative">
               <button
                 onClick={() => {
                   setDisplayMode('price');
@@ -289,6 +289,8 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                 )}
               </div>
             </div>
+          </div>
+          <div className="flex items-center gap-2">
             <button
               onClick={goToPreviousMonth}
               className="text-slate-400 hover:text-slate-600 transition-all duration-200 rounded-lg"
