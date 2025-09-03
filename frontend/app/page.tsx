@@ -71,7 +71,8 @@ const saveAssetsToStorage = (assets: Asset[]) => {
 };
 
 export default function Home() {
-  const { fetchPrices } = useRealTime();
+  const { realTimePrices, dailyData, lastUpdated, failedTickers, fetchPrices } = useRealTime();
+  
   const { user, token, isAuthenticated, isLoading, logout } = useAuth();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [showModal, setShowModal] = useState(false);
@@ -180,7 +181,7 @@ export default function Home() {
 
   const loadPortfolioFromBackend = async () => {
     try {
-              const response = await fetch(getApiUrl('/api/portfolio'), {
+      const response = await fetch(getApiUrl('/api/portfolio'), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -188,10 +189,19 @@ export default function Home() {
       
       if (response.ok) {
         const data = await response.json();
+        console.log('Backend portfolio data:', data);
         const backendAssets = data.assets.map((asset: { [key: string]: unknown }, index: number) => ({
-          ...asset,
-          id: index + 1 // Generate local IDs
+          id: index + 1, // Generate local IDs
+          name: asset.name,
+          isStock: asset.is_stock,
+          ticker: asset.ticker,
+          shares: asset.shares,
+          currentPrice: asset.current_price,
+          purchasePrice: asset.purchase_price,
+          balance: asset.balance,
+          apy: asset.apy
         }));
+        console.log('Processed backend assets:', backendAssets);
         setAssets(backendAssets);
       }
     } catch (error) {
@@ -499,6 +509,41 @@ export default function Home() {
           </p>
           <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-500 mt-1">
             Retrieving your portfolio data
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+
+  // Check if we have real-time prices for all valid stock assets (exclude invalid tickers)
+  const validStockAssets = assets.filter(asset => 
+    asset.isStock && asset.ticker && !failedTickers.includes(asset.ticker)
+  );
+  const hasAllPrices = validStockAssets.length === 0 || validStockAssets.every(asset => realTimePrices[asset.ticker!]);
+  const isInitialLoading = !hasAllPrices;
+
+  // Show loading state while fetching initial prices
+  if (isInitialLoading && validStockAssets.length > 0) {
+    // return (
+    //   <div className="flex items-center justify-center rounded-lg w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] 2xl:h-[360px]">
+    //     <div className="text-center">
+    //       <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto mb-3 sm:mb-4"></div>
+    //       <div className="text-xs sm:text-sm 2xl:text-base text-gray-600 font-medium">Loading prices...</div>
+    //       <div className="text-[10px] sm:text-xs 2xl:text-sm text-gray-500 mt-1">Fetching real-time data</div>
+    //     </div>
+    //   </div>
+    // );
+
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-xs sm:text-sm 2xl:text-base text-gray-600 font-medium">
+            Loading prices...
+          </p>
+          <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-500 mt-1">
+            Fetching real-time data
           </p>
         </div>
       </div>

@@ -2,7 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LogIn, LogOut, Eye } from 'lucide-react';
+import { LogIn, LogOut, Eye, PieChart, BarChart3, Star } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface SidebarProps {
@@ -38,33 +38,49 @@ export default function Sidebar({ onShowAuthModal, onLogout }: SidebarProps) {
       <nav className="flex-1 px-2 sm:px-3 py-3 space-y-1">
         <Link
           href="/"
-          className={`block px-3 py-2 rounded-lg text-xs 2xl:text-base font-medium transition-all ${
+          className={`relative block px-3 py-2 rounded-lg text-xs 2xl:text-base font-medium transition-all ${
             isPortfolioActive
-              ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-300'
+              ? 'bg-amber-50 text-amber-700 shadow-sm'
               : 'text-gray-700 hover:text-gray-900 hover:bg-white/80'
           }`}
         >
-          Portfolio
+          {isPortfolioActive && (
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500 rounded-r-sm"></div>
+          )}
+          <div className="flex items-center gap-2">
+            <PieChart className="w-4 h-4" />
+            Portfolio
+          </div>
         </Link>
         <Link
           href="/trading"
-          className={`block px-3 py-2 rounded-lg text-xs 2xl:text-base font-medium transition-all ${
+          className={`relative block px-3 py-2 rounded-lg text-xs 2xl:text-base font-medium transition-all ${
             isTradingActive
-              ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-300'
+              ? 'bg-amber-50 text-amber-700 shadow-sm'
               : 'text-gray-700 hover:text-gray-900 hover:bg-white/80'
           }`}
         >
-          Trading
+          {isTradingActive && (
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500 rounded-r-sm"></div>
+          )}
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Trading
+          </div>
         </Link>
         <Link
           href="/watchlist"
-          className={`block px-3 py-2 rounded-lg text-xs 2xl:text-base font-medium transition-all ${
+          className={`relative block px-3 py-2 rounded-lg text-xs 2xl:text-base font-medium transition-all ${
             isWatchlistActive
-              ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-300'
+              ? 'bg-amber-50 text-amber-700 shadow-sm'
               : 'text-gray-700 hover:text-gray-900 hover:bg-white/80'
           }`}
         >
+          {isWatchlistActive && (
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500 rounded-r-sm"></div>
+          )}
           <div className="flex items-center gap-2">
+            <Star className="w-4 h-4" />
             Watchlist
           </div>
         </Link>

@@ -58,6 +58,15 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
     }
   }, [hasInitialized]);
 
+  // Prevent auto-scroll when component re-mounts
+  React.useEffect(() => {
+    // Ensure we don't auto-scroll when the component re-mounts
+    if (typeof window !== 'undefined') {
+      // Prevent any automatic scroll restoration
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
+
   const formatCurrency = (amount: number) => {
     return formatLargeNumber(amount);
   };
@@ -341,12 +350,14 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                 <div
                   key={`day-${i + dayIndex}`}
                   className={`relative p-2 pb-1 min-h-[60px] border rounded-md transition-all duration-200 flex flex-col justify-between ${
-                    isCurrentMonth 
-                      ? hasTrades 
-                        ? getDayBackgroundColor(dayStats.pnl)
-                        : 'bg-white border-slate-100'
-                      : 'bg-slate-50 border-slate-100'
-                  } ${isToday ? 'ring-1 ring-blue-300 ring-offset-1' : ''}`}
+                    hasTrades 
+                      ? getDayBackgroundColor(dayStats.pnl)
+                      : isCurrentMonth 
+                        ? 'bg-white border-slate-100'
+                        : 'bg-slate-50 border-slate-100'
+                  } ${isToday ? 'ring-1 ring-blue-300 ring-offset-1' : ''} ${
+                    !isCurrentMonth && hasTrades ? 'opacity-60' : ''
+                  }`}
                 >
                   {/* Date Number */}
                   <div className={`text-[.6rem] font-semibold text-left ${

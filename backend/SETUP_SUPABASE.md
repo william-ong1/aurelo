@@ -38,6 +38,7 @@ CREATE TABLE portfolio_assets (
     ticker TEXT,
     shares DECIMAL,
     current_price DECIMAL,
+    purchase_price DECIMAL,
     balance DECIMAL,
     apy DECIMAL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

@@ -35,7 +35,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
     asset.isStock && asset.ticker && !failedTickers.includes(asset.ticker)
   );
   const hasAllPrices = validStockAssets.length === 0 || validStockAssets.every(asset => realTimePrices[asset.ticker!]);
-  const isInitialLoading = isLoading || !hasAllPrices;
+  // const isInitialLoading = isLoading || !hasAllPrices;
 
   if (assets.length === 0) {
     if (isLoadingAssets) {
@@ -118,17 +118,17 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
   }
 
   // Show loading state while fetching initial prices
-  if (isInitialLoading && validStockAssets.length > 0) {
-    return (
-      <div className="flex items-center justify-center rounded-lg w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] 2xl:h-[360px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto mb-3 sm:mb-4"></div>
-          <div className="text-xs sm:text-sm 2xl:text-base text-gray-600 font-medium">Loading prices...</div>
-          <div className="text-[10px] sm:text-xs 2xl:text-sm text-gray-500 mt-1">Fetching real-time data</div>
-        </div>
-      </div>
-    );
-  }
+  // if (isInitialLoading && validStockAssets.length > 0) {
+  //   return (
+  //     <div className="flex items-center justify-center rounded-lg w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] 2xl:h-[360px]">
+  //       <div className="text-center">
+  //         <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto mb-3 sm:mb-4"></div>
+  //         <div className="text-xs sm:text-sm 2xl:text-base text-gray-600 font-medium">Loading prices...</div>
+  //         <div className="text-[10px] sm:text-xs 2xl:text-sm text-gray-500 mt-1">Fetching real-time data</div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   // Calculate values based on time period
   const values = assets.map(a => {

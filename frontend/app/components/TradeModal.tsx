@@ -399,11 +399,9 @@ export default function TradeModal({
                           <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-600">
                             {trade.date}
                           </div>
-                          {trade.realized_pnl && (
-                            <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-600">
-                              P&L: ${trade.realized_pnl}
-                            </div>
-                          )}
+                          <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-600">
+                            P&L: ${trade.realized_pnl !== undefined && trade.realized_pnl !== null ? (trade.realized_pnl >= 0 ? '+' : '') + trade.realized_pnl.toFixed(2) : '0.00'}
+                          </div>
                         </div>
                       ))}
                     </div>

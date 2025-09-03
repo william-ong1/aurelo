@@ -73,6 +73,7 @@ class PortfolioAsset(BaseModel):
     ticker: Optional[str] = None
     shares: Optional[float] = None
     currentPrice: Optional[float] = None
+    purchasePrice: Optional[float] = None
     balance: Optional[float] = None
     apy: Optional[float] = None
 
@@ -555,6 +556,7 @@ async def save_portfolio(
                 "ticker": asset.ticker,
                 "shares": asset.shares,
                 "current_price": asset.currentPrice,
+                "purchase_price": asset.purchasePrice,
                 "balance": asset.balance,
                 "apy": asset.apy,
                 "created_at": datetime.now(UTC).isoformat()
@@ -591,6 +593,7 @@ async def get_portfolio(user_id: str = Depends(get_current_user)):
                 ticker=row["ticker"],
                 shares=row["shares"],
                 currentPrice=row["current_price"],
+                purchasePrice=row["purchase_price"],
                 balance=row["balance"],
                 apy=row["apy"]
             )
