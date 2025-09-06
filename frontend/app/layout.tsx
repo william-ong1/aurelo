@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { RealTimeProvider } from "./contexts/RealTimeContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { AuthModalProvider } from "./contexts/AuthModalContext";
+import { PortfolioProvider } from "./contexts/PortfolioContext";
+import { ScrollProvider } from "./contexts/ScrollContext";
 import SidebarLayout from "./components/SidebarLayout";
 
 export const metadata: Metadata = {
@@ -24,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
         <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png"/>
@@ -36,14 +39,42 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png"/>
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png"/>
         <link rel="manifest" href="/favicon/site.webmanifest"/>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Prevent hydration mismatch by ensuring consistent initial state
+              (function() {
+                // Always start with no dark class to match server
+                document.documentElement.classList.remove("dark");
+                
+                // Then apply theme immediately after
+                try {
+                  const isDark = localStorage.theme === "dark" ||
+                    (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches);
+                  if (isDark) {
+                    document.documentElement.classList.add("dark");
+                  }
+                } catch (e) {
+                  // Keep light mode if localStorage is not available
+                }
+              })();
+            `,
+          }}
+        />
       </head>
       <body>
         <AuthProvider>
-          <RealTimeProvider>
-            <SidebarLayout>
-              {children}
-            </SidebarLayout>
-          </RealTimeProvider>
+          <PortfolioProvider>
+            <RealTimeProvider>
+              <ScrollProvider>
+                <AuthModalProvider>
+                  <SidebarLayout>
+                    {children}
+                  </SidebarLayout>
+                </AuthModalProvider>
+              </ScrollProvider>
+            </RealTimeProvider>
+          </PortfolioProvider>
         </AuthProvider>
       </body>
     </html>

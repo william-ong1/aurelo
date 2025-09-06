@@ -477,10 +477,10 @@ export default function Home() {
         <main className="flex flex-col items-center justify-center min-h-screen p-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-xs sm:text-sm 2xl:text-base text-gray-600 font-medium">
+            <p className="text-xs sm:text-sm 2xl:text-base text-black font-medium">
               {isLoading ? 'Checking authentication...' : 'Loading portfolio...'}
             </p>
-            <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-500 mt-1">
+            <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-900 mt-1">
               {isLoading ? 'Verifying your login status' : 'Retrieving your portfolio data'}
             </p>
           </div>
@@ -506,7 +506,7 @@ export default function Home() {
                     className={`px-1.5 sm:px-2 2xl:px-3 py-.7 sm:py-1 2xl:py-1.5 text-[.5rem] sm:text-[.6rem] 2xl:text-[.8rem] font-medium rounded-full transition-all duration-200 cursor-pointer ${
                       timePeriod === 'all-time' 
                         ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-300 font-semibold' 
-                        : 'text-gray-600 hover:text-gray-800 hover:bg-white/80'
+                        : 'text-black hover:text-gray-800 hover:bg-white/80'
                     }`}
                   >
                     All Time
@@ -516,7 +516,7 @@ export default function Home() {
                     className={`px-1.5 sm:px-2 2xl:px-3 py-.7 sm:py-1 2xl:py-1.5 text-[.5rem] sm:text-[.6rem] 2xl:text-[.8rem] font-medium rounded-full transition-all duration-200 cursor-pointer ${
                       timePeriod === 'today' 
                         ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-300 font-semibold' 
-                        : 'text-gray-600 hover:text-gray-800 hover:bg-white/80'
+                        : 'text-black hover:text-gray-800 hover:bg-white/80'
                     }`}
                   >
                     Today
@@ -531,7 +531,7 @@ export default function Home() {
                         ? 'text-gray-200 cursor-not-allowed'
                         : isEditMode && assets.length > 0
                         ? 'text-gray-900 bg-white shadow-sm ring-1 ring-gray-300 cursor-pointer' 
-                        : 'text-gray-400 hover:text-gray-600 transition-all cursor-pointer'
+                        : 'text-gray-400 hover:text-black transition-all cursor-pointer'
                     }`}
                     title={assets.length === 0 ? "No assets to edit" : isEditMode && assets.length > 0 ? "Exit Edit Mode" : "Edit Portfolio"}
                   >
@@ -546,7 +546,7 @@ export default function Home() {
                     className={`p-1 sm:p-1.5 rounded-lg transition-colors ${
                       isEditMode && assets.length > 0
                         ? 'text-gray-200 cursor-not-allowed' 
-                        : 'text-gray-400 hover:text-gray-600 transition-all cursor-pointer'
+                        : 'text-gray-400 hover:text-black transition-all cursor-pointer'
                     }`}
                     title={isEditMode && assets.length > 0 ? "Exit edit mode to add assets" : "Add Asset"}
                   >
@@ -555,7 +555,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <p className="text-xs 2xl:text-sm -mt-1 text-gray-600 mb-6">Breakdown of your asset allocation and performance</p>
+            <p className="text-xs 2xl:text-sm -mt-1 text-black mb-6">Breakdown of your asset allocation and performance</p>
 
             {/* Pie Chart */}
             <PieChart 
@@ -593,7 +593,7 @@ export default function Home() {
               </h2>
               <button
                 onClick={closeModal}
-                className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                className="text-gray-400 hover:text-black transition-colors cursor-pointer"
               >
                 <X size={20} className="h-6 w-6" />
               </button>
@@ -607,7 +607,7 @@ export default function Home() {
                     className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all cursor-pointer ${
                       uploadMode === 'manual'
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-300 text-gray-600 hover:border-gray-400'
+                        : 'border-gray-300 text-black hover:border-gray-400'
                     }`}
                   >
                     <FileText size={16} className="sm:w-5 sm:h-5" />
@@ -618,7 +618,7 @@ export default function Home() {
                     className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all cursor-pointer ${
                       uploadMode === 'image'
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-300 text-gray-600 hover:border-gray-400'
+                        : 'border-gray-300 text-black hover:border-gray-400'
                     }`}
                   >
                     <Upload size={16} className="sm:w-5 sm:h-5" />
@@ -633,7 +633,7 @@ export default function Home() {
                 {selectedImages.length === 0 ? (
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-8 text-center">
                     <Upload className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mb-3 sm:mb-4" />
-                    <div className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
+                    <div className="text-xs sm:text-sm text-black mb-3 sm:mb-4">
                       Upload screenshots of your portfolio or holdings
                     </div>
                     <input
@@ -661,7 +661,7 @@ export default function Home() {
                           </div>
                           <div>
                             <div className="font-medium text-gray-900 text-xs sm:text-sm">{image.name}</div>
-                            <div className="text-xs sm:text-sm text-gray-500">
+                            <div className="text-xs sm:text-sm text-gray-900">
                               {(image.size / 1024 / 1024).toFixed(2)} MB
                             </div>
                           </div>
@@ -672,7 +672,7 @@ export default function Home() {
                             setParsedAssets([]);
                             setIsProcessing(false);
                           }}
-                          className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                          className="text-gray-400 hover:text-black cursor-pointer"
                         >
                           <X size={16} className="sm:w-5 sm:h-5" />
                         </button>
@@ -691,7 +691,7 @@ export default function Home() {
                     {isProcessing && (
                       <div className="text-center py-6 sm:py-8">
                         <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600 mx-auto mb-3 sm:mb-4"></div>
-                        <div className="text-gray-600 text-sm">Processing {selectedImages.length} image{selectedImages.length !== 1 ? 's' : ''}...</div>
+                        <div className="text-black text-sm">Processing {selectedImages.length} image{selectedImages.length !== 1 ? 's' : ''}...</div>
                       </div>
                     )}
 
@@ -706,7 +706,7 @@ export default function Home() {
                               <div className="font-medium text-gray-900 text-xs sm:text-sm">
                                 {asset.isStock ? asset.ticker : asset.name}
                               </div>
-                              <div className="text-xs sm:text-sm text-gray-600">
+                              <div className="text-xs sm:text-sm text-black">
                                 {asset.isStock 
                                   ? `${asset.shares} shares @ $${asset.currentPrice}`
                                   : `$${asset.balance} @ ${((asset.apy || 0) * 100).toFixed(2)}% APY`

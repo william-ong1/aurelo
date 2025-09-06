@@ -4,14 +4,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LogIn, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useAuthModal } from '../contexts/AuthModalContext';
 
 interface HeaderProps {
-  onShowAuthModal: () => void;
   onLogout?: () => void;
 }
 
-export default function Header({ onShowAuthModal, onLogout }: HeaderProps) {
+export default function Header({ onLogout }: HeaderProps) {
   const { isAuthenticated, logout } = useAuth();
+  const { showAuthModal } = useAuthModal();
   const pathname = usePathname();
 
   const handleLogout = () => {
@@ -19,6 +20,10 @@ export default function Header({ onShowAuthModal, onLogout }: HeaderProps) {
     if (onLogout) {
       onLogout();
     }
+  };
+
+  const handleShowAuthModal = () => {
+    showAuthModal();
   };
 
   return (
@@ -33,7 +38,7 @@ export default function Header({ onShowAuthModal, onLogout }: HeaderProps) {
               </h1>
             </div>
             <div className="m:block border-l border-gray-200 h-6"></div>
-            <p className="text-xs sm:text-sm text-gray-600 font-medium">
+            <p className="text-xs sm:text-sm text-black font-medium">
               Your finances, simplified.
             </p>
           </div>
@@ -45,7 +50,7 @@ export default function Header({ onShowAuthModal, onLogout }: HeaderProps) {
               className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-all ${
                 pathname === '/' || pathname.startsWith('/portfolio')
                   ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-300'
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-white/80'
+                  : 'text-black hover:text-gray-800 hover:bg-white/80'
               }`}
             >
               Portfolio
@@ -55,7 +60,7 @@ export default function Header({ onShowAuthModal, onLogout }: HeaderProps) {
               className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-all ${
                 pathname.startsWith('/trading')
                   ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-300'
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-white/80'
+                  : 'text-black hover:text-gray-800 hover:bg-white/80'
               }`}
             >
               Trading
@@ -67,14 +72,14 @@ export default function Header({ onShowAuthModal, onLogout }: HeaderProps) {
             {isAuthenticated ? (
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors cursor-pointer px-3 py-2 rounded-lg hover:bg-gray-50"
+                className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-black hover:text-gray-800 transition-colors cursor-pointer px-3 py-2 rounded-lg hover:bg-gray-50"
               >
                 <LogOut className='w-4 h-4 sm:w-5 sm:h-5' />
                 Sign Out
               </button>
             ) : (
               <button
-                onClick={onShowAuthModal}
+                onClick={handleShowAuthModal}
                 className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors cursor-pointer px-3 py-2 rounded-lg hover:bg-blue-50"
               >
                 <LogIn className='w-4 h-4 sm:w-5 sm:h-5' />

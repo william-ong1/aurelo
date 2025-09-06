@@ -3,59 +3,59 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { disableBodyScroll, enableBodyScroll } from '../utils/scrollLock';
 
-interface WatchlistItem {
+interface JournalEntry {
   id: number;
-  ticker: string;
-  notes?: string;
-  chart_link?: string;
+  title: string;
+  content: string;
+  tags?: string;
   created_at: string;
 }
 
-interface WatchlistModalProps {
+interface JournalModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: { ticker: string; notes?: string; chart_link?: string }) => void;
-  editingItem: WatchlistItem | null;
+  onSave: (data: { title: string; content: string; tags?: string }) => void;
+  editingEntry: JournalEntry | null;
   isLoading?: boolean;
 }
 
-export default function WatchlistModal({ 
+export default function JournalModal({ 
   isOpen, 
   onClose, 
   onSave, 
-  editingItem, 
+  editingEntry, 
   isLoading = false 
-}: WatchlistModalProps) {
+}: JournalModalProps) {
   const [formData, setFormData] = useState({
-    ticker: '',
-    notes: '',
-    chart_link: ''
+    title: '',
+    content: '',
+    tags: ''
   });
 
-  // Reset form when editing item changes
+  // Reset form when editing entry changes
   useEffect(() => {
-    if (editingItem) {
+    if (editingEntry) {
       setFormData({
-        ticker: editingItem.ticker,
-        notes: editingItem.notes || '',
-        chart_link: editingItem.chart_link || ''
+        title: editingEntry.title,
+        content: editingEntry.content,
+        tags: editingEntry.tags || ''
       });
     } else {
       setFormData({
-        ticker: '',
-        notes: '',
-        chart_link: ''
+        title: '',
+        content: '',
+        tags: ''
       });
     }
-  }, [editingItem]);
+  }, [editingEntry]);
 
   // Clear form when modal closes
   useEffect(() => {
     if (!isOpen) {
       setFormData({
-        ticker: '',
-        notes: '',
-        chart_link: ''
+        title: '',
+        content: '',
+        tags: ''
       });
     }
   }, [isOpen]);
@@ -85,18 +85,20 @@ export default function WatchlistModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.ticker.trim()) {
-      alert('Please enter a ticker symbol');
+    if (!formData.title.trim()) {
+      alert('Please enter a title');
       return;
     }
 
-    // Convert ticker to uppercase and remove spaces
-    const cleanTicker = formData.ticker.trim().toUpperCase().replace(/\s+/g, '');
-    
+    if (!formData.content.trim()) {
+      alert('Please enter content');
+      return;
+    }
+
     onSave({
-      ticker: cleanTicker,
-      notes: formData.notes.trim() || "",
-      chart_link: formData.chart_link.trim() || ""
+      title: formData.title.trim(),
+      content: formData.content.trim(),
+      tags: formData.tags.trim() || undefined
     });
   };
 
@@ -113,7 +115,7 @@ export default function WatchlistModal({
       <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-2xl p-3 sm:p-6 w-full max-w-sm mx-auto border border-gray-200/50 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-3 sm:mb-4">
           <h2 className="text-sm sm:text-lg 2xl:text-lg font-semibold text-gray-800">
-            {editingItem ? 'Edit Watchlist Item' : 'Add to Watchlist'}
+            {editingEntry ? 'Edit Journal Entry' : 'Add Journal Entry'}
           </h2>
           <button
             onClick={handleClose}
@@ -125,68 +127,65 @@ export default function WatchlistModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-          {/* Ticker Symbol */}
+          {/* Title */}
           <div>
-            <label htmlFor="ticker" className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-700 mb-1">
-              Ticker Symbol *
+            <label htmlFor="title" className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-700 mb-1">
+              Title *
             </label>
             <input
               type="text"
-              id="ticker"
-              name="ticker"
-              value={formData.ticker}
-              onChange={(e) => {
-                const { name, value } = e.target;
-                setFormData(prev => ({
-                  ...prev,
-                  [name]: value.toUpperCase()
-                }));
-              }}
-              disabled={isLoading}
-              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
-              placeholder="e.g., AAPL"
-              maxLength={10}
-            />
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label htmlFor="notes" className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-700 mb-1">
-              Notes (Optional)
-            </label>
-            <textarea
-              id="notes"
-              name="notes"
-              value={formData.notes}
+              id="title"
+              name="title"
+              value={formData.title}
               onChange={handleInputChange}
               disabled={isLoading}
-              rows={3}
-              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-xs resize-none"
-              placeholder="e.g. Technical analysis, support/resistance levels, entry/exit points ..."
-              maxLength={500}
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+              placeholder="e.g., Market Analysis - AAPL"
+              maxLength={100}
             />
             <p className="text-[10px] sm:text-[11px] 2xl:text-sm text-gray-900">
-              {formData.notes.length}/500 characters
+              {formData.title.length}/100 characters
             </p>
           </div>
 
-          {/* Chart Link */}
+          {/* Content */}
           <div>
-            <label htmlFor="chart_link" className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-700 mb-1">
-              Custom Chart Link (Optional)
+            <label htmlFor="content" className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-700 mb-1">
+              Content *
+            </label>
+            <textarea
+              id="content"
+              name="content"
+              value={formData.content}
+              onChange={handleInputChange}
+              disabled={isLoading}
+              rows={6}
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-xs resize-none"
+              placeholder="Write your thoughts, analysis, or notes here..."
+              maxLength={2000}
+            />
+            <p className="text-[10px] sm:text-[11px] 2xl:text-sm text-gray-900">
+              {formData.content.length}/2000 characters
+            </p>
+          </div>
+
+          {/* Tags */}
+          <div>
+            <label htmlFor="tags" className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-700 mb-1">
+              Tags (Optional)
             </label>
             <input
-              type="url"
-              id="chart_link"
-              name="chart_link"
-              value={formData.chart_link}
+              type="text"
+              id="tags"
+              name="tags"
+              value={formData.tags}
               onChange={handleInputChange}
               disabled={isLoading}
               className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-xs"
-              placeholder="https://www.tradingview.com/chart/..."
+              placeholder="e.g., technical-analysis, aapl, support-resistance"
             />
             <p className="text-[10px] sm:text-[11px] 2xl:text-sm text-gray-900">
-              Leave empty to use default TradingView chart
+              Separate multiple tags with commas
             </p>
           </div>
 
@@ -202,16 +201,16 @@ export default function WatchlistModal({
             </button>
             <button
               type="submit"
-              disabled={isLoading || !formData.ticker.trim()}
+              disabled={isLoading || !formData.title.trim() || !formData.content.trim()}
               className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  <span className="text-[10px] sm:text-xs 2xl:text-sm">{editingItem ? 'Updating...' : 'Adding...'}</span>
+                  <span className="text-[10px] sm:text-xs 2xl:text-sm">{editingEntry ? 'Updating...' : 'Adding...'}</span>
                 </div>
               ) : (
-                editingItem ? 'Update Item' : 'Add to Watchlist'
+                editingEntry ? 'Update Entry' : 'Add Entry'
               )}
             </button>
           </div>

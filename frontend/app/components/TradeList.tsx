@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useMemo } from 'react';
-import { Edit2, Trash2, Plus, Calendar, TrendingUp, TrendingDown, Download, ChevronUp, ChevronDown } from 'lucide-react';
+import { Edit2, Trash2, Plus, Download, ChevronUp, ChevronDown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Trade {
@@ -47,7 +47,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
     }
     return 'desc';
   });
-  const [displayCount, setDisplayCount] = useState(5);
+  const [displayCount, setDisplayCount] = useState<number | 'all' | 'today'>(5);
   const [showSelector, setShowSelector] = useState(false);
   
   // Available options for trade display
@@ -87,8 +87,23 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
     }
   };
 
+  const isToday = (dateString: string) => {
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0]; // Get YYYY-MM-DD format
+    const isTodayResult = dateString === todayString;
+    console.log('isToday check:', { dateString, todayString, isTodayResult });
+    return isTodayResult;
+  };
+
   const sortedTrades = useMemo(() => {
-    return [...trades].sort((a, b) => {
+    // Filter trades if "today" is selected
+    let filteredTrades = [...trades];
+    if (displayCount === 'today') {
+      filteredTrades = trades.filter(trade => isToday(trade.date));
+    }
+    
+    // Sort the filtered trades
+    return filteredTrades.sort((a, b) => {
       let aValue: any;
       let bValue: any;
 
@@ -119,7 +134,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
         return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
       }
     });
-  }, [trades, sortField, sortDirection]);
+  }, [trades, sortField, sortDirection, displayCount]);
 
   const getSortIcon = (field: SortField) => {
     if (sortField !== field) {
@@ -157,6 +172,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
     return pnl >= 0 ? 'text-green-600' : 'text-red-600';
   };
 
+
   const escapeCsv = (value: unknown) => {
     if (value === null || value === undefined) return '';
     const str = String(value);
@@ -170,9 +186,6 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
     const headers = [
       'Date',
       'Ticker',
-      'Type',
-      'Shares',
-      'Price',
       'Realized P&L',
       '% Return',
       'Notes',
@@ -184,9 +197,6 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
       .map((t) => [
         t.date,
         t.ticker,
-        t.trade_type,
-        t.shares,
-        t.price,
         t.realized_pnl ?? '',
         t.percent_diff ?? '',
         t.notes ?? '',
@@ -212,20 +222,20 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
 
   return (
     <>
-      <div className="bg-white rounded-lg p-4 pb-2 shadow-sm border border-slate-200">
+      <div className="bg-white dark:bg-black rounded-lg p-4 pb-2 shadow-sm border border-slate-200 dark:border-gray-800/60">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Trade History</h3>
+          <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Trade History</h3>
           <div className="flex items-center gap-1.5">
             <button
               onClick={exportToCsv}
-              className="p-0.5 pr-1.5 rounded-md transition-colors text-gray-400 hover:text-gray-600 transition-all cursor-pointer"
+              className="p-0.5 pr-1.5 rounded-md transition-colors text-gray-400 hover:text-black dark:hover:text-white dark:text-white transition-all cursor-pointer"
               title="Export CSV"
             >
               <Download className='w-3 h-3 sm:w-4 sm:h-4 2xl:w-5 2xl:h-5' />
             </button>
             <button
               onClick={onAdd}
-              className="p-0.5 pr-1.5 rounded-md transition-colors text-gray-400 hover:text-gray-600 transition-all cursor-pointer"
+              className="p-0.5 pr-1.5 rounded-md transition-colors text-gray-400 hover:text-black dark:hover:text-white dark:text-white transition-all cursor-pointer"
               title="Add Trade"
             >
               <Plus className='w-3 h-3 sm:w-4 sm:h-4 2xl:w-5 2xl:h-5' />
@@ -235,10 +245,10 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
         
         <div className="overflow-x-auto">
           <table className="w-full table-fixed">
-            <thead className="sticky top-0 bg-white select-none">
-              <tr className="border-b border-gray-200">
+            <thead className="sticky top-0 bg-white dark:bg-black select-none">
+              <tr className="border-b border-gray-200 dark:border-gray-800/60">
                 <th 
-                  className="text-left py-1.5 sm:py-1.5 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-800 transition-colors select-none w-1/5"
+                  className="text-left py-1.5 sm:py-1.5 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
                   onClick={() => handleSort('date')}
                 >
                   <div className="flex items-center gap-1">
@@ -247,7 +257,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                   </div>
                 </th>
                 <th 
-                  className="text-left py-1.5 sm:py-1.5 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-800 transition-colors select-none w-1/5"
+                  className="text-left py-1.5 sm:py-1.5 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
                   onClick={() => handleSort('ticker')}
                 >
                   <div className="flex items-center gap-1">
@@ -256,7 +266,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                   </div>
                 </th>
                 <th 
-                  className="text-right py-1.5 sm:py-1.5 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-800 transition-colors select-none w-1/5"
+                  className="text-right py-1.5 sm:py-1.5 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
                   onClick={() => handleSort('realized_pnl')}
                 >
                   <div className="flex items-center gap-1 justify-end">
@@ -265,7 +275,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                   </div>
                 </th>
                 <th 
-                  className="text-right py-1.5 sm:py-1.5 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-800 transition-colors select-none w-1/5"
+                  className="text-right py-1.5 sm:py-1.5 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
                   onClick={() => handleSort('percent_diff')}
                 >
                   <div className="flex items-center gap-1 justify-end">
@@ -273,18 +283,18 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                     {getSortIcon('percent_diff')}
                   </div>
                 </th>
-                <th className="text-center py-1.5 sm:py-1.5 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 select-none w-1/5">Actions</th>
+                <th className="text-center py-1.5 sm:py-1.5 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white select-none w-1/5">Actions</th>
               </tr>
             </thead>
             <tbody>
               {sortedTrades.length > 0 ? (
-                sortedTrades.slice(0, displayCount).map((trade) => (
-                  <tr key={trade.id} className="border-b border-gray-100">
-                    <td className="py-1.5 sm:py-1.5 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900">
+                (displayCount === 'today' ? sortedTrades : sortedTrades.slice(0, typeof displayCount === 'number' ? displayCount : sortedTrades.length)).map((trade) => (
+                  <tr key={trade.id} className="border-b border-slate-200 dark:border-gray-800/60">
+                    <td className="py-1.5 sm:py-1.5 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100">
                       {formatDate(trade.date)}
                     </td>
                     <td className="py-1.5 sm:py-1.5 px-2 sm:px-4">
-                      <span className="text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900">{trade.ticker}</span>
+                      <span className="text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100">{trade.ticker}</span>
                     </td>
                     <td className="py-1.5 sm:py-1.5 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-right">
                       <span className={getPnlColor(trade.realized_pnl || 0)}>
@@ -322,7 +332,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="py-6 sm:py-8 px-3 sm:px-6 text-center text-[10px] sm:text-xs 2xl:text-sm text-gray-500">
+                  <td colSpan={5} className="py-6 sm:py-8 px-3 sm:px-6 text-center text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100">
                     No trades yet. Click the + button to add your first trade.
                   </td>
                 </tr>
@@ -333,27 +343,35 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
         
         {/* Trade Count Footer */}
         {sortedTrades.length > 0 && (
-          <div className="flex justify-end mt-1">
-                <div className="flex items-center gap-1">
-                <span className="text-[.6rem] text-slate-500">Showing</span>
-                <div className="relative flex items-center">
-                  <select
-                    value={displayCount === sortedTrades.length ? 'all' : displayCount}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setDisplayCount(value === 'all' ? sortedTrades.length : parseInt(value));
-                    }}
-                    className={`text-[.6rem] text-slate-500 bg-transparent border-none outline-none cursor-pointer hover:text-slate-600 transition-colors appearance-none ${displayCount === 5 ? 'pr-0' : displayCount === 100 ? 'pr-3' : 'pr-2'}`}
-                  >
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                    <option value="25">25</option>
-                    <option value="100">100</option>
-                    <option value="all">all</option>
-                  </select>
-                  <ChevronDown className="absolute right-0 h-2.5 w-2.5 text-slate-400 pointer-events-none" />
-                </div>
-                <span className="text-[.6rem] text-slate-500">trades</span>
+          <div className="flex justify-end items-center mt-1">
+            {/* Trade Count */}
+            <div className="flex items-center gap-1">
+              <span className="text-[.6rem] text-slate-500">Showing</span>
+              <div className="relative flex items-center">
+                <select
+                  value={displayCount === 'today' ? 'today' : displayCount === 'all' ? 'all' : displayCount}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === 'all') {
+                      setDisplayCount('all');
+                    } else if (value === 'today') {
+                      setDisplayCount('today');
+                    } else {
+                      setDisplayCount(parseInt(value));
+                    }
+                  }}
+                  className={`text-[.6rem] text-slate-500 bg-transparent border-none outline-none cursor-pointer hover:text-slate-600 transition-colors appearance-none ${displayCount === 5 ? 'pr-0' : displayCount === 100 ? 'pr-3' : displayCount === "today" ? 'pr-3' : 'pr-2'}`}
+                >
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="100">100</option>
+                  <option value="all">all</option>
+                  <option value="today">today</option>
+                </select>
+                <ChevronDown className="absolute right-0 h-2.5 w-2.5 text-slate-400 pointer-events-none" />
+              </div>
+              <span className="text-[.6rem] text-slate-500">trades</span>
             </div>
           </div>
         )}

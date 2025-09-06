@@ -2,13 +2,14 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { PieChart, TrendingUp, Eye } from 'lucide-react';
+import { PieChart, TrendingUp, Eye, BookOpen } from 'lucide-react';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
   const isPortfolio = pathname === '/' || pathname.startsWith('/portfolio');
   const isTrading = pathname.startsWith('/trading');
   const isWatchlist = pathname.startsWith('/watchlist');
+  const isJournal = pathname.startsWith('/journal');
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-gray-200/70 shadow-sm">
@@ -17,7 +18,7 @@ export default function MobileBottomNav() {
           <Link
             href="/"
             className={`flex-1 flex items-center justify-center transition-colors ${
-              isPortfolio ? 'text-gray-900' : 'text-gray-600 hover:text-gray-800'
+              isPortfolio ? 'text-gray-900' : 'text-black hover:text-gray-800'
             }`}
             aria-label="Portfolio"
           >
@@ -30,7 +31,7 @@ export default function MobileBottomNav() {
           <Link
             href="/trading"
             className={`flex-1 flex items-center justify-center transition-colors ${
-              isTrading ? 'text-gray-900' : 'text-gray-600 hover:text-gray-800'
+              isTrading ? 'text-gray-900' : 'text-black hover:text-gray-800'
             }`}
             aria-label="Trading"
           >
@@ -43,13 +44,26 @@ export default function MobileBottomNav() {
           <Link
             href="/watchlist"
             className={`flex-1 flex items-center justify-center transition-colors ${
-              isWatchlist ? 'text-gray-900' : 'text-gray-600 hover:text-gray-800'
+              isWatchlist ? 'text-gray-900' : 'text-black hover:text-gray-800'
             }`}
             aria-label="Watchlist"
           >
             <div className="flex flex-col items-center justify-center gap-0">
               <Eye className="w-4 h-4" />
               <span className="text-[10px] leading-none">Watchlist</span>
+            </div>
+          </Link>
+          <div className="w-px bg-gray-200/70 my-2" aria-hidden="true" />
+          <Link
+            href="/journal"
+            className={`flex-1 flex items-center justify-center transition-colors ${
+              isJournal ? 'text-gray-900' : 'text-black hover:text-gray-800'
+            }`}
+            aria-label="Journal"
+          >
+            <div className="flex flex-col items-center justify-center gap-0">
+              <BookOpen className="w-4 h-4" />
+              <span className="text-[10px] leading-none">Journal</span>
             </div>
           </Link>
         </div>

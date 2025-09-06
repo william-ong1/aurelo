@@ -64,7 +64,7 @@ const InfoTooltip = ({ children, tooltip }: { children: React.ReactNode; tooltip
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
         >
-          <Info className="h-3 w-3 text-gray-400 hover:text-gray-600" />
+          <Info className="h-3 w-3 text-gray-400 hover:text-black dark:text-white" />
           {showTooltip && (
             <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1.5 px-2 py-1.5 bg-gray-900 text-gray-100 text-[10px] rounded-md shadow-sm z-10 whitespace-nowrap opacity-90">
               {tooltip}
@@ -344,13 +344,13 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
         <div className="flex flex-col h-full">
           <div className="grid grid-cols-2 gap-4 mb-4">
             {/* Overall Performance */}
-            <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
               <div>
-                <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Overall</h3>
+                <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Overall</h3>
               </div>
               <div className="space-y-1 mt-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] sm:text-xs 2xl:text-sm text-gray-600">This Month</span>
+                  <span className="text-[10px] sm:text-xs 2xl:text-sm text-black dark:text-white">This Month</span>
                   <span className={`text-[10px] sm:text-sm 2xl:text-base font-semibold ${getPnlColor(trades.filter(t => {
                     const tradeDate = new Date(t.date);
                     const now = new Date();
@@ -364,7 +364,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] sm:text-xs 2xl:text-sm text-gray-600">All Time</span>
+                  <span className="text-[10px] sm:text-xs 2xl:text-sm text-black dark:text-white">All Time</span>
                   <span className={`text-[10px] sm:text-sm 2xl:text-base font-semibold ${getPnlColor(analytics.total_pnl)}`}>
                     {formatCurrency(analytics.total_pnl)}
                   </span>
@@ -373,19 +373,19 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             </div>
 
             {/* Win/Loss Analysis */}
-            <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200" >
+            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60" >
               <div>
-                <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Win/Loss</h3>
+                <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Win/Loss</h3>
               </div>
               <div className="space-y-1 mt-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] sm:text-xs 2xl:text-sm text-gray-600" >Wins/Losses</span>
-                  <span className="text-[10px] sm:text-sm 2xl:text-base font-semibold text-gray-900">
+                  <span className="text-[10px] sm:text-xs 2xl:text-sm text-black dark:text-white" >Wins/Losses</span>
+                  <span className="text-[10px] sm:text-sm 2xl:text-base font-semibold text-gray-900 dark:text-gray-100">
                     {analytics.winning_trades}/{analytics.losing_trades}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] sm:text-xs 2xl:text-sm text-gray-600">Success Rate</span>
+                  <span className="text-[10px] sm:text-xs 2xl:text-sm text-black dark:text-white">Success Rate</span>
                   <span className="text-[10px] sm:text-sm 2xl:text-base font-semibold text-green-600">
                     {formatPercent(analytics.success_rate)}
                   </span>
@@ -394,24 +394,24 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             </div>
 
             {/* Risk/Reward Analysis */}
-            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+            <div className="bg-white dark:bg-black rounded-xl p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
               <div className="mb-2">
-                <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Risk/Reward</h3>
+                <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Risk/Reward</h3>
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between items-center">
                   <InfoTooltip tooltip="Gross profit divided by gross loss. Above 1.0 means profitable trading.">
-                    <span className="text-[10px] sm:text-xs 2xl:text-sm text-gray-600">Profit Factor</span>
+                    <span className="text-[10px] sm:text-xs 2xl:text-sm text-black dark:text-white">Profit Factor</span>
                   </InfoTooltip>
-                  <span className="text-[10px] sm:text-sm 2xl:text-base font-semibold text-gray-900">
+                  <span className="text-[10px] sm:text-sm 2xl:text-base font-semibold text-gray-900 dark:text-gray-100">
                     {profitFactor.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <InfoTooltip tooltip="Average win divided by average loss. Higher ratio = better risk management.">
-                    <span className="text-[10px] sm:text-xs 2xl:text-sm text-gray-600">Risk/Reward</span>
+                    <span className="text-[10px] sm:text-xs 2xl:text-sm text-black dark:text-white">Risk/Reward</span>
                   </InfoTooltip>
-                  <span className="text-[10px] sm:text-sm 2xl:text-base font-semibold text-gray-900">
+                  <span className="text-[10px] sm:text-sm 2xl:text-base font-semibold text-gray-900 dark:text-gray-100">
                     {riskRewardRatio.toFixed(2)}
                   </span>
                 </div>
@@ -419,22 +419,22 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             </div>
 
             {/* Risk Management */}
-            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+            <div className="bg-white dark:bg-black rounded-xl p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
               <div className="mb-2">
-                <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Risk Management</h3>
+                <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Risk Management</h3>
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between items-center">
                   <InfoTooltip tooltip="Average dollar amount invested per trade (estimated from P&L and percentage).">
-                    <span className="text-[10px] sm:text-xs 2xl:text-sm text-gray-600">Avg Position</span>
+                    <span className="text-[10px] sm:text-xs 2xl:text-sm text-black dark:text-white">Avg Position</span>
                   </InfoTooltip>
-                  <span className="text-[10px] sm:text-sm 2xl:text-base font-semibold text-gray-900">
+                  <span className="text-[10px] sm:text-sm 2xl:text-base font-semibold text-gray-900 dark:text-gray-100">
                     {formatCurrency(avgPositionSize)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <InfoTooltip tooltip="Average percentage return per trade across all positions.">
-                    <span className="text-[10px] sm:text-xs 2xl:text-sm text-gray-600">Avg Position Return</span>
+                    <span className="text-[10px] sm:text-xs 2xl:text-sm text-black dark:text-white">Avg Position Return</span>
                   </InfoTooltip>
                   <span className={`text-[10px] sm:text-sm 2xl:text-base font-semibold ${avgPercentReturn > 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {formatPercent(avgPercentReturn)}
@@ -444,14 +444,14 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             </div>
 
             {/* Trade Quality */}
-            <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
               <div className="mb-3">
-                <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Trade Quality</h3>
+                <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Trade Quality</h3>
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <InfoTooltip tooltip="Average win on profitable trades and respective percentage of position size.">
-                    <span className="text-[10px] sm:text-xs 2xl:text-sm text-gray-600">Avg Win</span>
+                    <span className="text-[10px] sm:text-xs 2xl:text-sm text-black dark:text-white">Avg Win</span>
                   </InfoTooltip>
                   <span className="text-[10px] sm:text-sm 2xl:text-base font-semibold text-green-600">
                     {formatCurrency(avgWin)} ({avgWinPercent > 0 ? '+' : ''}{avgWinPercent.toFixed(1)}%)
@@ -459,7 +459,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
                 </div>
                 <div className="flex justify-between items-center">
                   <InfoTooltip tooltip="Average loss on losing trades and respective percentage of position size.">
-                    <span className="text-[10px] sm:text-xs 2xl:text-sm text-gray-600">Avg Loss</span>
+                    <span className="text-[10px] sm:text-xs 2xl:text-sm text-black dark:text-white">Avg Loss</span>
                   </InfoTooltip>
                   <span className="text-[10px] sm:text-sm 2xl:text-base font-semibold text-red-600">
                     {formatCurrency(Math.abs(avgLoss))} ({avgLossPercent.toFixed(1)}%)
@@ -469,20 +469,20 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             </div>
 
             {/* Trading Activity */}
-            <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
               <div className="mb-3">
-                <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Trading Activity</h3>
+                <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Trading Activity</h3>
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] sm:text-xs 2xl:text-sm text-gray-600">Total Trades</span>
-                  <span className="text-[10px] sm:text-sm 2xl:text-base font-semibold text-gray-900">
+                  <span className="text-[10px] sm:text-xs 2xl:text-sm text-black dark:text-white">Total Trades</span>
+                  <span className="text-[10px] sm:text-sm 2xl:text-base font-semibold text-gray-900 dark:text-gray-100">
                     {analytics.total_trades}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] sm:text-xs 2xl:text-sm text-gray-600">Unique Tickers</span>
-                  <span className="text-[10px] sm:text-sm 2xl:text-base font-semibold text-gray-900">
+                  <span className="text-[10px] sm:text-xs 2xl:text-sm text-black dark:text-white">Unique Tickers</span>
+                  <span className="text-[10px] sm:text-sm 2xl:text-base font-semibold text-gray-900 dark:text-gray-100">
                     {uniqueTickers}
                   </span>
                 </div>
@@ -491,18 +491,18 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
           </div>
 
           {/* Monthly Performance */}
-          <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200 flex-1 flex flex-col">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60 flex-1 flex flex-col">
             <div className="mb-3">
-              <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Monthly Performance</h3>
+              <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Monthly Performance</h3>
             </div>
             <div className={`overflow-y-auto flex-1 ${Object.keys(analytics.monthly_performance).length > 2 ? 'max-h-[115px]' : ''}`}>
               <table className="w-full">
-                                  <thead className="sticky top-0 bg-white">
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600">Month</th>
-                      <th className="text-right py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600">Trades</th>
-                      <th className="text-right py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600">Win Rate</th>
-                      <th className="text-right py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600">Total P&L</th>
+                                  <thead className="sticky top-0 bg-white dark:bg-black">
+                    <tr className="border-b border-slate-200 dark:border-gray-800/60">
+                      <th className="text-left py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white">Month</th>
+                      <th className="text-right py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white">Trades</th>
+                      <th className="text-right py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white">Win Rate</th>
+                      <th className="text-right py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white">Total P&L</th>
                     </tr>
                   </thead>
                                   <tbody>
@@ -515,30 +515,30 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
                     if (monthCount === 0) {
                       // No data - show 2 empty rows
                       return [
-                        <tr key="empty-1" className="border-b border-slate-200">
-                          <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900">-</td>
-                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 text-right">-</td>
-                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 text-right">-</td>
-                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 text-right">-</td>
+                        <tr key="empty-1" className="border-b border-slate-200 dark:border-gray-800/60">
+                          <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100">-</td>
+                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
+                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
+                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100 text-right">-</td>
                         </tr>,
-                        <tr key="empty-2" className="border-b border-slate-200">
-                          <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900">-</td>
-                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 text-right">-</td>
-                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 text-right">-</td>
-                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 text-right">-</td>
+                        <tr key="empty-2" className="border-b border-slate-200 dark:border-gray-800/60">
+                          <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100">-</td>
+                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
+                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
+                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100 text-right">-</td>
                         </tr>
                       ];
                     }
                     
                     return months.map(([monthKey, data], index) => (
-                      <tr key={monthKey} className="border-b border-slate-200">
-                        <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900">
+                      <tr key={monthKey} className="border-b border-slate-200 dark:border-gray-800/60">
+                        <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100">
                           {formatMonth(monthKey)}
                         </td>
-                        <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 text-right">
+                        <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">
                           {data.total_trades}
                         </td>
-                        <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 text-right">
+                        <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">
                           {formatPercent(data.success_rate)}
                         </td>
                         <td className={`py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-right ${getPnlColor(data.total_pnl)}`}>

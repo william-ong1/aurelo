@@ -101,7 +101,7 @@ export default function HoldingsSection({
           shares,
           purchasePrice,
           storedCurrentPrice,
-          realTimePrice: realTimePrices[asset.ticker],
+          realTimePrice: asset.ticker ? realTimePrices[asset.ticker] : undefined,
           currentPrice,
           currentValue,
           purchaseValue,
@@ -157,14 +157,14 @@ export default function HoldingsSection({
   const getGainLossColor = (gainLoss: number) => {
     if (gainLoss > 0) return 'text-green-600';
     if (gainLoss < 0) return 'text-red-600';
-    return 'text-gray-600';
+    return 'text-black dark:text-white';
   };
 
   const getAssetIcon = (asset: Asset) => {
     if (asset.isStock) {
       return (
         <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-          <span className="text-blue-600 font-semibold text-[11px]">
+          <span className="text-blue-600 font-semibold text-[12px]">
             {asset.ticker?.slice(0, 2).toUpperCase() || 'ST'}
           </span>
         </div>
@@ -180,13 +180,13 @@ export default function HoldingsSection({
 
     if (isLoadingAssets) {
     return (
-      <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200 h-[400px] flex flex-col">
+      <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60 h-[400px] flex flex-col">
         <div className="flex items-center justify-between mb-4 flex-shrink-0">
-          <h3 className="text-[10px] sm:text-[11px] 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Holdings</h3>
+          <h3 className="text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Holdings</h3>
         </div>
         <div className="space-y-2 flex-1 overflow-y-auto">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-md animate-pulse">
+            <div key={i} className="flex items-center gap-2 p-1.5 bg-gray-50 dark:bg-black rounded-md animate-pulse">
               <div className="w-6 h-6 bg-gray-200 rounded-md"></div>
               <div className="flex-1 space-y-1.5">
                 <div className="w-20 h-2.5 bg-gray-200 rounded"></div>
@@ -204,9 +204,9 @@ export default function HoldingsSection({
   }
 
   return (
-    <div className="bg-white rounded-lg px-0 pt-3 shadow-sm border border-slate-200 h-[400px] flex flex-col">
+    <div className="bg-white dark:bg-black rounded-lg px-0 pt-3 shadow-sm border border-slate-200 dark:border-gray-800/60 h-[400px] flex flex-col">
       <div className="flex items-center justify-between mb-4 flex-shrink-0 px-4">
-        <h3 className="text-[10px] sm:text-[11px] 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Holdings</h3>
+        <h3 className="text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Holdings</h3>
         <div className="flex items-center gap-1">
           <button
             onClick={onToggleEditMode}
@@ -215,8 +215,8 @@ export default function HoldingsSection({
               assets.length === 0
                 ? 'text-gray-200 cursor-not-allowed'
                 : isEditMode && assets.length > 0
-                ? 'text-gray-900 bg-white shadow-sm ring-1 ring-gray-300 cursor-pointer' 
-                : 'text-gray-400 hover:text-gray-600 transition-all cursor-pointer'
+                ? 'text-gray-900 dark:text-gray-100 bg-white dark:bg-black shadow-sm ring-1 ring-gray-300 cursor-pointer' 
+                : 'text-gray-400 hover:text-black dark:hover:text-white dark:text-white transition-all cursor-pointer'
             }`}
             title={assets.length === 0 ? "No assets to edit" : isEditMode && assets.length > 0 ? "Exit Edit Mode" : "Edit Portfolio"}
           >
@@ -228,7 +228,7 @@ export default function HoldingsSection({
             className={`p-1 sm:p-1.5 rounded-md transition-colors ${
               isEditMode && assets.length > 0
                 ? 'text-gray-200 cursor-not-allowed' 
-                : 'text-gray-400 hover:text-gray-600 transition-all cursor-pointer'
+                : 'text-gray-400 hover:text-black dark:hover:text-white dark:text-white transition-all cursor-pointer'
             }`}
             title={isEditMode && assets.length > 0 ? "Exit edit mode to add assets" : "Add Asset"}
           >
@@ -240,8 +240,8 @@ export default function HoldingsSection({
       {assets.length === 0 ? (
         <div className="text-center py-8 flex-1 flex items-center justify-center">
           <div>
-            <p className="text-sm text-gray-500 mb-2">No holdings yet</p>
-            <p className="text-[11px] text-gray-400">Add your first asset to get started</p>
+            <p className="text-sm text-gray-900 dark:text-gray-100 mb-1">No holdings yet</p>
+            <p className="text-[12px] text-gray-600">Add your first asset to get started</p>
           </div>
         </div>
       ) : (
@@ -275,15 +275,15 @@ export default function HoldingsSection({
                   return (
                                         <div 
                       key={asset.id} 
-                      className={`relative flex items-center space-x-3 px-4 py-2 bg-white transition-all ${
+                      className={`relative flex items-center space-x-3 px-4 py-2 bg-blue transition-all ${
                         isEditMode 
-                          ? 'hover:bg-gray-50 cursor-pointer' 
-                          : 'hover:bg-gray-50'
+                          ? ' cursor-pointer' 
+                          : ''
                       }`}
                       onClick={isEditMode ? () => onEdit?.(asset) : undefined}
                     >
                       {/* Border with left/right margins */}
-                      <div className="absolute left-4 right-1 bottom-0 h-px bg-gray-100"></div>
+                      <div className="absolute left-4 right-1 bottom-0 h-px bg-slate-200 dark:bg-gray-800/60"></div>
                       {/* Circular Icon */}
                       <div 
                         className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
@@ -299,26 +299,26 @@ export default function HoldingsSection({
                         {asset.isStock ? (
                           <>
                             <div className="flex items-baseline space-x-2">
-                              <div className="text-[10px] font-bold text-gray-900 truncate">
+                              <div className="text-[11px] font-bold text-gray-900 dark:text-gray-100 truncate">
                                 {asset.ticker}
                               </div>
-                              <div className="text-[9px] text-gray-600">
+                              <div className="text-[10px] text-black dark:text-white">
                                 {displayPercentage}
                               </div>
                             </div>
-                            <div className="text-[9px] text-gray-600 truncate mt-0.5">
+                            <div className="text-[10px] text-black dark:text-white truncate mt-0.5">
                               {asset.name}
                             </div>
-                            {/* <div className="text-[10px] text-gray-500 mt-0.5">
+                            {/* <div className="text-[11px] text-gray-900 dark:text-gray-100 mt-0.5">
                               {`${(shares || 0).toLocaleString()} shares @ $${purchasePrice.toFixed(2)} → $${currentPrice.toFixed(2)}`}
                             </div> */}
                           </>
                         ) : (
                           <>
-                            <div className="text-[10px] font-bold text-gray-900 truncate">
+                            <div className="text-[11px] font-bold text-gray-900 dark:text-gray-100 truncate">
                               {asset.name}
                             </div>
-                            <div className="text-[9px] text-gray-600 mt-0.5">
+                            <div className="text-[10px] text-black dark:text-white mt-0.5">
                               APY: {((asset.apy || 0) * 100).toFixed(2)}%
                             </div>
                           </>
@@ -329,11 +329,11 @@ export default function HoldingsSection({
                           <div className="flex flex-col items-end space-y-0 flex-shrink-0 min-h-[32px] justify-center">
                             {!isEditMode ? (
                               <>
-                                <div className="text-xs font-bold text-gray-900">
+                                <div className="text-xs font-bold text-gray-900 dark:text-gray-100">
                                   ${currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </div>
                                 {Math.abs(gainLoss) > 0.01 && (
-                                  <div className={`text-[10px] flex items-center space-x-1 ${gainLoss > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  <div className={`text-[11px] flex items-center space-x-1 ${gainLoss > 0 ? 'text-green-600' : 'text-red-600'}`}>
                                     <span>
                                       {gainLoss > 0 ? '+' : '-'}${Math.abs(gainLoss).toFixed(2)} ({gainLossPercent >= 0 ? '+' : ''}{gainLossPercent.toFixed(1)}%)
                                     </span>
@@ -347,7 +347,7 @@ export default function HoldingsSection({
                                     e.stopPropagation();
                                     onEdit?.(asset);
                                   }}
-                                  className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                  className="p-1 text-gray-400 hover:text-blue-600 rounded transition-colors"
                                   title="Edit"
                                 >
                                   <Edit2 size={12} />
@@ -357,7 +357,7 @@ export default function HoldingsSection({
                                     e.stopPropagation();
                                     onDelete?.(asset.id);
                                   }}
-                                  className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                  className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
                                   title="Delete"
                                 >
                                   <Trash2 size={12} />
@@ -372,7 +372,7 @@ export default function HoldingsSection({
                 {invalidAssets.length > 0 && (
                   <>
                     <div className="mt-6 mb-3 px-4">
-                      <div className="text-[10px] font-medium text-gray-500 tracking-wide">
+                      <div className="text-[11px] font-medium text-gray-900 dark:text-gray-100 tracking-wide">
                         Invalid Tickers (No Real-Time Data)
                       </div>
                     </div>
@@ -383,15 +383,15 @@ export default function HoldingsSection({
                       return (
                         <div 
                           key={asset.id} 
-                          className={`relative flex items-center space-x-3 px-4 py-2 bg-white transition-all ${
+                          className={`relative flex items-center space-x-3 px-4 py-2 bg-white dark:bg-black transition-all ${
                             isEditMode 
-                              ? 'hover:bg-gray-50 cursor-pointer' 
-                              : 'hover:bg-gray-50'
+                              ? 'dark:bg-black cursor-pointer' 
+                              : 'dark:bg-black'
                           }`}
                           onClick={isEditMode ? () => onEdit?.(asset) : undefined}
                         >
                           {/* Border with left/right margins */}
-                          <div className="absolute left-4 right-1 bottom-0 h-px bg-gray-100"></div>
+                          <div className="absolute left-4 right-1 bottom-0 h-px bg-slate-200 dark:bg-gray-800/60"></div>
                           {/* Circular Icon */}
                           <div 
                             className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 opacity-60"
@@ -405,14 +405,14 @@ export default function HoldingsSection({
                           {/* Asset Details */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-baseline space-x-2">
-                              <div className="text-[10px] font-bold text-gray-900 truncate">
+                              <div className="text-[11px] font-bold text-gray-900 dark:text-gray-100 truncate">
                                 {asset.ticker}
                               </div>
-                              <div className="text-[9px] text-gray-600">
+                              <div className="text-[10px] text-black dark:text-white">
                                 {displayPercentage}
                               </div>
                             </div>
-                            <div className="text-[9px] text-gray-600 truncate mt-0.5">
+                            <div className="text-[10px] text-black dark:text-white truncate mt-0.5">
                               {asset.name}
                             </div>
                           </div>
@@ -421,7 +421,7 @@ export default function HoldingsSection({
                           <div className="flex flex-col items-end space-y-0 flex-shrink-0 min-h-[32px] justify-center">
                             {!isEditMode ? (
                               <>
-                                <div className="text-xs font-bold text-gray-900">
+                                <div className="text-xs font-bold text-gray-900 dark:text-gray-100">
                                   ${currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </div>
                               </>
@@ -432,7 +432,7 @@ export default function HoldingsSection({
                                     e.stopPropagation();
                                     onEdit?.(asset);
                                   }}
-                                  className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                  className="p-1 text-gray-400 hover:text-blue-600  rounded transition-colors"
                                   title="Edit"
                                 >
                                   <Edit2 size={12} />
@@ -442,7 +442,7 @@ export default function HoldingsSection({
                                     e.stopPropagation();
                                     onDelete?.(asset.id);
                                   }}
-                                  className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                  className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
                                   title="Delete"
                                 >
                                   <Trash2 size={12} />

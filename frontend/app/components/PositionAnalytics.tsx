@@ -59,17 +59,17 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
   //     <div className="">
   //       <div className="flex flex-row items-center justify-between gap-2 mb-2">
   //         <h2 className="text-base text-lg 2xl:text-2xl font-semibold text-gray-800">Analytics</h2>
-  //         <div className="text-xs 2xl:text-sm text-gray-500 font-medium">
+  //         <div className="text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 font-medium">
   //           Loading...
   //         </div>
   //       </div>
-  //       <p className="text-xs 2xl:text-sm -mt-2 text-gray-600 mb-4">Key metrics and insights about your portfolio performance</p>
+  //       <p className="text-xs 2xl:text-sm -mt-2 text-black dark:text-white mb-4">Key metrics and insights about your portfolio performance</p>
 
         
   //       <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-6">
   //         {/* Loading cards - match exact structure of real cards */}
   //         {[1, 2, 3, 4].map((i) => (
-  //           <div key={i} className="bg-white rounded-lg p-4 shadow-sm border border-slate-200 animate-pulse">
+  //           <div key={i} className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60 animate-pulse">
   //             <div className="flex items-center justify-between mb-3">
   //               <div className="w-24 h-3 bg-gray-200 rounded"></div>
   //               <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
@@ -101,62 +101,62 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
     <div>
       {/* <div className="flex flex-row items-center justify-between gap-mb-2">
         <h2 className="text-base text-lg 2xl:text-2xl font-semibold text-gray-800">Analytics</h2>
-        <div className="text-xs 2xl:text-sm text-gray-500 font-medium">
+        <div className="text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 font-medium">
           Total Value: ${totalPortfolioValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </div>
       </div> */}
-      {/* <p className="text-xs 2xl:text-sm -mt-2 text-gray-600 mb-4">Key metrics and insights about your portfolio performance</p> */}
+      {/* <p className="text-xs 2xl:text-sm -mt-2 text-black dark:text-white mb-4">Key metrics and insights about your portfolio performance</p> */}
       
       <div className="flex gap-4 mb-4">
         {/* Left side - First 2 cards (2/5 width) */}
         <div className="w-2/5 grid grid-cols-2 gap-4">
           {/* Total Value */}
-          <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Total Value</h3>
+              <h3 className="text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Total Value</h3>
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
             </div>
             <div className="space-y-4">
             <div>
-                  <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900">
+                  <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   ${totalPortfolioValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </div>
-            <div className="text-xs 2xl:text-sm text-gray-600">Portfolio Value</div>
+            <div className="text-xs 2xl:text-sm text-black dark:text-white">Portfolio Value</div>
               </div>
               <div className="flex gap-8">
                                 <div>
-                    <div className="text-[10px] sm:text-base 2xl:text-lg font-bold text-gray-900">${totalStockValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
-                    <div className="text-xs 2xl:text-sm text-gray-600">Stocks</div>
+                    <div className="text-[10px] sm:text-base 2xl:text-lg font-bold text-gray-900 dark:text-gray-100">${totalStockValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+                    <div className="text-xs 2xl:text-sm text-black dark:text-white">Stocks</div>
                   </div>
                   <div>
-                    <div className="text-[10px] sm:text-base 2xl:text-lg font-bold text-gray-900">${totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
-                    <div className="text-xs 2xl:text-sm text-gray-600">Cash</div>
+                    <div className="text-[10px] sm:text-base 2xl:text-lg font-bold text-gray-900 dark:text-gray-100">${totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+                    <div className="text-xs 2xl:text-sm text-black dark:text-white">Cash</div>
                   </div>
               </div>
             </div>
           </div>
 
           {/* Cash Interest */}
-          <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Cash Interest</h3>
+              <h3 className="text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Cash Interest</h3>
               <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
             </div>
             <div className="space-y-4">
               <div>
-                <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900">
+                <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {(weightedAPY * 100).toFixed(2)}%
                 </div>
-            <div className="text-xs 2xl:text-sm text-gray-600">Weighted APY</div>
+            <div className="text-xs 2xl:text-sm text-black dark:text-white">Weighted APY</div>
               </div>
               <div className="flex gap-8">
                 <div>
-                  <div className="text-[10px] sm:text-base 2xl:text-lg font-semibold text-gray-900">${monthlyInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                  <div className="text-xs 2xl:text-sm text-gray-600">Monthly</div>
+                  <div className="text-[10px] sm:text-base 2xl:text-lg font-semibold text-gray-900 dark:text-gray-100">${monthlyInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                  <div className="text-xs 2xl:text-sm text-black dark:text-white">Monthly</div>
                 </div>
                 <div>
-                  <div className="text-[10px] sm:text-base 2xl:text-lg font-semibold text-gray-900">${annualInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                  <div className="text-xs 2xl:text-sm text-gray-600">Annual</div>
+                  <div className="text-[10px] sm:text-base 2xl:text-lg font-semibold text-gray-900 dark:text-gray-100">${annualInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                  <div className="text-xs 2xl:text-sm text-black dark:text-white">Annual</div>
                 </div>
               </div>
             </div>
@@ -166,62 +166,62 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
         {/* Right side - Last 3 cards (3/5 width) */}
         <div className="w-3/5 grid grid-cols-3 gap-4">
           {/* Asset Count */}
-          <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Assets</h3>
+              <h3 className="text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Assets</h3>
               <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
             </div>
             <div className="space-y-4">
               <div>
-                <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900">
+                <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {assets.length}
                 </div>
-            <div className="text-xs 2xl:text-sm text-gray-600">Total Assets</div>
+            <div className="text-xs 2xl:text-sm text-black dark:text-white">Total Assets</div>
               </div>
               <div className="flex gap-8">
                 <div>
-                  <div className="text-[10px] sm:text-base 2xl:text-lg font-semibold text-gray-900">{stockAssets.length}</div>
-                  <div className="text-xs 2xl:text-sm text-gray-600">Stocks</div>
+                  <div className="text-[10px] sm:text-base 2xl:text-lg font-semibold text-gray-900 dark:text-gray-100">{stockAssets.length}</div>
+                  <div className="text-xs 2xl:text-sm text-black dark:text-white">Stocks</div>
                 </div>
                 <div>
-                  <div className="text-[10px] sm:text-base 2xl:text-lg font-semibold text-gray-900">{cashAssets.length}</div>
-                  <div className="text-xs 2xl:text-sm text-gray-600">Cash</div>
+                  <div className="text-[10px] sm:text-base 2xl:text-lg font-semibold text-gray-900 dark:text-gray-100">{cashAssets.length}</div>
+                  <div className="text-xs 2xl:text-sm text-black dark:text-white">Cash</div>
                 </div>
               </div>
             </div>
           </div>
           
           {/* Portfolio Breakdown */}
-          <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Breakdown</h3>
+              <h3 className="text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Breakdown</h3>
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
             </div>
             <div className="space-y-3">
               <div>
-                <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900">
+                <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {stockAllocation.toFixed(1)}%
                 </div>
-                <div className="text-xs 2xl:text-sm text-gray-600">Stocks & ETFs</div>
+                <div className="text-xs 2xl:text-sm text-black dark:text-white">Stocks & ETFs</div>
               </div>
               <div>
-                <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900">
+                <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {cashAllocation.toFixed(1)}%
                 </div>
-                <div className="text-xs 2xl:text-sm text-gray-600">Cash</div>
+                <div className="text-xs 2xl:text-sm text-black dark:text-white">Cash</div>
               </div>
             </div>
           </div>
 
           {/* Best Performer */}
-          <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Best Performer</h3>
+              <h3 className="text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Best Performer</h3>
               <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
             </div>
             <div className="space-y-4">
               <div>
-                <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900">
+                <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {(() => {
                     const stockAssetsWithPrices = stockAssets.filter(asset => 
                       asset.ticker && 
@@ -244,11 +244,11 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
                     return returnPercent > 0 ? `+${returnPercent.toFixed(1)}%` : `${returnPercent.toFixed(1)}%`;
                   })()}
                 </div>
-                <div className="text-xs 2xl:text-sm text-gray-600">Top Return</div>
+                <div className="text-xs 2xl:text-sm text-black dark:text-white">Top Return</div>
               </div>
               <div className="flex gap-8">
                 <div>
-                  <div className="text-[10px] sm:text-base 2xl:text-lg font-semibold text-gray-900">
+                  <div className="text-[10px] sm:text-base 2xl:text-lg font-semibold text-gray-900 dark:text-gray-100">
                     {(() => {
                       const stockAssetsWithPrices = stockAssets.filter(asset => 
                         asset.ticker && 
@@ -269,10 +269,10 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
                       return bestPerformer.ticker || 'N/A';
                     })()}
                   </div>
-                  <div className="text-xs 2xl:text-sm text-gray-600">Ticker</div>
+                  <div className="text-xs 2xl:text-sm text-black dark:text-white">Ticker</div>
                 </div>
                 <div>
-                  <div className="text-[10px] sm:text-base 2xl:text-lg font-semibold text-gray-900">
+                  <div className="text-[10px] sm:text-base 2xl:text-lg font-semibold text-gray-900 dark:text-gray-100">
                     {(() => {
                       const stockAssetsWithPrices = stockAssets.filter(asset => 
                         asset.ticker && 
@@ -293,7 +293,7 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
                       return bestPerformer.shares || 0;
                     })()}
                   </div>
-                  <div className="text-xs 2xl:text-sm text-gray-600">Shares</div>
+                  <div className="text-xs 2xl:text-sm text-black dark:text-white">Shares</div>
                 </div>
               </div>
             </div>

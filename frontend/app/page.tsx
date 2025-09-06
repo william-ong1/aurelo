@@ -7,6 +7,7 @@ import PerformanceSection from './components/PerformanceSection';
 import HoldingsSection from './components/HoldingsSection';
 import { useRealTime } from './contexts/RealTimeContext';
 import { useAuth } from './contexts/AuthContext';
+import { usePortfolio } from './contexts/PortfolioContext';
 import { disableBodyScroll, enableBodyScroll } from './utils/scrollLock';
 import { getApiUrl } from './config/api';
 
@@ -35,46 +36,24 @@ interface ParsedAsset {
 function InputField({ label, ...props }: { label: string; [key: string]: unknown }) {
   return (
     <div>
-      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+      <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
         {label}
       </label>
       <input
         {...props}
-        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/60 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
       />
     </div>
   );
 }
 
-// Local storage utilities
-const STORAGE_KEY = 'portfolio_assets';
 
-const loadAssetsFromStorage = (): Asset[] => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    const assets = stored ? JSON.parse(stored) : [];
-    return assets;
-  } catch (error) {
-    console.error('Error loading assets from localStorage:', error);
-    return [];
-  }
-};
-
-const saveAssetsToStorage = (assets: Asset[]) => {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(assets));
-  } catch (error) {
-    console.error('Error saving assets to localStorage:', error);
-  }
-};
 
 export default function Home() {
   const { realTimePrices, dailyData, lastUpdated, failedTickers, fetchPrices } = useRealTime();
   
   const { user, token, isAuthenticated, isLoading, logout } = useAuth();
-  const [assets, setAssets] = useState<Asset[]>([]);
+  const { assets, setAssets, isLoading: isLoadingAssets, hasLoadedFromStorage } = usePortfolio();
   const [showModal, setShowModal] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -93,78 +72,9 @@ export default function Home() {
     balance: '',
     apy: ''
   });
-  const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
   const [isBannerMinimized, setIsBannerMinimized] = useState(true);
-  const [isLoadingAssets, setIsLoadingAssets] = useState(true);
 
-  // Load assets from backend when authenticated, localStorage when not
-  useEffect(() => {
-    if (isAuthenticated && token) {
-      // When user becomes authenticated, sync local assets first, then load from backend
-      const syncAndLoadAssets = async () => {
-        setIsLoadingAssets(true);
-        try {
-          // Check if there are local assets to sync
-          const storedAssets = loadAssetsFromStorage();
-          if (storedAssets.length > 0) {
-            // Sync local assets to backend
-            const assetsForBackend = storedAssets.map(({ id, ...asset }) => asset);
-            const syncResponse = await fetch(getApiUrl('/api/portfolio/save'), {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-              },
-              body: JSON.stringify({ assets: assetsForBackend })
-            });
-            
-            if (syncResponse.ok) {
-              console.log('Local assets synced to database successfully');
-              // Clear local storage after successful sync
-              saveAssetsToStorage([]);
-            }
-          }
-          
-          // Load the complete portfolio from backend (including synced assets)
-          await loadPortfolioFromBackend();
-        } catch (error) {
-          console.error('Error syncing and loading assets:', error);
-          // Fallback to loading from backend only
-          await loadPortfolioFromBackend();
-        } finally {
-          setIsLoadingAssets(false);
-        }
-      };
-      
-      syncAndLoadAssets();
-    } else if (!isAuthenticated && !isLoading && !hasLoadedFromStorage && !token) {
-      // Load from localStorage if not authenticated and no token
-      const storedAssets = loadAssetsFromStorage();
-      setAssets(storedAssets);
-      setHasLoadedFromStorage(true);
-      setIsLoadingAssets(false);
-    }
-  }, [isAuthenticated, token, isLoading, hasLoadedFromStorage]);
-
-  // Reset flags and clear assets when authentication state changes
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setHasLoadedFromStorage(false);
-      setAssets([]); // Clear assets when user logs out
-      setIsLoadingAssets(false); // Reset loading state when user logs out
-    }
-  }, [isAuthenticated, token]); // Also depend on token to catch token removal
-
-  // Save assets to backend when authenticated, localStorage when not
-  useEffect(() => {
-    if (isAuthenticated && token) {
-      // Save to backend when authenticated (including empty portfolio)
-      savePortfolioToBackend();
-    } else if (!isAuthenticated && hasLoadedFromStorage) {
-      // Save to localStorage if not authenticated and we've already loaded from storage
-      saveAssetsToStorage(assets);
-    }
-  }, [assets, isAuthenticated, token, hasLoadedFromStorage]);
+  // Portfolio context handles asset loading automatically
 
   // Handle body scroll locking for modals
   useEffect(() => {
@@ -179,77 +89,7 @@ export default function Home() {
     };
   }, [showModal]);
 
-  const loadPortfolioFromBackend = async () => {
-    try {
-      const response = await fetch(getApiUrl('/api/portfolio'), {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Backend portfolio data:', data);
-        const backendAssets = data.assets.map((asset: { [key: string]: unknown }, index: number) => ({
-          id: index + 1, // Generate local IDs
-          name: asset.name,
-          isStock: asset.is_stock,
-          ticker: asset.ticker,
-          shares: asset.shares,
-          currentPrice: asset.current_price,
-          purchasePrice: asset.purchase_price,
-          balance: asset.balance,
-          apy: asset.apy
-        }));
-        console.log('Processed backend assets:', backendAssets);
-        setAssets(backendAssets);
-      }
-    } catch (error) {
-      console.error('Error loading portfolio from backend:', error);
-    }
-  };
 
-  const savePortfolioToBackend = async () => {
-    try {
-      const response = await fetch(getApiUrl('/api/portfolio/save'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ assets })
-      });
-      
-      if (!response.ok) {
-        console.error('Error saving portfolio to backend');
-      } else {
-        console.log('Portfolio saved to backend successfully');
-      }
-    } catch (error) {
-      console.error('Error saving portfolio to backend:', error);
-    }
-  };
-
-  const clearBackendPortfolio = async () => {
-    if (!token) return;
-    
-    try {
-      const response = await fetch(getApiUrl('/api/portfolio/save'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ assets: [] })
-      });
-      
-      if (response.ok) {
-        console.log('Backend portfolio cleared successfully');
-      }
-    } catch (error) {
-      console.error('Error clearing backend portfolio:', error);
-    }
-  };
 
 
 
@@ -273,9 +113,11 @@ export default function Home() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
+    const newValue = type === 'checkbox' ? e.target.checked : value;
+    console.log(`Form field changed: ${name} = ${newValue}`);
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? e.target.checked : value
+      [name]: newValue
     }));
   };
 
@@ -337,13 +179,13 @@ export default function Home() {
       
       parsedAssets.forEach(asset => {
         const index = newAssets.findIndex(existing =>
-          existing.isStock === asset.isStock &&
-          ((existing.isStock && existing.ticker === asset.ticker) || (!existing.isStock && existing.name === asset.name))
+          existing.isStock === Boolean(asset.isStock) &&
+          ((Boolean(asset.isStock) && existing.ticker === asset.ticker) || (!Boolean(asset.isStock) && existing.name === asset.name))
         );
         
         if (index !== -1) {
           // Update existing asset
-          if (asset.isStock) {
+          if (Boolean(asset.isStock)) {
             const existingShares = newAssets[index].shares || 0;
             const existingPrice = newAssets[index].purchasePrice || newAssets[index].currentPrice || 0;
             const newShares = asset.shares || 0;
@@ -367,7 +209,8 @@ export default function Home() {
           const newAsset: Asset = {
             ...asset,
             id: nextId++,
-            purchasePrice: asset.isStock ? (asset.currentPrice || 0) : undefined
+            isStock: Boolean(asset.isStock),
+            purchasePrice: Boolean(asset.isStock) ? (asset.currentPrice || 0) : undefined
           };
           newAssets.push(newAsset);
         }
@@ -383,10 +226,15 @@ export default function Home() {
   };
 
   const handleSubmit = () => {
+    console.log('Submitting form with data:', formData);
     if (!formData.name) return;
     let assetData: Partial<Asset>;
 
-    if (formData.isStock) {
+    // Ensure isStock is properly set as boolean
+    const isStock = Boolean(formData.isStock);
+    console.log('Form data isStock:', formData.isStock, 'Converted to:', isStock);
+
+    if (isStock) {
       if (!formData.ticker || !formData.shares || !formData.price) return;
       assetData = {
         name: formData.name,
@@ -418,12 +266,12 @@ export default function Home() {
       // Add new asset or combine with existing
       setAssets(prev => {
         const index = prev.findIndex(asset =>
-          asset.isStock === assetData.isStock &&
-          ((asset.isStock && asset.ticker === assetData.ticker) || (!asset.isStock && asset.name === assetData.name))
+          asset.isStock === Boolean(assetData.isStock) &&
+          ((Boolean(assetData.isStock) && asset.ticker === assetData.ticker) || (!Boolean(assetData.isStock) && asset.name === assetData.name))
         );
         if (index !== -1) {
           const updated = [...prev];
-          if (assetData.isStock) {
+          if (Boolean(assetData.isStock)) {
             const existingShares = updated[index].shares || 0;
             const existingPrice = updated[index].purchasePrice || 0;
             const newShares = assetData.shares || 0;
@@ -437,18 +285,23 @@ export default function Home() {
             
             updated[index].shares = totalShares;
             updated[index].purchasePrice = weightedAveragePrice;
+            console.log('Updated existing stock asset:', updated[index]);
           } else {
             updated[index].balance = (updated[index].balance || 0) + (assetData.balance || 0);
             updated[index].apy = assetData.apy;
+            console.log('Updated existing cash asset:', updated[index]);
           }
           return updated;
         }
         const nextId = prev.length === 0 ? 1 : Math.max(...prev.map(a => a.id)) + 1;
-        return [...prev, { ...assetData, id: nextId } as Asset];
+        const newAsset = { ...assetData, id: nextId } as Asset;
+        console.log('Created new asset:', newAsset);
+        return [...prev, newAsset];
       });
     }
 
     setFormData({ name: '', isStock: true, ticker: '', shares: '', price: '', balance: '', apy: '' });
+    console.log('Form reset, isStock set to:', true);
     setShowModal(false);
   };
 
@@ -479,10 +332,12 @@ export default function Home() {
     setSelectedImages([]);
     setParsedAssets([]);
     setFormData({ name: '', isStock: true, ticker: '', shares: '', price: '', balance: '', apy: '' });
+    console.log('Modal closed, form reset with isStock:', true);
   };
 
   const { isLoading: isAuthLoading } = useAuth();
   const [isPageReady, setIsPageReady] = useState(false);
+  const lastScrollYRef = React.useRef<number>(0);
 
   // Set page as ready after authentication check is complete
   useEffect(() => {
@@ -490,6 +345,47 @@ export default function Home() {
       setIsPageReady(true);
     }
   }, [isAuthLoading]);
+
+  // Prevent browser from restoring scroll position on tab switch/navigation
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if ('scrollRestoration' in history) {
+      const previous = history.scrollRestoration as any;
+      (history as any).scrollRestoration = 'manual';
+      return () => {
+        (history as any).scrollRestoration = previous;
+      };
+    }
+  }, []);
+
+  // Preserve scroll position across tab visibility changes and avoid focus-induced jumps
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        lastScrollYRef.current = window.scrollY || window.pageYOffset || 0;
+      } else {
+        // On return, blur any focused element that might force-scroll into view
+        if (document.activeElement && document.activeElement !== document.body) {
+          (document.activeElement as HTMLElement).blur?.();
+        }
+        // Restore previous scroll position on next frame to beat layout shifts
+        requestAnimationFrame(() => {
+          window.scrollTo(0, lastScrollYRef.current || 0);
+        });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', () => {
+      lastScrollYRef.current = window.scrollY || window.pageYOffset || 0;
+    });
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   // Show loading state while checking authentication
   if (isAuthLoading) {
@@ -504,10 +400,10 @@ export default function Home() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-xs sm:text-sm 2xl:text-base text-gray-600 font-medium">
+          <p className="text-xs sm:text-sm 2xl:text-base text-black dark:text-white font-medium">
             Loading portfolio...
           </p>
-          <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-500 mt-1">
+          <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">
             Retrieving your portfolio data
           </p>
         </div>
@@ -529,8 +425,8 @@ export default function Home() {
     //   <div className="flex items-center justify-center rounded-lg w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] 2xl:h-[360px]">
     //     <div className="text-center">
     //       <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto mb-3 sm:mb-4"></div>
-    //       <div className="text-xs sm:text-sm 2xl:text-base text-gray-600 font-medium">Loading prices...</div>
-    //       <div className="text-[10px] sm:text-xs 2xl:text-sm text-gray-500 mt-1">Fetching real-time data</div>
+    //       <div className="text-xs sm:text-sm 2xl:text-base text-black dark:text-white font-medium">Loading prices...</div>
+    //       <div className="text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">Fetching real-time data</div>
     //     </div>
     //   </div>
     // );
@@ -539,10 +435,10 @@ export default function Home() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-xs sm:text-sm 2xl:text-base text-gray-600 font-medium">
+          <p className="text-xs sm:text-sm 2xl:text-base text-black dark:text-white font-medium">
             Loading prices...
           </p>
-          <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-500 mt-1">
+          <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">
             Fetching real-time data
           </p>
         </div>
@@ -552,35 +448,35 @@ export default function Home() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-black">
       {isPageReady && (
         <main className="mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-9 max-w-6xl 2xl:max-w-7xl">
           {/* Top Row - Overview and Holdings */}
           <div className="flex flex-col lg:flex-row gap-4 mb-4">
             {/* Overview Box - Fixed size */}
-            <div className="lg:w-2/5 bg-white rounded-lg p-4 pt-3 shadow-sm border border-slate-200 h-[400px]">
+            <div className="lg:w-2/5 bg-white dark:bg-black rounded-lg p-4 pt-3 shadow-sm border border-slate-200 dark:border-gray-800/60 h-[400px]">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Overview</h3>
+                  <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Overview</h3>
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-3">
-                  <div className="flex bg-slate-50 rounded-lg p-1">
+                  <div className="flex bg-gray-100 dark:bg-black rounded-lg p-1 border border-gray-200/30 dark:border-gray-800/60/30">
                     <button
                       onClick={() => setTimePeriod('all-time')}
-                      className={`px-3 py-1 text-[10px] 2xl:text-sm font-medium rounded-md transition-all duration-200 cursor-pointer ${
+                      className={`px-2 py-0.5 text-[10px] 2xl:text-sm font-medium rounded-md transition-all duration-200 cursor-pointer ${
                         timePeriod === 'all-time' 
-                          ? 'bg-white text-slate-700 shadow-sm' 
-                          : 'text-slate-500 hover:text-slate-600'
+                          ? 'bg-white dark:bg-gray-900 text-gray-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-semibold' 
+                          : 'text-gray-900 dark:text-gray-100 hover:text-black dark:hover:text-white'
                       }`}
                     >
                       All Time
                     </button>
                     <button
                       onClick={() => setTimePeriod('today')}
-                      className={`px-3 py-1 text-[10px]  2xl:text-sm font-medium rounded-md transition-all duration-200 cursor-pointer ${
+                      className={`px-2 py-0.5 text-[10px]  2xl:text-sm font-medium rounded-md transition-all duration-200 cursor-pointer ${
                         timePeriod === 'today' 
-                          ? 'bg-white text-slate-700 shadow-sm' 
-                          : 'text-slate-500 hover:text-slate-600'
+                          ? 'bg-white dark:bg-gray-900 text-gray-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-semibold' 
+                          : 'text-gray-900 dark:text-gray-100 hover:text-black dark:hover:text-white'
                       }`}
                     >
                       Today
@@ -632,14 +528,14 @@ export default function Home() {
           <div 
             className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-all p-3 sm:p-4"
           >
-            <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-2xl p-3 sm:p-6 w-full max-w-sm mx-auto border border-gray-200/50 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-black backdrop-blur-sm rounded-lg shadow-2xl p-3 sm:p-6 w-full max-w-sm mx-auto border border-gray-200 dark:border-gray-800/60/50 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-3 sm:mb-4">
-                <h2 className="text-sm sm:text-lg 2xl:text-lg font-semibold text-gray-800">
+                <h2 className="text-sm sm:text-lg 2xl:text-lg font-semibold text-gray-800 dark:text-gray-200">
                   {editingAsset ? 'Edit Asset' : 'Add New Asset'}
                 </h2>
                 <button
                   onClick={closeModal}
-                  className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                  className="text-gray-400 hover:text-black dark:hover:text-white dark:text-white transition-colors cursor-pointer"
                 >
                   <X size={16} className="sm:w-5 sm:h-5" />
                 </button>
@@ -653,7 +549,7 @@ export default function Home() {
                       className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-2 transition-all cursor-pointer ${
                         uploadMode === 'manual'
                           ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-gray-300 text-gray-600 hover:border-gray-400'
+                          : 'border-gray-300 dark:border-gray-800/60 text-black dark:text-white hover:border-gray-400 dark:hover:border-white'
                       }`}
                     >
                       <FileText size={14} className="sm:w-4 sm:h-4" />
@@ -664,23 +560,23 @@ export default function Home() {
                       className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-2 transition-all cursor-pointer ${
                         uploadMode === 'image'
                           ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-gray-300 text-gray-600 hover:border-gray-400'
+                          : 'border-gray-300 dark:border-gray-800/60 text-black dark:text-white hover:border-gray-400 dark:hover:border-white'
                       }`}
                     >
                       <Upload size={14} className="sm:w-4 sm:h-4" />
                       <span className="font-medium text-[10px] sm:text-[12px] 2xl:text-sm">Upload Image</span>
                     </button>
                   </div>
-                  <div className="border-t border-gray-200 mt-3 sm:mt-4"></div>
+                  <div className="border-t border-gray-200 dark:border-gray-800/60 mt-3 sm:mt-4"></div>
                 </div>
               )}
 
               {uploadMode === 'image' && !editingAsset ? (
                 <div className="space-y-3 sm:space-y-4">
                   {selectedImages.length === 0 ? (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 sm:p-6 text-center">
+                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-800/60 rounded-lg p-3 sm:p-6 text-center">
                       <Upload className="mx-auto h-6 w-6 sm:h-10 sm:w-10 text-gray-400 mb-2 sm:mb-3" />
-                      <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-600 mb-2 sm:mb-3">
+                      <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-black dark:text-white mb-2 sm:mb-3">
                         Upload images of your portfolio or holdings
                       </div>
                       <input
@@ -701,14 +597,14 @@ export default function Home() {
                   ) : (
                     <div className="space-y-2 sm:space-y-3">
                       {selectedImages.map((image, index) => (
-                        <div key={index} className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
+                        <div key={index} className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 dark:bg-black rounded-lg">
                           <div className="flex items-center gap-2 sm:gap-3">
                             <div className="w-6 h-6 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                               <Upload className="h-3 w-3 sm:h-5 sm:w-5 text-blue-600" />
                             </div>
                             <div>
-                              <div className="font-medium text-gray-900 text-[10px] sm:text-[12px] 2xl:text-sm">{image.name}</div>
-                              <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-500">
+                              <div className="font-medium text-gray-900 dark:text-gray-100 text-[10px] sm:text-[12px] 2xl:text-sm">{image.name}</div>
+                              <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-900 dark:text-gray-100">
                                 {(image.size / 1024 / 1024).toFixed(2)} MB
                               </div>
                             </div>
@@ -719,7 +615,7 @@ export default function Home() {
                               setParsedAssets([]);
                               setIsProcessing(false);
                             }}
-                            className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                            className="text-gray-400 hover:text-black dark:hover:text-white dark:text-white cursor-pointer"
                           >
                             <X size={14} className="sm:w-4 sm:h-4" />
                           </button>
@@ -738,22 +634,22 @@ export default function Home() {
                       {isProcessing && (
                         <div className="text-center py-4 sm:py-6">
                           <div className="animate-spin rounded-full h-5 w-5 sm:h-7 sm:w-7 border-b-2 border-blue-600 mx-auto mb-2 sm:mb-3"></div>
-                          <div className="text-gray-600 text-[10px] sm:text-[12px] 2xl:text-sm">Processing {selectedImages.length} image{selectedImages.length !== 1 ? 's' : ''}...</div>
+                          <div className="text-black dark:text-white text-[10px] sm:text-[12px] 2xl:text-sm">Processing {selectedImages.length} image{selectedImages.length !== 1 ? 's' : ''}...</div>
                         </div>
                       )}
 
                       {parsedAssets.length > 0 && (
                         <div className="space-y-2 sm:space-y-3">
-                          <div className="text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700">
+                          <div className="text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 dark:text-gray-300">
                             Found {parsedAssets.length} asset(s):
                           </div>
                           <div className="max-h-60 overflow-y-auto space-y-2">
                             {parsedAssets.map((asset, index) => (
-                              <div key={index} className="p-1.5 sm:p-2 bg-gray-50 rounded-lg">
-                                <div className="font-medium text-gray-900 text-[10px] sm:text-[12px] 2xl:text-sm">
+                              <div key={index} className="p-1.5 sm:p-2 bg-gray-50 dark:bg-black rounded-lg">
+                                <div className="font-medium text-gray-900 dark:text-gray-100 text-[10px] sm:text-[12px] 2xl:text-sm">
                                   {asset.isStock ? asset.ticker : asset.name}
                                 </div>
-                                <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-600">
+                                <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-black dark:text-white">
                                   {asset.isStock 
                                     ? `${asset.shares} shares @ $${asset.currentPrice}`
                                     : `$${asset.balance} @ ${((asset.apy || 0) * 100).toFixed(2)}% APY`
@@ -769,7 +665,7 @@ export default function Home() {
                                 setSelectedImages([]);
                                 setIsProcessing(false);
                               }}
-                              className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
+                              className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 dark:border-gray-800/60 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
                             >
                               Try Again
                             </button>
@@ -790,14 +686,30 @@ export default function Home() {
                 <div className="space-y-3 sm:space-y-4">
                   {/* Asset Type */}
                   <div>
-                    <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-2">Asset Type *</label>
+                    <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Asset Type *</label>
                     <div className="flex flex-row gap-4 sm:gap-6">
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="isStock" value="true" checked={formData.isStock === true} onChange={() => setFormData(prev => ({ ...prev, isStock: true }))} />
+                        <input 
+                          type="radio" 
+                          name="isStock" 
+                          checked={formData.isStock === true} 
+                          onChange={() => {
+                            console.log('Radio button changed: Stock/ETF selected');
+                            setFormData(prev => ({ ...prev, isStock: true }));
+                          }} 
+                        />
                         <span className="text-[10px] sm:text-[12px] 2xl:text-sm">Stock / ETF</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="isStock" value="false" checked={formData.isStock === false} onChange={() => setFormData(prev => ({ ...prev, isStock: false }))} />
+                        <input 
+                          type="radio" 
+                          name="isStock" 
+                          checked={formData.isStock === false} 
+                          onChange={() => {
+                            console.log('Radio button changed: Cash Account selected');
+                            setFormData(prev => ({ ...prev, isStock: false }));
+                          }} 
+                        />
                         <span className="text-[10px] sm:text-[12px] 2xl:text-sm">Cash Account</span>
                       </label>
                     </div>
@@ -806,19 +718,19 @@ export default function Home() {
                   {/* Row: Name + Ticker */}
                   <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">Asset Name *</label>
+                      <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Asset Name *</label>
                       <input
                         type="text"
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/60 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
                         placeholder="e.g. Apple Inc."
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">Ticker {formData.isStock ? '*' : ''}</label>
+                      <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ticker {formData.isStock ? '*' : ''}</label>
                       <input
                         type="text"
                         name="ticker"
@@ -827,7 +739,7 @@ export default function Home() {
                           const { name, value } = e.target;
                           setFormData(prev => ({ ...prev, [name]: value.toUpperCase() }));
                         }}
-                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/60 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
                         placeholder="e.g. AAPL"
                         required={formData.isStock}
                         disabled={!formData.isStock}
@@ -839,20 +751,20 @@ export default function Home() {
                   {formData.isStock ? (
                     <div className="grid grid-cols-2 gap-3 sm:gap-4">
                       <div>
-                        <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">Number of Shares *</label>
+                        <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Number of Shares *</label>
                         <input
                           type="number"
                           name="shares"
                           value={formData.shares}
                           onChange={handleInputChange}
-                          className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/60 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
                           step="0.001"
                           placeholder="e.g., 10.5"
                           required
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">Price per Share *</label>
+                        <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price per Share *</label>
                         <div className="relative">
                           <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                           <input
@@ -860,7 +772,7 @@ export default function Home() {
                             name="price"
                             value={formData.price}
                             onChange={handleInputChange}
-                            className="w-full pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                            className="w-full pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/60 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
                             step="0.01"
                             placeholder="0.00"
                             required
@@ -871,7 +783,7 @@ export default function Home() {
                   ) : (
                     <div className="grid grid-cols-2 gap-3 sm:gap-4">
                       <div>
-                        <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">Account Balance *</label>
+                        <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Account Balance *</label>
                         <div className="relative">
                           <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                           <input
@@ -879,7 +791,7 @@ export default function Home() {
                             name="balance"
                             value={formData.balance}
                             onChange={handleInputChange}
-                            className="w-full pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                            className="w-full pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/60 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
                             step="0.01"
                             placeholder="0.00"
                             required
@@ -887,13 +799,13 @@ export default function Home() {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 mb-1">APY (%) *</label>
+                        <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">APY (%) *</label>
                         <input
                           type="number"
                           name="apy"
                           value={formData.apy}
                           onChange={handleInputChange}
-                          className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/60 rounded-lg focus:outline-none focus:ring-black focus:border-black hover:border-black transition-all text-sm"
                           step="0.1"
                           placeholder="0.0"
                           required
@@ -904,7 +816,7 @@ export default function Home() {
 
                   {/* Buttons */}
                   <div className="flex flex-row gap-2 sm:gap-3 pt-2 sm:pt-3">
-                    <button onClick={closeModal} className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm">Cancel</button>
+                    <button onClick={closeModal} className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 dark:border-gray-800/60 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm">Cancel</button>
                     <button onClick={handleSubmit} className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm">{editingAsset ? 'Update Asset' : 'Add Asset'}</button>
                   </div>
                 </div>

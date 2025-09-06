@@ -49,3 +49,5 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
+
+@custom-variant dark (&:where(.dark, .dark *));

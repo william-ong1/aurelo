@@ -3,21 +3,21 @@ import React from 'react';
 
 export default function PerformanceSection() {
   return (
-    <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+    <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Performance</h3>
+          <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Performance</h3>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-3">
-          <div className="flex items-center bg-gray-100 backdrop-blur-sm rounded-full p-1 border border-gray-200/90 gap-1">
+          <div className="flex items-center bg-gray-100 dark:bg-black backdrop-blur-sm rounded-full p-1 border border-gray-200/30 dark:border-gray-800/60/30 gap-1">
             {(['1D', '1W', '1M', '3M', '1Y', 'ALL'] as const).map((period) => (
               <button
                 key={period}
                 disabled
                 className={`px-1.5 sm:px-2 2xl:px-3 py-.7 sm:py-1 2xl:py-1.5 text-[.5rem] sm:text-[.6rem] 2xl:text-[.8rem] font-medium rounded-full transition-all duration-200 cursor-not-allowed ${
                   period === '1M'
-                    ? 'text-gray-900 bg-white shadow-sm ring-1 ring-gray-300 font-semibold'
-                    : 'text-gray-400'
+                    ? 'text-gray-900 dark:text-white bg-white dark:bg-gray-800 shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-semibold'
+                    : 'text-gray-400 dark:text-gray-500'
                 }`}
               >
                 {period}
@@ -31,7 +31,7 @@ export default function PerformanceSection() {
         <div className="flex items-center justify-between mb-6">
           <div> </div>
           <div className="text-right">
-            <div className="text-lg sm:text-xl 2xl:text-2xl font-bold text-gray-400">$0</div>
+            <div className="text-lg sm:text-xl 2xl:text-2xl font-bold text-gray-400 dark:text-gray-500">$0</div>
           </div>
         </div>
         
@@ -39,7 +39,7 @@ export default function PerformanceSection() {
         <div className="h-48 relative">
           <div className="absolute inset-0 flex items-center justify-center z-10">
             <div className="text-center">
-              <div className="text-xl sm:text-2xl 2xl:text-3xl font-bold text-gray-400 tracking-wider mb-16">COMING SOON</div>
+              <div className="text-xl sm:text-2xl 2xl:text-3xl font-bold text-gray-400 dark:text-gray-500 tracking-wider mb-16">COMING SOON</div>
             </div>
           </div>
           
@@ -68,7 +68,7 @@ export default function PerformanceSection() {
           </svg>
         </div>
         
-        <div className="mt-4 flex items-center justify-between text-[10px] sm:text-xs 2xl:text-sm text-gray-400">
+        <div className="mt-4 flex items-center justify-between text-[10px] sm:text-xs 2xl:text-sm text-gray-400 dark:text-gray-500">
           <span>Start: $0</span>
           <span>1M period</span>
           <span>Current: $0</span>

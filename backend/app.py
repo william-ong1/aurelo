@@ -120,6 +120,25 @@ class WatchlistUpdate(BaseModel):
     notes: Optional[str] = None
     chart_link: Optional[str] = None
 
+# Journal models
+class JournalEntry(BaseModel):
+    id: Optional[int] = None
+    title: str
+    content: str
+    tags: Optional[str] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+class JournalCreate(BaseModel):
+    title: str
+    content: str
+    tags: Optional[str] = None
+
+class JournalUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    tags: Optional[str] = None
+
 class ImageParseRequest(BaseModel):
     image: str
     mimeType: str = "image/jpeg"
@@ -1114,6 +1133,112 @@ async def delete_watchlist_item(item_id: int, user_id: str = Depends(get_current
         raise
     except Exception as e:
         print(f"Error deleting watchlist item: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+# Journal API endpoints
+@app.post("/api/journal")
+async def create_journal_entry(entry: JournalCreate, user_id: str = Depends(get_current_user)):
+    """Create a new journal entry"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        # Insert new entry
+        data = {
+            'user_id': user_id,
+            'title': entry.title.strip(),
+            'content': entry.content.strip(),
+            'tags': entry.tags.strip() if entry.tags and entry.tags.strip() else None
+        }
+        
+        result = supabase.table('journal').insert(data).execute()
+        
+        if result.data:
+            return {"message": "Journal entry created successfully", "entry": result.data[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create journal entry")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error creating journal entry: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/api/journal")
+async def get_journal_entries(user_id: str = Depends(get_current_user)):
+    """Get user's journal entries"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        result = supabase.table('journal').select('*').eq('user_id', user_id).order('updated_at', desc=True).order('created_at', desc=True).execute()
+        return {"entries": result.data}
+    except Exception as e:
+        print(f"Error fetching journal entries: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.put("/api/journal/{entry_id}")
+async def update_journal_entry(entry_id: int, entry: JournalUpdate, user_id: str = Depends(get_current_user)):
+    """Update a journal entry"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        # Check if entry exists and belongs to user
+        existing = supabase.table('journal').select('*').eq('id', entry_id).eq('user_id', user_id).execute()
+        if not existing.data:
+            raise HTTPException(status_code=404, detail="Journal entry not found")
+        
+        # Prepare update data
+        update_data = {}
+        if entry.title is not None:
+            update_data['title'] = entry.title.strip()
+        if entry.content is not None:
+            update_data['content'] = entry.content.strip()
+        if entry.tags is not None:
+            update_data['tags'] = entry.tags.strip() if entry.tags.strip() else None
+        
+        # Always set updated_at when updating
+        update_data['updated_at'] = datetime.now(UTC).isoformat()
+        
+        # Update entry
+        result = supabase.table('journal').update(update_data).eq('id', entry_id).eq('user_id', user_id).execute()
+        
+        if result.data:
+            return {"message": "Journal entry updated successfully", "entry": result.data[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to update journal entry")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error updating journal entry: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.delete("/api/journal/{entry_id}")
+async def delete_journal_entry(entry_id: int, user_id: str = Depends(get_current_user)):
+    """Delete a journal entry"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        # Check if entry exists and belongs to user
+        existing = supabase.table('journal').select('*').eq('id', entry_id).eq('user_id', user_id).execute()
+        if not existing.data:
+            raise HTTPException(status_code=404, detail="Journal entry not found")
+        
+        # Delete entry
+        result = supabase.table('journal').delete().eq('id', entry_id).eq('user_id', user_id).execute()
+        
+        if result.data:
+            return {"message": "Journal entry deleted successfully"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to delete journal entry")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error deleting journal entry: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Plus, Edit2, Trash2, ExternalLink, Eye, ChevronUp, ChevronDown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useAuthModal } from '../contexts/AuthModalContext';
 import WatchlistModal from './WatchlistModal';
 import { getApiUrl } from '../config/api';
 
@@ -19,6 +20,7 @@ type SortDirection = 'asc' | 'desc';
 
 export default function WatchlistSection() {
   const { token, isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const { showAuthModal } = useAuthModal();
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<WatchlistItem | null>(null);
@@ -110,7 +112,7 @@ export default function WatchlistSection() {
 
   const handleSaveItem = async (itemData: { ticker: string; notes?: string; chart_link?: string }) => {
     if (!token) {
-      alert('Please sign in to manage your watchlist');
+      showAuthModal();
       return;
     }
     
@@ -160,7 +162,7 @@ export default function WatchlistSection() {
 
   const handleDeleteItem = async (itemId: number) => {
     if (!isAuthenticated) {
-      alert('Please sign in to delete watchlist items');
+      showAuthModal();
       return;
     }
     
@@ -194,7 +196,7 @@ export default function WatchlistSection() {
 
   const handleEdit = (item: WatchlistItem) => {
     if (!isAuthenticated) {
-      alert('Please sign in to edit watchlist items');
+      showAuthModal();
       return;
     }
     setEditingItem(item);
@@ -203,7 +205,7 @@ export default function WatchlistSection() {
 
   const handleAdd = () => {
     if (!isAuthenticated) {
-      alert('Please sign in to add watchlist items');
+      showAuthModal();
       return;
     }
     setEditingItem(null);
@@ -235,10 +237,10 @@ export default function WatchlistSection() {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-xs sm:text-sm 2xl:text-base text-gray-600 font-medium">
+            <p className="text-xs sm:text-sm 2xl:text-base text-black dark:text-white font-medium">
               {isAuthLoading ? 'Checking authentication...' : 'Loading watchlist...'}
             </p>
-            <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-500 mt-1">
+            <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">
               {isAuthLoading ? 'Verifying your login status' : 'Retrieving your watchlist data'}
             </p>
           </div>
@@ -248,64 +250,61 @@ export default function WatchlistSection() {
       {/* Content - Only show after authentication and watchlist are loaded */}
       {!isAuthLoading && !isLoadingWatchlist && (
         <div className="py-9">
-        <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+        <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 uppercase tracking-wide">Watchlist</h3>
+          <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Watchlist</h3>
           <div className="flex items-center gap-1.5">
             <button
               onClick={handleAdd}
-              disabled={!isAuthenticated}
-              className={`p-0.5 pr-1.5 rounded-md transition-colors text-gray-400 hover:text-gray-600 transition-all cursor-pointer ${
-                !isAuthenticated ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-              title={!isAuthenticated ? "Sign in to add items" : "Add to Watchlist"}
+              className="p-0.5 pr-1.5 rounded-md transition-colors text-gray-400 hover:text-black dark:text-white transition-all cursor-pointer"
+              title="Add to Watchlist"
             >
               <Plus className='w-3 h-3 sm:w-4 sm:h-4 2xl:w-5 2xl:h-5' />
             </button>
           </div>
         </div>
         
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="sticky top-0 bg-white select-none">
-              <tr className="border-b border-gray-200">
-                <th 
-                  className="text-left py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-800 transition-colors select-none"
-                  onClick={() => handleSort('ticker')}
-                >
-                  <div className="flex items-center gap-1">
-                    Ticker
-                    {getSortIcon('ticker')}
-                  </div>
-                </th>
-                <th className="text-left py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 select-none">Notes</th>
-                <th className="text-center py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 select-none">Chart</th>
-                <th 
-                  className="text-left py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-800 transition-colors select-none"
-                  onClick={() => handleSort('updated_at')}
-                >
-                  <div className="flex items-center gap-1">
-                    Last Modified
-                    {getSortIcon('updated_at')}
-                  </div>
-                </th>
-                <th className="text-center py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-gray-600 select-none">Actions</th>
-              </tr>
-            </thead>
+            <div className="overflow-x-auto">
+              <table className="w-full table-fixed">
+                <thead className="sticky top-0 bg-white dark:bg-black select-none">
+                  <tr className="border-b border-slate-200 dark:border-gray-800/60">
+                    <th 
+                      className="text-left py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 transition-colors select-none w-1/8"
+                      onClick={() => handleSort('ticker')}
+                    >
+                      <div className="flex items-center gap-1">
+                        Ticker
+                        {getSortIcon('ticker')}
+                      </div>
+                    </th>
+                    <th className="text-left py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white select-none w-2/5">Notes</th>
+                    <th className="text-center py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white select-none w-1/8">Chart</th>
+                    <th 
+                      className="text-left py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 transition-colors select-none w-1/6"
+                      onClick={() => handleSort('updated_at')}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span className="whitespace-nowrap">Modified</span>
+                        {getSortIcon('updated_at')}
+                      </div>
+                    </th>
+                    <th className="text-center py-2 sm:py-2 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white select-none w-1/20">Actions</th>
+                  </tr>
+                </thead>
             <tbody>
               
               {sortedWatchlist.length > 0 ? (
                 sortedWatchlist.map((item) => (
-                  <tr key={item.id} className="border-b border-gray-100">
-                    <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900">
+                  <tr key={item.id} className="border-b border-slate-200 dark:border-gray-800/60">
+                    <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 w-1/8">
                       <span className="font-semibold">{item.ticker}</span>
                     </td>
-                    <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-600 max-w-xs">
-                      <div className="break-words" title={item.notes || ''}>
+                    <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-black dark:text-white w-3/5">
+                      <div className="break-words whitespace-pre-wrap leading-relaxed max-h-32 overflow-y-auto" title={item.notes || ''}>
                         {item.notes || '-'}
                       </div>
                     </td>
-                    <td className="py-2 sm:py-2 px-2 sm:px-4 text-center">
+                    <td className="py-2 sm:py-2 px-2 sm:px-4 text-center w-1/8">
                       <a
                         href={getChartLink(item)}
                         target="_blank"
@@ -316,10 +315,10 @@ export default function WatchlistSection() {
                         View
                       </a>
                     </td>
-                    <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-500">
+                    <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 w-1/6">
                       {formatDate(item.updated_at || item.created_at)}
                     </td>
-                    <td className="py-2 sm:py-2 px-2 sm:px-4 text-center">
+                    <td className="py-2 sm:py-2 px-2 sm:px-4 text-center w-1/20">
                       <div className="flex items-center justify-center gap-1 sm:gap-2">
                         <button
                           onClick={() => handleEdit(item)}
@@ -341,7 +340,7 @@ export default function WatchlistSection() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="py-6 sm:py-8 px-3 sm:px-6 text-center text-[10px] sm:text-xs 2xl:text-sm text-gray-500">
+                  <td colSpan={5} className="py-6 sm:py-8 px-3 sm:px-6 text-center text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100">
                     No watchlist items yet. Click the + button to add your first item.
                   </td>
                 </tr>

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart3 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useAuthModal } from '../contexts/AuthModalContext';
 import TradeList from './TradeList';
 import TradeAnalytics from './TradeAnalytics';
 import TradeModal from './TradeModal';
@@ -44,6 +45,7 @@ interface TradeAnalytics {
 
 export default function TradingSection() {
   const { token, isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const { showAuthModal } = useAuthModal();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [analytics, setAnalytics] = useState<TradeAnalytics>({
     total_trades: 0,
@@ -150,7 +152,7 @@ export default function TradingSection() {
     console.log('User authenticated:', isAuthenticated);
     if (!token) {
       console.error('No token available');
-      alert('Please sign in to add trades');
+      showAuthModal();
       return;
     }
     
@@ -306,7 +308,7 @@ export default function TradingSection() {
 
   const handleEditTrade = (trade: Trade) => {
     if (!isAuthenticated) {
-      alert('Please sign in to edit trades.');
+      showAuthModal();
       return;
     }
     setEditingTrade(trade);
@@ -315,7 +317,7 @@ export default function TradingSection() {
 
   const handleDeleteTrade = async (tradeId: number) => {
     if (!isAuthenticated) {
-      alert('Please sign in to delete trades.');
+      showAuthModal();
       return;
     }
     if (!token) return;
@@ -340,7 +342,7 @@ export default function TradingSection() {
 
   const handleAddTrade = () => {
     if (!isAuthenticated) {
-      alert('Please sign in to add trades.');
+      showAuthModal();
       return;
     }
     setEditingTrade(null);
@@ -354,12 +356,12 @@ export default function TradingSection() {
 
   // if (!isAuthenticated) {
   //   return (
-  //     <div className="bg-white rounded-lg p-8 shadow-sm border border-gray-200 text-center">
+  //     <div className="bg-white dark:bg-black rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-800/60 text-center">
   //       <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
   //         <BarChart3 className="h-8 w-8 text-gray-400" />
   //       </div>
-  //       <h3 className="text-lg font-semibold text-gray-900 mb-2">Sign in to track trades</h3>
-  //       <p className="text-gray-600">
+  //       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Sign in to track trades</h3>
+  //       <p className="text-black dark:text-white">
   //         Create an account or sign in to start tracking your trading performance and view detailed analytics.
   //       </p>
   //     </div>
@@ -373,10 +375,10 @@ export default function TradingSection() {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-xs sm:text-sm 2xl:text-base text-gray-600 font-medium">
+            <p className="text-xs sm:text-sm 2xl:text-base text-black dark:text-white font-medium">
               {isAuthLoading ? 'Checking authentication...' : 'Loading trades...'}
             </p>
-            <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-500 mt-1">
+            <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">
               {isAuthLoading ? 'Verifying your login status' : 'Retrieving your trading data'}
             </p>
           </div>
@@ -385,14 +387,14 @@ export default function TradingSection() {
 
       {/* Duplicate Check Loading State */}
       {isCheckingDuplicates && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-2xl p-6 w-full max-w-sm mx-auto border border-gray-200/50">
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-black backdrop-blur-sm rounded-lg shadow-2xl p-6 w-full max-w-sm mx-auto border border-gray-200 dark:border-gray-800/60/50">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-sm 2xl:text-base text-gray-600 font-medium">
+              <p className="text-sm 2xl:text-base text-black dark:text-white font-medium">
                 Checking for duplicates...
               </p>
-              <p className="text-xs 2xl:text-sm text-gray-500 mt-1">
+              <p className="text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">
                 Verifying this trade doesn't already exist
               </p>
             </div>
@@ -410,7 +412,7 @@ export default function TradingSection() {
             </div>
           </div>
 
-          <p className="text-xs 2xl:text-sm -mt-0 text-gray-600 mb-6">Track your trades and analyze trading performance over time</p> */}
+          <p className="text-xs 2xl:text-sm -mt-0 text-black dark:text-white mb-6">Track your trades and analyze trading performance over time</p> */}
 
           {/* Trade List Content */}
           {/* <div className="pt-1 mb-4">

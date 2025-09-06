@@ -246,14 +246,14 @@ export default function TradeModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-all p-3 sm:p-4">
-      <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-2xl p-3 sm:p-6 w-full max-w-sm mx-auto border border-gray-200/50 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-black backdrop-blur-sm rounded-lg shadow-2xl p-3 sm:p-6 w-full max-w-sm mx-auto border border-gray-200 dark:border-gray-800/60/50 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-3 sm:mb-4">
-          <h2 className="text-sm sm:text-lg 2xl:text-lg font-semibold text-gray-800">
+          <h2 className="text-sm sm:text-lg 2xl:text-lg font-semibold text-gray-800 dark:text-gray-200">
             {editingTrade ? 'Edit Trade' : 'Record Trade'}
           </h2>
           <button
             onClick={closeModal}
-            className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+            className="text-gray-400 hover:text-black dark:text-white transition-colors cursor-pointer"
           >
             <X size={16} className="sm:w-5 sm:h-5" />
           </button>
@@ -267,7 +267,7 @@ export default function TradeModal({
                 className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-2 transition-all cursor-pointer ${
                   uploadMode === 'manual'
                     ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-gray-300 text-gray-600 hover:border-gray-400'
+                    : 'border-gray-300 text-black dark:text-white hover:border-gray-400 dark:hover:border-white'
                 }`}
               >
                 <FileText size={14} className="sm:w-4 sm:h-4" />
@@ -278,7 +278,7 @@ export default function TradeModal({
                 className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-2 transition-all cursor-pointer ${
                   uploadMode === 'image'
                     ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-gray-300 text-gray-600 hover:border-gray-400'
+                    : 'border-gray-300 text-black dark:text-white hover:border-gray-400 dark:hover:border-white'
                 }`}
               >
                 <Upload size={14} className="sm:w-4 sm:h-4" />
@@ -293,7 +293,7 @@ export default function TradeModal({
             {selectedImages.length === 0 ? (
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 sm:p-6 text-center">
                 <Upload className="mx-auto h-6 w-6 sm:h-10 sm:w-10 text-gray-400 mb-2 sm:mb-3" />
-                <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-600 mb-2 sm:mb-3">
+                <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-black dark:text-white mb-2 sm:mb-3">
                   Upload an image of your completed trades.
                 </div>
                 <input
@@ -320,8 +320,8 @@ export default function TradeModal({
                         <Upload className="h-3 w-3 sm:h-5 sm:w-5 text-blue-600" />
                       </div>
                       <div>
-                        <div className="font-medium text-gray-900 text-[10px] sm:text-[12px] 2xl:text-sm">{image.name}</div>
-                        <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-500">
+                        <div className="font-medium text-gray-900 dark:text-gray-100 text-[10px] sm:text-[12px] 2xl:text-sm">{image.name}</div>
+                        <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-900 dark:text-gray-100">
                           {(image.size / 1024 / 1024).toFixed(2)} MB
                         </div>
                       </div>
@@ -332,7 +332,7 @@ export default function TradeModal({
                         setParsedTrades([]);
                         setIsProcessing(false);
                       }}
-                      className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                      className="text-gray-400 hover:text-black dark:text-white cursor-pointer"
                     >
                       <X size={14} className="sm:w-4 sm:h-4" />
                     </button>
@@ -350,7 +350,7 @@ export default function TradeModal({
 
                 {!isProcessing && noTradesFound && (
                   <div className="text-center py-4 sm:py-6 space-y-2 sm:space-y-3">
-                    <div className="text-gray-600">
+                    <div className="text-black dark:text-white">
                       <p className="font-medium mb-2 text-[10px] sm:text-[12px] 2xl:text-sm">No trades found in the uploaded images.</p>
                       <p className="text-[10px] sm:text-[12px] 2xl:text-sm">Please try again with different images or use manual entry.</p>
                     </div>
@@ -360,7 +360,7 @@ export default function TradeModal({
                           setNoTradesFound(false);
                           setSelectedImages([]);
                         }}
-                        className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
+                        className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-800 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
                       >
                         Try Again
                       </button>
@@ -381,7 +381,7 @@ export default function TradeModal({
                 {isProcessing && (
                   <div className="text-center py-4 sm:py-6">
                     <div className="animate-spin rounded-full h-5 w-5 sm:h-7 sm:w-7 border-b-2 border-blue-600 mx-auto mb-2 sm:mb-3"></div>
-                    <div className="text-gray-600 text-[10px] sm:text-[12px] 2xl:text-sm">Processing {selectedImages.length} image{selectedImages.length !== 1 ? 's' : ''}...</div>
+                    <div className="text-black dark:text-white text-[10px] sm:text-[12px] 2xl:text-sm">Processing {selectedImages.length} image{selectedImages.length !== 1 ? 's' : ''}...</div>
                   </div>
                 )}
 
@@ -393,13 +393,13 @@ export default function TradeModal({
                     <div className="max-h-60 overflow-y-auto space-y-1.5">
                       {parsedTrades.map((trade, index) => (
                         <div key={index} className="p-1.5 sm:p-2 bg-gray-50 rounded-lg">
-                          <div className="font-medium text-gray-900 text-[10px] sm:text-[12px] 2xl:text-sm">
+                          <div className="font-medium text-gray-900 dark:text-gray-100 text-[10px] sm:text-[12px] 2xl:text-sm">
                             {trade.ticker}
                           </div>
-                          <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-600">
+                          <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-black dark:text-white">
                             {trade.date}
                           </div>
-                          <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-600">
+                          <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-black dark:text-white">
                             P&L: ${trade.realized_pnl !== undefined && trade.realized_pnl !== null ? (trade.realized_pnl >= 0 ? '+' : '') + trade.realized_pnl.toFixed(2) : '0.00'}
                           </div>
                         </div>
@@ -412,7 +412,7 @@ export default function TradeModal({
                           setSelectedImages([]);
                           setIsProcessing(false);
                         }}
-                        className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
+                        className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-800 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
                       >
                         Try Again
                       </button>
@@ -431,7 +431,7 @@ export default function TradeModal({
         ) : (
           <div className="space-y-3 sm:space-y-4">
             {/* Divider */}
-            <div className="border-t border-gray-200 my-2 sm:my-3"></div>
+            <div className="border-t border-gray-200 dark:border-gray-800/60 my-2 sm:my-3"></div>
             
             {/* Date and Ticker in same row */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
@@ -488,7 +488,7 @@ export default function TradeModal({
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border-2 transition-all cursor-pointer ${
                     formData.input_mode === 'pnl'
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                      : 'border-gray-200 dark:border-gray-800/60 text-black dark:text-white hover:border-gray-300'
                   }`}
                 >
                   <span className="font-medium text-[10px] sm:text-[12px] 2xl:text-sm">P&L Entry</span>
@@ -499,7 +499,7 @@ export default function TradeModal({
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border-2 transition-all cursor-pointer ${
                     formData.input_mode === 'buy_sell'
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                      : 'border-gray-200 dark:border-gray-800/60 text-black dark:text-white hover:border-gray-300'
                   }`}
                 >
                   <span className="font-medium text-[10px] sm:text-[12px] 2xl:text-sm">Buy/Sell Entry</span>
@@ -601,13 +601,13 @@ export default function TradeModal({
                 </div> */}
                 <div className="grid grid-cols-2 gap-3 text-[10px] sm:text-[12px] 2xl:text-sm">
                   <div>
-                    <span className="text-gray-600">P&L:</span>
+                    <span className="text-black dark:text-white">P&L:</span>
                     <span className={`ml-1 font-medium ${parseFloat(formData.realized_pnl) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {parseFloat(formData.realized_pnl) >= 0 ? '+' : ''}${parseFloat(formData.realized_pnl).toFixed(2)}
                     </span>
                   </div>
                   <div>
-                    <span className="text-gray-600">Return:</span>
+                    <span className="text-black dark:text-white">Return:</span>
                     <span className={`ml-1 font-medium ${parseFloat(formData.percent_diff) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {parseFloat(formData.percent_diff) >= 0 ? '+' : ''}{parseFloat(formData.percent_diff).toFixed(2)}%
                     </span>
@@ -620,7 +620,7 @@ export default function TradeModal({
             <div className="flex flex-row gap-2 sm:gap-3 pt-2 sm:pt-3">
               <button
                 onClick={closeModal}
-                className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
+                className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-800 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
               >
                 Cancel
               </button>

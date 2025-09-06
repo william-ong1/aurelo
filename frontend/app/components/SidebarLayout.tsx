@@ -6,34 +6,35 @@ import MobileBottomNav from './MobileBottomNav';
 import AuthModal from './AuthModal';
 import { disableBodyScroll, enableBodyScroll } from '../utils/scrollLock';
 import { useAuth } from '../contexts/AuthContext';
+import { useAuthModal } from '../contexts/AuthModalContext';
 
 interface SidebarLayoutProps {
   children: React.ReactNode;
 }
 
 export default function SidebarLayout({ children }: SidebarLayoutProps) {
-  const [showAuthModal, setShowAuthModal] = React.useState(false);
   const { logout } = useAuth();
+  const { isAuthModalOpen, hideAuthModal } = useAuthModal();
 
   useEffect(() => {
-    if (showAuthModal) {
+    if (isAuthModalOpen) {
       disableBodyScroll();
     } else {
       enableBodyScroll();
     }
     return () => enableBodyScroll();
-  }, [showAuthModal]);
+  }, [isAuthModalOpen]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-black">
       {/* Desktop / Tablet Sidebar */}
       <div className="hidden md:block">
-        <Sidebar onShowAuthModal={() => setShowAuthModal(true)} onLogout={logout} />
+        <Sidebar onLogout={logout} />
       </div>
 
       {/* Mobile Header */}
       <div className="md:hidden">
-        <Header onShowAuthModal={() => setShowAuthModal(true)} onLogout={logout} />
+        <Header onLogout={logout} />
       </div>
 
       {/* Content */}
@@ -45,8 +46,8 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
       <MobileBottomNav />
 
       <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
+        isOpen={isAuthModalOpen}
+        onClose={hideAuthModal}
         initialMode="login"
       />
     </div>
