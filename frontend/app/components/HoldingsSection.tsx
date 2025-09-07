@@ -180,7 +180,7 @@ export default function HoldingsSection({
 
     if (isLoadingAssets) {
     return (
-      <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60 h-[400px] flex flex-col">
+      <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700 h-[400px] flex flex-col">
         <div className="flex items-center justify-between mb-4 flex-shrink-0">
           <h3 className="text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Holdings</h3>
         </div>
@@ -204,7 +204,7 @@ export default function HoldingsSection({
   }
 
   return (
-    <div className="bg-white dark:bg-black rounded-lg px-0 pt-3 shadow-sm border border-slate-200 dark:border-gray-800/60 h-[400px] flex flex-col">
+    <div className="bg-white dark:bg-black rounded-lg px-0 pt-3 shadow-sm border border-slate-200 dark:border-gray-700 h-[400px] flex flex-col">
       <div className="flex items-center justify-between mb-4 flex-shrink-0 px-4">
         <h3 className="text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Holdings</h3>
         <div className="flex items-center gap-1">

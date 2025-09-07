@@ -69,7 +69,7 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
   //       <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-6">
   //         {/* Loading cards - match exact structure of real cards */}
   //         {[1, 2, 3, 4].map((i) => (
-  //           <div key={i} className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60 animate-pulse">
+  //           <div key={i} className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700 animate-pulse">
   //             <div className="flex items-center justify-between mb-3">
   //               <div className="w-24 h-3 bg-gray-200 rounded"></div>
   //               <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
@@ -111,7 +111,7 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
         {/* Left side - First 2 cards (2/5 width) */}
         <div className="w-2/5 grid grid-cols-2 gap-4">
           {/* Total Value */}
-          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Total Value</h3>
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -137,7 +137,7 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
           </div>
 
           {/* Cash Interest */}
-          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Cash Interest</h3>
               <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
@@ -166,7 +166,7 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
         {/* Right side - Last 3 cards (3/5 width) */}
         <div className="w-3/5 grid grid-cols-3 gap-4">
           {/* Asset Count */}
-          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Assets</h3>
               <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
@@ -192,7 +192,7 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
           </div>
           
           {/* Portfolio Breakdown */}
-          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Breakdown</h3>
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -214,7 +214,7 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
           </div>
 
           {/* Best Performer */}
-          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Best Performer</h3>
               <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>

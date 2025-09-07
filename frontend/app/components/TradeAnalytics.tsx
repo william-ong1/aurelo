@@ -344,7 +344,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
         <div className="flex flex-col h-full">
           <div className="grid grid-cols-2 gap-4 mb-4">
             {/* Overall Performance */}
-            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
+            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700">
               <div>
                 <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Overall</h3>
               </div>
@@ -373,7 +373,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             </div>
 
             {/* Win/Loss Analysis */}
-            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60" >
+            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700" >
               <div>
                 <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Win/Loss</h3>
               </div>
@@ -394,7 +394,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             </div>
 
             {/* Risk/Reward Analysis */}
-            <div className="bg-white dark:bg-black rounded-xl p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
+            <div className="bg-white dark:bg-black rounded-xl p-4 shadow-sm border border-slate-200 dark:border-gray-700">
               <div className="mb-2">
                 <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Risk/Reward</h3>
               </div>
@@ -419,7 +419,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             </div>
 
             {/* Risk Management */}
-            <div className="bg-white dark:bg-black rounded-xl p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
+            <div className="bg-white dark:bg-black rounded-xl p-4 shadow-sm border border-slate-200 dark:border-gray-700">
               <div className="mb-2">
                 <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Risk Management</h3>
               </div>
@@ -444,7 +444,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             </div>
 
             {/* Trade Quality */}
-            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
+            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700">
               <div className="mb-3">
                 <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Trade Quality</h3>
               </div>
@@ -469,7 +469,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             </div>
 
             {/* Trading Activity */}
-            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
+            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700">
               <div className="mb-3">
                 <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Trading Activity</h3>
               </div>
@@ -491,14 +491,14 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
           </div>
 
           {/* Monthly Performance */}
-          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60 flex-1 flex flex-col">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700 flex-1 flex flex-col">
             <div className="mb-3">
               <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Monthly Performance</h3>
             </div>
             <div className={`overflow-y-auto flex-1 ${Object.keys(analytics.monthly_performance).length > 2 ? 'max-h-[115px]' : ''}`}>
               <table className="w-full">
                                   <thead className="sticky top-0 bg-white dark:bg-black">
-                    <tr className="border-b border-slate-200 dark:border-gray-800/60">
+                    <tr className="border-b border-slate-200 dark:border-gray-800/80">
                       <th className="text-left py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white">Month</th>
                       <th className="text-right py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white">Trades</th>
                       <th className="text-right py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white">Win Rate</th>
@@ -515,13 +515,13 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
                     if (monthCount === 0) {
                       // No data - show 2 empty rows
                       return [
-                        <tr key="empty-1" className="border-b border-slate-200 dark:border-gray-800/60">
+                        <tr key="empty-1" className="border-b border-slate-200 dark:border-gray-800/80">
                           <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100">-</td>
                           <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
                           <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
                           <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100 text-right">-</td>
                         </tr>,
-                        <tr key="empty-2" className="border-b border-slate-200 dark:border-gray-800/60">
+                        <tr key="empty-2" className="border-b border-slate-200 dark:border-gray-800/80">
                           <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100">-</td>
                           <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
                           <td className="py-2 sm:py-2 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
@@ -531,7 +531,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
                     }
                     
                     return months.map(([monthKey, data], index) => (
-                      <tr key={monthKey} className="border-b border-slate-200 dark:border-gray-800/60">
+                      <tr key={monthKey} className="border-b border-slate-200 dark:border-gray-800/80">
                         <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100">
                           {formatMonth(monthKey)}
                         </td>

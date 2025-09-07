@@ -356,7 +356,7 @@ export default function TradingSection() {
 
   // if (!isAuthenticated) {
   //   return (
-  //     <div className="bg-white dark:bg-black rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-800/60 text-center">
+  //     <div className="bg-white dark:bg-black rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-700 text-center">
   //       <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
   //         <BarChart3 className="h-8 w-8 text-gray-400" />
   //       </div>
@@ -388,7 +388,7 @@ export default function TradingSection() {
       {/* Duplicate Check Loading State */}
       {isCheckingDuplicates && (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-black backdrop-blur-sm rounded-lg shadow-2xl p-6 w-full max-w-sm mx-auto border border-gray-200 dark:border-gray-800/60/50">
+          <div className="bg-white dark:bg-black backdrop-blur-sm rounded-lg shadow-2xl p-6 w-full max-w-sm mx-auto border border-gray-200 dark:border-gray-700/50">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
               <p className="text-sm 2xl:text-base text-black dark:text-white font-medium">

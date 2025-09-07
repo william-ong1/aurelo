@@ -48,10 +48,22 @@ export default function Sidebar({ onLogout }: SidebarProps) {
       document.documentElement.classList.remove('dark');
       localStorage.setItem('theme', 'light');
       setIsDarkMode(false);
+      
+      // Update theme-color meta tag
+      const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute('content', '#ffffff');
+      }
     } else {
       document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');
       setIsDarkMode(true);
+      
+      // Update theme-color meta tag
+      const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute('content', '#000000');
+      }
     }
   };
 
@@ -61,12 +73,12 @@ export default function Sidebar({ onLogout }: SidebarProps) {
   const isJournalActive = pathname.startsWith('/journal');
 
   return (
-    <aside className="fixed inset-y-0 left-0 w-56 bg-white/80 dark:bg-black backdrop-blur-sm border-r border-gray-200/60 dark:border-gray-800/60 shadow-sm z-40 flex flex-col transition-colors">
+    <aside className="fixed inset-y-0 left-0 w-56 bg-white dark:bg-black backdrop-blur-sm border-r border-gray-200/60 dark:border-gray-700 shadow-sm z-40 flex flex-col transition-colors select-none">
       {/* Brand */}
-      <div className="px-4 sm:px-5 pt-4 sm:pt-8 pb-3 border-b border-gray-200/60 dark:border-gray-800/60">
+      <div className="px-4 sm:px-5 pt-4 sm:pt-8 pb-3 border-b border-gray-200/60 dark:border-gray-700">
         <div className="flex items-center gap-2">
           <h1 className="text-xl 2xl:text-3xl font-bold text-amber-500 tracking-tight">Aurelo</h1>
-          <span className="px-1.5 py-0.5 text-[9px] 2xl:text-[11px] leading-none font-semibold rounded-full border bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-gray-800">
+          <span className="px-1.5 py-0.5 text-[9px] 2xl:text-[11px] leading-none font-semibold rounded-full border bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-gray-700">
             Beta
           </span>
         </div>
@@ -82,7 +94,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
           className={`relative block px-3 py-2 rounded-lg text-xs 2xl:text-base font-medium transition-all ${
             isPortfolioActive
               ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 shadow-sm'
-              : 'text-black dark:text-white hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-sm'
+              : 'text-black dark:text-white hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:shadow-sm'
           }`}
         >
           {isPortfolioActive && (
@@ -98,7 +110,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
           className={`relative block px-3 py-2 rounded-lg text-xs 2xl:text-base font-medium transition-all ${
             isTradingActive
               ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 shadow-sm'
-              : 'text-black dark:text-white hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-sm'
+              : 'text-black dark:text-white hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:shadow-sm'
           }`}
         >
           {isTradingActive && (
@@ -114,7 +126,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
           className={`relative block px-3 py-2 rounded-lg text-xs 2xl:text-base font-medium transition-all ${
             isWatchlistActive
               ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 shadow-sm'
-              : 'text-black dark:text-white hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-sm'
+              : 'text-black dark:text-white hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:shadow-sm'
           }`}
         >
           {isWatchlistActive && (
@@ -130,7 +142,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
           className={`relative block px-3 py-2 rounded-lg text-xs 2xl:text-base font-medium transition-all ${
             isJournalActive
               ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 shadow-sm'
-              : 'text-black dark:text-white hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-sm'
+              : 'text-black dark:text-white hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:shadow-sm'
           }`}
         >
           {isJournalActive && (
@@ -166,7 +178,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
       </nav>
 
       {/* Auth */}
-      <div className="px-3 sm:px-4 py-2 border-t border-gray-200/60 dark:border-gray-800/60">
+      <div className="px-3 sm:px-4 py-2 border-t border-gray-200/60 dark:border-gray-700">
         {isAuthenticated ? (
           <button
             onClick={handleLogout}

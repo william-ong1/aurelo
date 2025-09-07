@@ -590,7 +590,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
                   return (
                     <div 
                       key={asset.id} 
-                      className={`flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 bg-white dark:bg-gray-900 rounded-lg border border-slate-200 dark:border-gray-800/60 transition-all ${
+                      className={`flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 bg-white dark:bg-gray-900 rounded-lg border border-slate-200 dark:border-gray-700 transition-all ${
                         isEditMode 
                           ? 'hover:shadow-md hover:bg-gray-50 dark:bg-gray-900 cursor-pointer' 
                           : ''

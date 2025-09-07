@@ -22,7 +22,7 @@ export default function TradingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black">
+    <div className="min-h-screen bg-white dark:bg-black ">
       {/* Only render content after authentication is checked */}
       {isPageReady && (
         <main className="mx-auto px-4 sm:px-6 lg:px-8 py-0 max-w-6xl 2xl:max-w-7xl">

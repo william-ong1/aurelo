@@ -3,13 +3,13 @@ import React from 'react';
 
 export default function PerformanceSection() {
   return (
-    <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-800/60">
+    <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Performance</h3>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-3">
-          <div className="flex items-center bg-gray-100 dark:bg-black backdrop-blur-sm rounded-full p-1 border border-gray-200/30 dark:border-gray-800/60/30 gap-1">
+          <div className="flex items-center bg-gray-100 dark:bg-black backdrop-blur-sm rounded-full p-1 border border-gray-200/30 dark:border-gray-700 gap-1">
             {(['1D', '1W', '1M', '3M', '1Y', 'ALL'] as const).map((period) => (
               <button
                 key={period}

@@ -222,7 +222,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
 
   return (
     <>
-      <div className="bg-white dark:bg-black rounded-lg p-4 pb-2 shadow-sm border border-slate-200 dark:border-gray-800/60">
+      <div className="bg-white dark:bg-black rounded-lg p-4 pb-2 shadow-sm border border-slate-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Trade History</h3>
           <div className="flex items-center gap-1.5">
@@ -246,7 +246,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
         <div className="overflow-x-auto">
           <table className="w-full table-fixed">
             <thead className="sticky top-0 bg-white dark:bg-black select-none">
-              <tr className="border-b border-gray-200 dark:border-gray-800/60">
+              <tr className="border-b border-gray-200 dark:border-gray-800/80">
                 <th 
                   className="text-left py-1.5 sm:py-1.5 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
                   onClick={() => handleSort('date')}
@@ -289,7 +289,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
             <tbody>
               {sortedTrades.length > 0 ? (
                 (displayCount === 'today' ? sortedTrades : sortedTrades.slice(0, typeof displayCount === 'number' ? displayCount : sortedTrades.length)).map((trade) => (
-                  <tr key={trade.id} className="border-b border-slate-200 dark:border-gray-800/60">
+                  <tr key={trade.id} className="border-b border-slate-200 dark:border-gray-800/80">
                     <td className="py-1.5 sm:py-1.5 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100">
                       {formatDate(trade.date)}
                     </td>

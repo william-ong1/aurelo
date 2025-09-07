@@ -88,7 +88,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
   const getDayBackgroundColor = (pnl: number) => {
     if (pnl > 0) return 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700';
     if (pnl < 0) return 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700';
-    return 'bg-white dark:bg-black border-slate-100 dark:border-gray-800/60';
+    return 'bg-white dark:bg-black border-slate-100 dark:border-gray-800/80';
   };
 
   const getPnlIntensity = (pnl: number) => {
@@ -240,12 +240,12 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-black rounded-lg p-4 pt-3 shadow-sm border border-slate-200 dark:border-gray-800/60 flex-1 flex flex-col">
+    <div className="bg-white dark:bg-black rounded-lg p-4 pt-3 shadow-sm border border-slate-200 dark:border-gray-700 flex-1 flex flex-col">
           {/* Calendar Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">P&L Calendar</h3>
-            <div className="flex bg-gray-100 dark:bg-black rounded-md p-0.5 ml-28 relative border border-gray-200/30 dark:border-gray-800/60">
+            <div className="flex bg-gray-100 dark:bg-black rounded-md p-0.5 ml-28 relative border border-gray-200/30 dark:border-gray-800/80">
               <button
                 onClick={() => {
                   setDisplayMode('price');
@@ -291,7 +291,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                     type="number"
                     value={rValue === 0 ? '' : rValue}
                     onChange={handleRValueChange}
-                     className="w-8 h-5 text-[.6rem] text-center border border-gray-200/30 dark:border-gray-800/60/30 rounded-r-sm bg-white dark:bg-gray-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-300 ring-1 ring-gray-300 dark:ring-gray-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none leading-none py-0 px-0 font-medium shadow-sm"
+                     className="w-8 h-5 text-[.6rem] text-center border border-gray-200/30 dark:border-gray-800/80 rounded-r-sm bg-white dark:bg-gray-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-300 ring-1 ring-gray-300 dark:ring-gray-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none leading-none py-0 px-0 font-medium shadow-sm"
                     min="0"
                     step="0.1"
                   />
@@ -353,8 +353,8 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                     hasTrades 
                       ? getDayBackgroundColor(dayStats.pnl)
                       : isCurrentMonth 
-                        ? 'bg-white dark:bg-black border-slate-100 dark:border-gray-800/60'
-                        : 'bg-slate-50 dark:bg-gray-950/80 border-slate-100 dark:border-gray-800/60'
+                        ? 'bg-white dark:bg-black border-slate-100 dark:border-gray-800/80'
+                        : 'bg-slate-50 dark:bg-gray-950/80 border-slate-100 dark:border-gray-800/80'
                   } ${isToday ? 'ring-1 ring-blue-300 dark:ring-gray-600/20 ring-offset-1' : ''} ${
                     !isCurrentMonth && hasTrades ? 'opacity-60' : ''
                   }`}
@@ -402,7 +402,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                 className={`relative p-2 pb-1 min-h-[60px] border rounded-md transition-all duration-200 flex flex-col justify-between ${
                   hasWeekData 
                     ? getDayBackgroundColor(weekData.pnl)
-                    : 'bg-slate-50 dark:bg-gray-950/80 border-slate-100 dark:border-gray-800/60'
+                    : 'bg-slate-50 dark:bg-gray-950/80 border-slate-100 dark:border-gray-800/80'
                 }`}
               >
                 {/* Week Label */}
@@ -440,7 +440,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
       </div>
 
       {/* Legend */}
-      <div className="mt-2 pt-2 border-t border-slate-200 dark:border-gray-800/60">
+      <div className="mt-2 pt-2 border-t border-slate-200 dark:border-gray-800/80">
         <div className="flex items-center justify-between">
           <div> </div>
           {/* <div className="flex items-center gap-1.5">

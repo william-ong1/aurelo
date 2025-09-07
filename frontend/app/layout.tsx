@@ -54,6 +54,12 @@ export default function RootLayout({
                   if (isDark) {
                     document.documentElement.classList.add("dark");
                   }
+                  
+                  // Update theme-color meta tag
+                  const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+                  if (themeColorMeta) {
+                    themeColorMeta.setAttribute('content', isDark ? '#000000' : '#ffffff');
+                  }
                 } catch (e) {
                   // Keep light mode if localStorage is not available
                 }

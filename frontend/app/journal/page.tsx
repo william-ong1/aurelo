@@ -22,7 +22,7 @@ export default function JournalPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black">
+    <div className="min-h-screen bg-white dark:bg-black">
       {isPageReady && (
         <main className="mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl 2xl:max-w-7xl">
           <JournalSection />
