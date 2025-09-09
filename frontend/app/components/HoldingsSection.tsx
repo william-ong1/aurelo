@@ -23,6 +23,7 @@ interface HoldingsSectionProps {
   onDelete?: (assetId: number) => void;
   onToggleEditMode?: () => void;
   onAddAsset?: () => void;
+  timePeriod?: 'all-time' | 'today';
 }
 
 export default function HoldingsSection({ 
@@ -32,9 +33,10 @@ export default function HoldingsSection({
   onEdit,
   onDelete,
   onToggleEditMode,
-  onAddAsset
+  onAddAsset,
+  timePeriod = 'all-time'
 }: HoldingsSectionProps) {
-  const { realTimePrices, isLoading, failedTickers, fetchPrices } = useRealTime();
+  const { realTimePrices, dailyData, isLoading, failedTickers, fetchPrices } = useRealTime();
 
   // Fetch real-time prices for stock assets
   React.useEffect(() => {
@@ -90,9 +92,26 @@ export default function HoldingsSection({
         : storedCurrentPrice;
       
       currentValue = shares * currentPrice;
-      purchaseValue = shares * purchasePrice;
-      gainLoss = currentValue - purchaseValue;
-      gainLossPercent = purchaseValue > 0 ? (gainLoss / purchaseValue) * 100 : 0;
+      
+      if (timePeriod === 'today') {
+        // For today's change, use daily data (yesterday close vs current)
+        const dailyInfo = asset.ticker ? dailyData[asset.ticker] : null;
+        if (dailyInfo) {
+          purchaseValue = shares * dailyInfo.yesterday_close;
+          gainLoss = currentValue - purchaseValue;
+          gainLossPercent = dailyInfo.change_percent;
+        } else {
+          // Fallback to all-time calculation if no daily data
+          purchaseValue = shares * purchasePrice;
+          gainLoss = currentValue - purchaseValue;
+          gainLossPercent = purchaseValue > 0 ? (gainLoss / purchaseValue) * 100 : 0;
+        }
+      } else {
+        // For all-time change, use purchase price vs current price
+        purchaseValue = shares * purchasePrice;
+        gainLoss = currentValue - purchaseValue;
+        gainLossPercent = purchaseValue > 0 ? (gainLoss / purchaseValue) * 100 : 0;
+      }
 
       // Debug logging for first asset
       if (asset.ticker === assets[0]?.ticker) {
@@ -106,7 +125,8 @@ export default function HoldingsSection({
           currentValue,
           purchaseValue,
           gainLoss,
-          gainLossPercent
+          gainLossPercent,
+          timePeriod
         });
       }
     } else {
@@ -180,7 +200,7 @@ export default function HoldingsSection({
 
     if (isLoadingAssets) {
     return (
-      <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700 h-[400px] flex flex-col">
+      <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600 h-[400px] flex flex-col">
         <div className="flex items-center justify-between mb-4 flex-shrink-0">
           <h3 className="text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Holdings</h3>
         </div>
@@ -204,7 +224,7 @@ export default function HoldingsSection({
   }
 
   return (
-    <div className="bg-white dark:bg-black rounded-lg px-0 pt-3 shadow-sm border border-slate-200 dark:border-gray-700 h-[400px] flex flex-col">
+    <div className="bg-white dark:bg-black rounded-lg px-0 pt-3 shadow-sm border border-slate-200 dark:border-gray-600 h-[400px] flex flex-col">
       <div className="flex items-center justify-between mb-4 flex-shrink-0 px-4">
         <h3 className="text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Holdings</h3>
         <div className="flex items-center gap-1">
@@ -254,23 +274,11 @@ export default function HoldingsSection({
               <>
                 {validAssets.map((asset, index) => {
                   const displayPercentage = asset.portfolioPercentage < 1 ? "<1%" : `${asset.portfolioPercentage.toFixed(1)}%`;
-                  // Use real-time price for current price, fallback to stored price
-                  const currentPrice = asset.ticker && realTimePrices[asset.ticker] 
-                    ? Number(realTimePrices[asset.ticker])
-                    : Number(asset.currentPrice) || 0;
-                  const purchasePrice = Number(asset.purchasePrice) || 0;
+                  // Use calculated values from assetsWithValues
+                  const { currentValue, gainLoss, gainLossPercent } = asset;
                   
-                  // Calculate real-time gain/loss based on live price vs purchase price
-                  const shares = Number(asset.shares) || 0;
-                  const currentValue = shares * currentPrice || asset.balance || 0;
-                  const purchaseValue = shares * purchasePrice;
-
-                  let gainLoss = 0;
-                  if (asset.isStock) {
-                    gainLoss = currentValue - purchaseValue;
-                  }
-
-                  const gainLossPercent = purchaseValue > 0 ? (gainLoss / purchaseValue) * 100 : 0;
+                  // Use the sorted index since pie chart is now also sorted by value
+                  const colorIndex = index;
                   
                   return (
                                         <div 
@@ -287,7 +295,7 @@ export default function HoldingsSection({
                       {/* Circular Icon */}
                       <div 
                         className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: getPieChartColor(index) }}
+                        style={{ backgroundColor: getPieChartColor(colorIndex) }}
                       >
                         <span className="text-white font-bold text-[7px]">
                           {asset.isStock ? asset.ticker : "CASH"}
@@ -380,6 +388,9 @@ export default function HoldingsSection({
                       const displayPercentage = asset.portfolioPercentage < 1 ? "<1%" : `${asset.portfolioPercentage.toFixed(1)}%`;
                       const currentValue = (Number(asset.shares) || 0) * (Number(asset.currentPrice) || 0);
                       
+                      // Use the sorted index since pie chart is now also sorted by value
+                      const colorIndex = validAssets.length + index;
+                      
                       return (
                         <div 
                           key={asset.id} 
@@ -395,7 +406,7 @@ export default function HoldingsSection({
                           {/* Circular Icon */}
                           <div 
                             className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 opacity-60"
-                            style={{ backgroundColor: getPieChartColor(validAssets.length + index) }}
+                            style={{ backgroundColor: getPieChartColor(colorIndex) }}
                           >
                             <span className="text-white font-bold text-[7px]">
                               {asset.ticker}

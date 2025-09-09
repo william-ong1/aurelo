@@ -344,7 +344,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
         <div className="flex flex-col h-full">
           <div className="grid grid-cols-2 gap-4 mb-4">
             {/* Overall Performance */}
-            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
               <div>
                 <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Overall</h3>
               </div>
@@ -373,7 +373,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             </div>
 
             {/* Win/Loss Analysis */}
-            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700" >
+            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600" >
               <div>
                 <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Win/Loss</h3>
               </div>
@@ -394,7 +394,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             </div>
 
             {/* Risk/Reward Analysis */}
-            <div className="bg-white dark:bg-black rounded-xl p-4 shadow-sm border border-slate-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-black rounded-xl p-4 shadow-sm border border-slate-200 dark:border-gray-600">
               <div className="mb-2">
                 <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Risk/Reward</h3>
               </div>
@@ -419,7 +419,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             </div>
 
             {/* Risk Management */}
-            <div className="bg-white dark:bg-black rounded-xl p-4 shadow-sm border border-slate-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-black rounded-xl p-4 shadow-sm border border-slate-200 dark:border-gray-600">
               <div className="mb-2">
                 <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Risk Management</h3>
               </div>
@@ -444,7 +444,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             </div>
 
             {/* Trade Quality */}
-            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
               <div className="mb-3">
                 <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Trade Quality</h3>
               </div>
@@ -469,7 +469,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             </div>
 
             {/* Trading Activity */}
-            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
               <div className="mb-3">
                 <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Trading Activity</h3>
               </div>
@@ -491,7 +491,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
           </div>
 
           {/* Monthly Performance */}
-          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700 flex-1 flex flex-col">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600 flex-1 flex flex-col">
             <div className="mb-3">
               <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Monthly Performance</h3>
             </div>

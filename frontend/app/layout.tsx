@@ -4,7 +4,6 @@ import { RealTimeProvider } from "./contexts/RealTimeContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AuthModalProvider } from "./contexts/AuthModalContext";
 import { PortfolioProvider } from "./contexts/PortfolioContext";
-import { ScrollProvider } from "./contexts/ScrollContext";
 import SidebarLayout from "./components/SidebarLayout";
 
 export const metadata: Metadata = {
@@ -72,13 +71,11 @@ export default function RootLayout({
         <AuthProvider>
           <PortfolioProvider>
             <RealTimeProvider>
-              <ScrollProvider>
-                <AuthModalProvider>
-                  <SidebarLayout>
-                    {children}
-                  </SidebarLayout>
-                </AuthModalProvider>
-              </ScrollProvider>
+              <AuthModalProvider>
+                <SidebarLayout>
+                  {children}
+                </SidebarLayout>
+              </AuthModalProvider>
             </RealTimeProvider>
           </PortfolioProvider>
         </AuthProvider>

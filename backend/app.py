@@ -287,16 +287,12 @@ def parse_portfolio_image(image_data: str, mime_type: str):
                 
                 validated_assets.append(asset)
             
-            print(f"Parsed {len(validated_assets)} valid assets from image")
             return validated_assets
             
         except json.JSONDecodeError as e:
-            print(f"JSON parsing error: {e}")
-            print(f"Response text: {response.text}")
             return []
             
     except Exception as e:
-        print(f"Error processing image: {e}")
         return []
 
 @app.get("/api/price")
@@ -386,11 +382,7 @@ async def get_prices(tickers: str):
                     "change_percent": daily_change_percent
                 }
                 
-                # Debug logging
-                print(f"DEBUG {ticker}: Yesterday Close=${yesterday_close:.2f}, Current=${current_price:.2f}, Change=${daily_change:.2f}, Percent={daily_change_percent:.2f}%")
-                    
             except Exception as e:
-                print(f"Error fetching price for {ticker}: {e}")
                 failed_tickers.append(ticker)
         
         return {
@@ -439,7 +431,6 @@ async def parse_image(request: ImageParseRequest):
         return {"assets": assets}
         
     except Exception as e:
-        print(f"API error: {e}")
         raise HTTPException(status_code=500, detail="Failed to process image")
 
 @app.post("/api/parse-multiple-images")
@@ -460,7 +451,6 @@ async def parse_multiple_images(request: MultipleImageParseRequest):
         return {"assets": all_assets}
         
     except Exception as e:
-        print(f"API error: {e}")
         raise HTTPException(status_code=500, detail="Failed to process images")
 
 # Authentication endpoints
@@ -587,7 +577,7 @@ async def save_portfolio(
         
         # Insert new assets
         if assets_data:
-            result = supabase.table("portfolio_assets").insert(assets_data).execute()
+            supabase.table("portfolio_assets").insert(assets_data).execute()
             return {"message": "Portfolio saved successfully", "assets_count": len(assets_data)}
         else:
             return {"message": "Portfolio cleared", "assets_count": 0}
@@ -602,7 +592,7 @@ async def get_portfolio(user_id: str = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Supabase not configured")
     
     try:
-        result = supabase.table("portfolio_assets").select("*").eq("user_id", user_id).execute()
+        result = supabase.table("portfolio_assets").select("name,is_stock,ticker,shares,current_price,purchase_price,balance,apy").eq("user_id", user_id).execute()
         
         assets = []
         for row in result.data:
@@ -633,23 +623,16 @@ async def create_trade(
     if not supabase:
         raise HTTPException(status_code=500, detail="Supabase not configured")
     
-    print(f"Received trade data: {trade_data}")
-    
     try:
         # Only perform duplicate check for image uploads
         if trade_data.is_image_upload:
-            # Check for duplicate trade - only query trades with same date and ticker for efficiency
-            existing_trades = supabase.table("trades").select("*").eq("user_id", user_id).eq("date", trade_data.date).eq("ticker", trade_data.ticker.upper()).execute()
-            
-            print(f"Checking for duplicates (image upload). New trade: {trade_data.ticker}, {trade_data.date}, {trade_data.realized_pnl}, {trade_data.percent_diff}")
+            # Check for duplicate trade - only query specific fields for efficiency
+            existing_trades = supabase.table("trades").select("id,date,ticker,realized_pnl,percent_diff").eq("user_id", user_id).eq("date", trade_data.date).eq("ticker", trade_data.ticker.upper()).execute()
             
             # Check if any existing trade matches all criteria (date, ticker, realized_pnl, percent_diff)
             for existing_trade in existing_trades.data:
-                print(f"Comparing with existing: {existing_trade['ticker']}, {existing_trade['date']}, {existing_trade['realized_pnl']}, {existing_trade['percent_diff']}")
-                
                 if (existing_trade["realized_pnl"] == trade_data.realized_pnl and
                     existing_trade["percent_diff"] == trade_data.percent_diff):
-                    print("Duplicate found!")
                     # Duplicate found - return existing trade instead of creating new one
                     return {
                         "trade": Trade(
@@ -661,10 +644,6 @@ async def create_trade(
                         ),
                         "is_duplicate": True
                     }
-            
-            print("No duplicate found, creating new trade")
-        else:
-            print("Manual entry - skipping duplicate check")
         
         # No duplicate found, create new trade
         trade_dict = {
@@ -707,7 +686,7 @@ async def get_trades(user_id: str = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Supabase not configured")
     
     try:
-        result = supabase.table("trades").select("*").eq("user_id", user_id).order("date", desc=True).execute()
+        result = supabase.table("trades").select("id,date,ticker,realized_pnl,percent_diff").eq("user_id", user_id).order("date", desc=True).execute()
         
         trades = []
         for row in result.data:
@@ -723,7 +702,6 @@ async def get_trades(user_id: str = Depends(get_current_user)):
         return {"trades": trades}
         
     except Exception as e:
-        print(f"Error getting trades: {e}")
         # Check if it's a table not found error
         if "relation" in str(e).lower() and "does not exist" in str(e).lower():
             raise HTTPException(status_code=500, detail="Trades table not found. Please run the SQL script in SETUP_SUPABASE.md to create the trades table.")
@@ -799,7 +777,7 @@ async def get_trade_analytics(user_id: str = Depends(get_current_user)):
     
     try:
         # Get all trades for the user
-        result = supabase.table("trades").select("*").eq("user_id", user_id).execute()
+        result = supabase.table("trades").select("id,date,ticker,realized_pnl,percent_diff").eq("user_id", user_id).execute()
         trades = result.data
         
         if not trades:
@@ -877,7 +855,6 @@ async def parse_trade_image(request: ImageParseRequest, user_id: str = Depends(g
         return {"trades": trades}
         
     except Exception as e:
-        print(f"API error: {e}")
         raise HTTPException(status_code=500, detail="Failed to process trade image")
 
 @app.post("/api/trades/parse-multiple-images")
@@ -898,7 +875,6 @@ async def parse_multiple_trade_images(request: MultipleImageParseRequest, user_i
         return {"trades": all_trades}
         
     except Exception as e:
-        print(f"API error: {e}")
         raise HTTPException(status_code=500, detail="Failed to process trade images")
 
 def parse_trade_image_with_gemini(image_data: str, mime_type: str):
@@ -1009,16 +985,12 @@ def parse_trade_image_with_gemini(image_data: str, mime_type: str):
                 
                 validated_trades.append(trade)
             
-            print(f"Parsed {len(validated_trades)} valid trades from image")
             return validated_trades
             
         except json.JSONDecodeError as e:
-            print(f"JSON parsing error: {e}")
-            print(f"Response text: {response.text}")
             return []
             
     except Exception as e:
-        print(f"Error processing trade image: {e}")
         return []
 
 # Watchlist API endpoints
@@ -1055,7 +1027,6 @@ async def create_watchlist_item(item: WatchlistCreate, user_id: str = Depends(ge
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error creating watchlist item: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/api/watchlist")
@@ -1065,10 +1036,9 @@ async def get_watchlist(user_id: str = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Database not configured")
     
     try:
-        result = supabase.table('watchlist').select('*').eq('user_id', user_id).order('created_at', desc=True).execute()
+        result = supabase.table('watchlist').select('id,ticker,notes,chart_link,created_at,updated_at').eq('user_id', user_id).order('created_at', desc=True).execute()
         return {"watchlist": result.data}
     except Exception as e:
-        print(f"Error fetching watchlist: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.put("/api/watchlist/{item_id}")
@@ -1106,7 +1076,6 @@ async def update_watchlist_item(item_id: int, item: WatchlistUpdate, user_id: st
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error updating watchlist item: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.delete("/api/watchlist/{item_id}")
@@ -1132,7 +1101,6 @@ async def delete_watchlist_item(item_id: int, user_id: str = Depends(get_current
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error deleting watchlist item: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 # Journal API endpoints
@@ -1161,7 +1129,6 @@ async def create_journal_entry(entry: JournalCreate, user_id: str = Depends(get_
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error creating journal entry: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/api/journal")
@@ -1171,10 +1138,9 @@ async def get_journal_entries(user_id: str = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Database not configured")
     
     try:
-        result = supabase.table('journal').select('*').eq('user_id', user_id).order('updated_at', desc=True).order('created_at', desc=True).execute()
+        result = supabase.table('journal').select('id,title,content,tags,created_at,updated_at').eq('user_id', user_id).order('updated_at', desc=True).order('created_at', desc=True).execute()
         return {"entries": result.data}
     except Exception as e:
-        print(f"Error fetching journal entries: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.put("/api/journal/{entry_id}")
@@ -1212,7 +1178,6 @@ async def update_journal_entry(entry_id: int, entry: JournalUpdate, user_id: str
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error updating journal entry: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.delete("/api/journal/{entry_id}")
@@ -1238,7 +1203,6 @@ async def delete_journal_entry(entry_id: int, user_id: str = Depends(get_current
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error deleting journal entry: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 if __name__ == "__main__":

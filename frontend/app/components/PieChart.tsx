@@ -169,6 +169,15 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
     }
   });
 
+  // Create sorted arrays by value (largest first) to match holdings section
+  const sortedIndices = values
+    .map((value, index) => ({ value, index }))
+    .sort((a, b) => b.value - a.value)
+    .map(item => item.index);
+
+  const sortedAssets = sortedIndices.map(index => assets[index]);
+  const sortedValues = sortedIndices.map(index => values[index]);
+
   // Calculate values with stored prices for comparison
   const storedValues = assets.map(a => {
     if (a.isStock) {
@@ -307,17 +316,17 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
     '#92400e', // Dark Orange
   ];
   
-  const finalColors = values.length <= backgroundColors.length 
+  const finalColors = sortedValues.length <= backgroundColors.length 
     ? backgroundColors 
-    : values.map((_, i) => fallbackColors[i % fallbackColors.length]);
+    : sortedValues.map((_, i) => fallbackColors[i % fallbackColors.length]);
 
-  // Export colors for use in other components
+  // Export colors for use in other components (using sorted order)
   if (typeof window !== 'undefined') {
     (window as any).pieChartColors = finalColors;
   }
 
   const data = {
-    labels: assets.map(a => {
+    labels: sortedAssets.map(a => {
       if (a.isStock && a.ticker) {
         return a.ticker;
       } 
@@ -325,7 +334,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
     }),
     datasets: [
       {
-        data: values,
+        data: sortedValues,
         backgroundColor: finalColors,
         borderColor: "#ffffff",
         borderWidth: 1,
@@ -333,12 +342,30 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
         hoverBackgroundColor: finalColors.map(color => `${color}99`), // Add transparency on hover
         hoverBorderWidth: 1,
         hoverOffset: 0, // Add hover animation
-        // Store the original assets data for tooltip access
-        assets: assets,
+        // Store the sorted assets data for tooltip access
+        assets: sortedAssets,
       },
     ],
   };
 
+  // Custom tooltip plugin to handle very small segments
+  const smallSegmentTooltip: Plugin<"doughnut"> = {
+    id: "smallSegmentTooltip",
+    beforeTooltipDraw: (chart) => {
+      const tooltip = chart.tooltip;
+      if (tooltip && tooltip.dataPoints && tooltip.dataPoints.length > 1) {
+        // If multiple segments are detected, prefer the larger one
+        const sortedDataPoints = tooltip.dataPoints.sort((a, b) => {
+          const aValue = a.raw as number;
+          const bValue = b.raw as number;
+          return bValue - aValue; // Sort by value, largest first
+        });
+        
+        // Keep only the largest segment
+        tooltip.dataPoints = [sortedDataPoints[0]];
+      }
+    },
+  };
 
   // Enhanced center text plugin with portfolio change
   const centerText: Plugin<"doughnut"> = {
@@ -417,23 +444,29 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
         cornerRadius: 8,
         displayColors: false,
         padding: 12,
+        mode: 'point',
+        intersect: false,
         callbacks: {
           title: (context) => {
-            const dataset: { assets?: Asset[] } = context[0].dataset as { assets?: Asset[] };
-            const asset = dataset.assets?.[context[0].dataIndex];
-            return asset?.name || context[0].label;
+            // Only use the first context to avoid showing multiple assets
+            const primaryContext = Array.isArray(context) ? context[0] : context;
+            const dataset: { assets?: Asset[] } = primaryContext.dataset as { assets?: Asset[] };
+            const asset = dataset.assets?.[primaryContext.dataIndex];
+            return asset?.name || primaryContext.label;
           },
           label: (context) => {
-            const dataset: { assets?: Asset[] } = context.dataset as { assets?: Asset[] };
-            const asset = dataset.assets?.[context.dataIndex];
+            // Only use the first context to avoid showing multiple assets
+            const primaryContext = Array.isArray(context) ? context[0] : context;
+            const dataset: { assets?: Asset[] } = primaryContext.dataset as { assets?: Asset[] };
+            const asset = dataset.assets?.[primaryContext.dataIndex];
             if (!asset) return "";
             
-            const value = context.raw as number;
+            const value = primaryContext.raw as number;
             const percentage = ((value / totalValue) * 100).toFixed(1);
             
             if (!asset.isStock) {
               return [
-                `${context.label}: ${percentage}%`,
+                `${primaryContext.label}: ${percentage}%`,
                 `Balance: $${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
                 asset.apy ? `APY: ${(asset.apy * 100).toFixed(2)}%` : ''
               ].filter(Boolean);
@@ -445,7 +478,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
             const purchasePrice = asset.purchasePrice || asset.currentPrice || 0;
 
             return [
-              `${context.label} • ${percentage}%`,
+              `${primaryContext.label} • ${percentage}%`,
               `${(asset.shares || 0).toLocaleString()} shares @ $${currentPrice.toFixed(2)}`,
               `Value: $${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             ];
@@ -498,7 +531,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
           key={`chart-${assets.length}-${totalValue.toFixed(2)}-${portfolioChange.toFixed(2)}-${timePeriod}-${isDarkMode}-${JSON.stringify(values)}`} 
           data={data} 
           options={options} 
-          plugins={[centerText]} 
+          plugins={[smallSegmentTooltip, centerText]} 
         />
       </div>
       
@@ -590,7 +623,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
                   return (
                     <div 
                       key={asset.id} 
-                      className={`flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 bg-white dark:bg-gray-900 rounded-lg border border-slate-200 dark:border-gray-700 transition-all ${
+                      className={`flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 bg-white dark:bg-gray-900 rounded-lg border border-slate-200 dark:border-gray-600 transition-all ${
                         isEditMode 
                           ? 'hover:shadow-md hover:bg-gray-50 dark:bg-gray-900 cursor-pointer' 
                           : ''

@@ -1,7 +1,9 @@
 module.exports = {
-  darkMode: 'class', // Enable class-based dark mode
+  darkMode: 'class',
   content: [
-    // your content paths
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {},

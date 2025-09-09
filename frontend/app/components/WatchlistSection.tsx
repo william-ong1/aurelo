@@ -250,13 +250,13 @@ export default function WatchlistSection() {
       {/* Content - Only show after authentication and watchlist are loaded */}
       {!isAuthLoading && !isLoadingWatchlist && (
         <div className="py-9">
-        <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Watchlist</h3>
           <div className="flex items-center gap-1.5">
             <button
               onClick={handleAdd}
-              className="p-0.5 pr-1.5 rounded-md transition-colors text-gray-400 hover:text-black dark:text-white transition-all cursor-pointer"
+              className="p-0.5 pr-1.5 rounded-md transition-colors text-gray-400 hover:text-black dark:text-white dark:hover:text-white transition-all cursor-pointer"
               title="Add to Watchlist"
             >
               <Plus className='w-3 h-3 sm:w-4 sm:h-4 2xl:w-5 2xl:h-5' />

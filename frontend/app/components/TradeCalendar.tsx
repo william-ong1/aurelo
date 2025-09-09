@@ -58,14 +58,6 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
     }
   }, [hasInitialized]);
 
-  // Prevent auto-scroll when component re-mounts
-  React.useEffect(() => {
-    // Ensure we don't auto-scroll when the component re-mounts
-    if (typeof window !== 'undefined') {
-      // Prevent any automatic scroll restoration
-      window.history.scrollRestoration = 'manual';
-    }
-  }, []);
 
   const formatCurrency = (amount: number) => {
     return formatLargeNumber(amount);
@@ -240,7 +232,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-black rounded-lg p-4 pt-3 shadow-sm border border-slate-200 dark:border-gray-700 flex-1 flex flex-col">
+    <div className="bg-white dark:bg-black rounded-lg p-4 pt-3 shadow-sm border border-slate-200 dark:border-gray-600 flex-1 flex flex-col">
           {/* Calendar Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -355,7 +347,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                       : isCurrentMonth 
                         ? 'bg-white dark:bg-black border-slate-100 dark:border-gray-800/80'
                         : 'bg-slate-50 dark:bg-gray-950/80 border-slate-100 dark:border-gray-800/80'
-                  } ${isToday ? 'ring-1 ring-blue-300 dark:ring-gray-600/20 ring-offset-1' : ''} ${
+                  } ${isToday ? 'ring-1 ring-blue-300 ring-offset-0' : ''} ${
                     !isCurrentMonth && hasTrades ? 'opacity-60' : ''
                   }`}
                 >
