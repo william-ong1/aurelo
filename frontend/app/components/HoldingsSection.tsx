@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Minus, DollarSign, Percent } from 'lucide-react';
 import { Edit2, Trash2, RefreshCw, Clock, Plus } from 'lucide-react';
 import { useRealTime } from '../contexts/RealTimeContext';
@@ -24,6 +24,79 @@ interface HoldingsSectionProps {
   onToggleEditMode?: () => void;
   onAddAsset?: () => void;
   timePeriod?: 'all-time' | 'today';
+}
+
+// Component for fetching and displaying stock logos
+function StockLogo({ ticker, className }: { ticker: string; className?: string }) {
+  const [logoSrc, setLogoSrc] = useState<string | null>(null);
+  const [hasError, setHasError] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Check for dark mode
+  React.useEffect(() => {
+    const checkTheme = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    
+    checkTheme();
+    
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!ticker) return;
+
+    const logoUrl = `https://assets.parqet.com/logos/symbol/${ticker}`;
+    
+    // Test if the logo exists
+    const img = new Image();
+    img.onload = () => {
+      setLogoSrc(logoUrl);
+      setHasError(false);
+    };
+    img.onerror = () => {
+      setHasError(true);
+    };
+    img.src = logoUrl;
+  }, [ticker]);
+
+  if (logoSrc && !hasError) {
+    return (
+      <div 
+        className={`${className} rounded-full flex items-center justify-center`}
+        style={{ 
+          backgroundColor: isDarkMode ? 'white' : '#f3f4f6' 
+        }}
+      >
+        <img
+          src={logoSrc}
+          alt={`${ticker} logo`}
+          className="object-cover rounded-full w-full h-full"
+          onError={() => setHasError(true)}
+        />
+      </div>
+    );
+  }
+
+  // Fallback to default text
+  return (
+    <div 
+      className={`${className} rounded-full flex items-center justify-center`}
+      style={{ 
+        backgroundColor: isDarkMode ? 'white' : '#f3f4f6' 
+      }}
+    >
+      <span className={`font-bold text-[7px] ${isDarkMode ? 'text-black' : 'text-gray-700'}`}>
+        {ticker?.slice(0, 2).toUpperCase() || 'ST'}
+      </span>
+    </div>
+  );
 }
 
 export default function HoldingsSection({ 
@@ -290,16 +363,29 @@ export default function HoldingsSection({
                       }`}
                       onClick={isEditMode ? () => onEdit?.(asset) : undefined}
                     >
-                      {/* Border with left/right margins */}
-                      <div className="absolute left-4 right-1 bottom-0 h-px bg-slate-200 dark:bg-gray-800/60"></div>
+                      {/* Border with left/right margins - hide for last item */}
+                      {index < validAssets.length - 1 && (
+                        <div className="absolute left-4 right-1 bottom-0 h-px bg-slate-200 dark:bg-gray-800/60"></div>
+                      )}
                       {/* Circular Icon */}
                       <div 
-                        className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: getPieChartColor(colorIndex) }}
+                        className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
+                        style={{ 
+                          backgroundColor: asset.isStock && asset.ticker 
+                            ? 'transparent' 
+                            : getPieChartColor(colorIndex) 
+                        }}
                       >
-                        <span className="text-white font-bold text-[7px]">
-                          {asset.isStock ? asset.ticker : "CASH"}
-                        </span>
+                        {asset.isStock && asset.ticker ? (
+                          <StockLogo 
+                            ticker={asset.ticker} 
+                            className="w-6 h-6"
+                          />
+                        ) : (
+                          <span className="text-white font-bold text-[10px]">
+                            C
+                          </span>
+                        )}
                       </div>
                       
                       {/* Asset Details */}
@@ -401,16 +487,29 @@ export default function HoldingsSection({
                           }`}
                           onClick={isEditMode ? () => onEdit?.(asset) : undefined}
                         >
-                          {/* Border with left/right margins */}
-                          <div className="absolute left-4 right-1 bottom-0 h-px bg-slate-200 dark:bg-gray-800/60"></div>
+                          {/* Border with left/right margins - hide for last item */}
+                          {index < invalidAssets.length - 1 && (
+                            <div className="absolute left-4 right-1 bottom-0 h-px bg-slate-200 dark:bg-gray-800/60"></div>
+                          )}
                           {/* Circular Icon */}
                           <div 
-                            className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 opacity-60"
-                            style={{ backgroundColor: getPieChartColor(colorIndex) }}
+                            className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 opacity-60 overflow-hidden"
+                            style={{ 
+                              backgroundColor: asset.ticker 
+                                ? 'transparent' 
+                                : getPieChartColor(colorIndex) 
+                            }}
                           >
-                            <span className="text-white font-bold text-[7px]">
-                              {asset.ticker}
-                            </span>
+                            {asset.ticker ? (
+                              <StockLogo 
+                                ticker={asset.ticker} 
+                                className="w-6 h-6"
+                              />
+                            ) : (
+                              <span className="text-white font-bold text-[10px]">
+                                C
+                              </span>
+                            )}
                           </div>
                           
                           {/* Asset Details */}
