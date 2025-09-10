@@ -26,7 +26,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
   }, [isAuthModalOpen]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black">
+    <div className="min-h-screen bg-white dark:bg-black">
       {/* Desktop / Tablet Sidebar */}
       <div className="hidden md:block">
         <Sidebar onLogout={logout} />

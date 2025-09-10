@@ -138,18 +138,26 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden && !isAuthenticated && !isAuthLoading) {
-        // When page becomes visible and user is not authenticated, reload from localStorage
+        // Only reload if we haven't loaded from storage yet or if there's a significant difference
         const storedAssets = loadAssetsFromStorage();
-        if (storedAssets.length > 0 && storedAssets.length !== assets.length) {
+        if (storedAssets.length > 0 && (!hasLoadedFromStorage || Math.abs(storedAssets.length - assets.length) > 0)) {
+          // Preserve scroll position before updating assets
+          const scrollPosition = window.scrollY;
+          
           setAssets(storedAssets);
           setHasLoadedFromStorage(true);
+          
+          // Restore scroll position after a brief delay
+          setTimeout(() => {
+            window.scrollTo(0, scrollPosition);
+          }, 50);
         }
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [isAuthenticated, isAuthLoading, assets.length]);
+  }, [isAuthenticated, isAuthLoading, assets.length, hasLoadedFromStorage]);
 
   const loadPortfolioFromBackend = async () => {
     if (!token) return;

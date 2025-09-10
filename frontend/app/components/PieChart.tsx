@@ -28,9 +28,83 @@ interface PieChartProps {
   isLoadingAssets?: boolean;
 }
 
+// Component for fetching and displaying stock logos
+function StockLogo({ ticker, className }: { ticker: string; className?: string }) {
+  const [logoSrc, setLogoSrc] = useState<string | null>(null);
+  const [hasError, setHasError] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Check for dark mode
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    
+    checkTheme();
+    
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!ticker) return;
+
+    const logoUrl = `https://assets.parqet.com/logos/symbol/${ticker}`;
+    
+    // Test if the logo exists
+    const img = new Image();
+    img.onload = () => {
+      setLogoSrc(logoUrl);
+      setHasError(false);
+    };
+    img.onerror = () => {
+      setHasError(true);
+    };
+    img.src = logoUrl;
+  }, [ticker]);
+
+  if (logoSrc && !hasError) {
+    return (
+      <div 
+        className={`${className} rounded-full flex items-center justify-center`}
+        style={{ 
+          backgroundColor: isDarkMode ? 'white' : '#f3f4f6' 
+        }}
+      >
+        <img
+          src={logoSrc}
+          alt={`${ticker} logo`}
+          className="object-cover rounded-full w-full h-full"
+          onError={() => setHasError(true)}
+        />
+      </div>
+    );
+  }
+
+  // Fallback to default text
+  return (
+    <div 
+      className={`${className} rounded-full flex items-center justify-center`}
+      style={{ 
+        backgroundColor: isDarkMode ? 'white' : '#f3f4f6' 
+      }}
+    >
+      <span className={`font-bold text-[7px] ${isDarkMode ? 'text-black' : 'text-gray-700'}`}>
+        {ticker?.slice(0, 2).toUpperCase() || 'ST'}
+      </span>
+    </div>
+  );
+}
+
 export default function PieChart({ assets, isEditMode = false, onEdit, onDelete, timePeriod, isLoadingAssets = false }: PieChartProps) {
   const { realTimePrices, dailyData, lastUpdated, isLoading, failedTickers, fetchPrices } = useRealTime();
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showLogos, setShowLogos] = useState(false); // Set to false to hide logos
 
   // Listen for theme changes
   useEffect(() => {
@@ -50,6 +124,19 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
     
     return () => observer.disconnect();
   }, []);
+
+  // Control logo visibility during chart animation - DISABLED
+  // useEffect(() => {
+  //   // Reset logos to hidden when assets change
+  //   setShowLogos(false);
+  //   
+  //   // Show logos after a short delay to appear during the rotation animation
+  //   const timer = setTimeout(() => {
+  //     setShowLogos(true);
+  //   }, 300); // Show logos 300ms into the 1000ms animation
+  //   
+  //   return () => clearTimeout(timer);
+  // }, [assets, timePeriod, realTimePrices]);
   
   // Check if we have real-time prices for all valid stock assets (exclude invalid tickers)
   const validStockAssets = assets.filter(asset => 
@@ -367,6 +454,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
     },
   };
 
+
   // Enhanced center text plugin with portfolio change
   const centerText: Plugin<"doughnut"> = {
     id: "mainCenterText",
@@ -524,6 +612,29 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
     }
   };
 
+  // Calculate logo positions for overlay
+  const logoPositions = sortedAssets.map((asset, index) => {
+    const value = sortedValues[index];
+    const percentage = (value / totalValue) * 100;
+    const angle = (sortedValues.slice(0, index).reduce((sum, val) => sum + val, 0) + value / 2) / totalValue * 2 * Math.PI;
+    
+    // Position logos closer to the edge for better connection
+    const radius = 120; // 80% of 150px radius - closer to the edge
+    const centerX = 150; // Half of 300px width
+    const centerY = 150; // Half of 300px height
+    
+    const logoX = centerX + Math.cos(angle - Math.PI / 2) * radius;
+    const logoY = centerY + Math.sin(angle - Math.PI / 2) * radius;
+    
+    return {
+      asset,
+      x: logoX,
+      y: logoY,
+      percentage,
+      angle
+    };
+  });
+
   return (
     <div className="flex items-center justify-center w-full h-full">
       <div className="relative w-[300px] h-[300px]">
@@ -533,6 +644,51 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
           options={options} 
           plugins={[smallSegmentTooltip, centerText]} 
         />
+        
+        {/* Logo overlays */}
+        {showLogos && logoPositions.map(({ asset, x, y, percentage }, index) => {
+          // Only show logos for segments that are large enough (>= 8%)
+          if (percentage < 8) return null;
+          
+          return (
+            <div
+              key={`logo-${asset.id}`}
+              className="absolute transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500 ease-out"
+              style={{
+                left: `${x}px`,
+                top: `${y}px`,
+                opacity: showLogos ? 1 : 0,
+              }}
+            >
+              {asset.isStock && asset.ticker ? (
+                <div 
+                  className="w-8 h-8 rounded-full flex items-center justify-center border-2 shadow-lg"
+                  style={{ 
+                    borderColor: finalColors[index],
+                    backgroundColor: isDarkMode ? 'white' : '#f3f4f6'
+                  }}
+                >
+                  <StockLogo 
+                    ticker={asset.ticker} 
+                    className="w-6 h-6"
+                  />
+                </div>
+              ) : (
+                <div 
+                  className="w-8 h-8 rounded-full flex items-center justify-center border-2 shadow-lg"
+                  style={{ 
+                    backgroundColor: finalColors[index],
+                    borderColor: 'white'
+                  }}
+                >
+                  <span className="text-white font-bold text-[12px]">
+                    {asset.name?.charAt(0).toUpperCase() || 'C'}
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
       
       {/* Legend */}
