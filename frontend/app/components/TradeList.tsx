@@ -89,7 +89,10 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
 
   const isToday = (dateString: string) => {
     const today = new Date();
-    const todayString = today.toISOString().split('T')[0]; // Get YYYY-MM-DD format
+    // Use local date instead of UTC to avoid timezone issues
+    const todayString = today.getFullYear() + '-' + 
+      String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+      String(today.getDate()).padStart(2, '0');
     const isTodayResult = dateString === todayString;
     console.log('isToday check:', { dateString, todayString, isTodayResult });
     return isTodayResult;
@@ -222,9 +225,9 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
 
   return (
     <>
-      <div className="bg-white dark:bg-black rounded-lg p-4 pb-2 shadow-sm border border-slate-200 dark:border-gray-600">
+      <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 pb-2 shadow-sm border border-slate-200 dark:border-gray-600">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Trade History</h3>
+          <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Trade History</h3>
           <div className="flex items-center gap-1.5">
             <button
               onClick={exportToCsv}
@@ -248,7 +251,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
             <thead className="sticky top-0 bg-white dark:bg-black select-none">
               <tr className="border-b border-gray-200 dark:border-gray-800/80">
                 <th 
-                  className="text-left py-1.5 sm:py-1.5 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
+                  className="text-left py-1.5 sm:py-1.5 pl-0 pr-2 sm:pr-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
                   onClick={() => handleSort('date')}
                 >
                   <div className="flex items-center gap-1">
@@ -257,7 +260,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                   </div>
                 </th>
                 <th 
-                  className="text-left py-1.5 sm:py-1.5 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
+                  className="text-left py-1.5 sm:py-1.5 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
                   onClick={() => handleSort('ticker')}
                 >
                   <div className="flex items-center gap-1">
@@ -266,7 +269,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                   </div>
                 </th>
                 <th 
-                  className="text-right py-1.5 sm:py-1.5 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
+                  className="text-right py-1.5 sm:py-1.5 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
                   onClick={() => handleSort('realized_pnl')}
                 >
                   <div className="flex items-center gap-1 justify-end">
@@ -275,7 +278,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                   </div>
                 </th>
                 <th 
-                  className="text-right py-1.5 sm:py-1.5 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
+                  className="text-right py-1.5 sm:py-1.5 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
                   onClick={() => handleSort('percent_diff')}
                 >
                   <div className="flex items-center gap-1 justify-end">
@@ -283,25 +286,25 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                     {getSortIcon('percent_diff')}
                   </div>
                 </th>
-                <th className="text-center py-1.5 sm:py-1.5 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white select-none w-1/5">Actions</th>
+                <th className="text-center py-1.5 sm:py-1.5 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white select-none w-1/5">Actions</th>
               </tr>
             </thead>
             <tbody>
               {sortedTrades.length > 0 ? (
                 (displayCount === 'today' ? sortedTrades : sortedTrades.slice(0, typeof displayCount === 'number' ? displayCount : sortedTrades.length)).map((trade) => (
                   <tr key={trade.id} className="border-b border-slate-200 dark:border-gray-800/80">
-                    <td className="py-1.5 sm:py-1.5 pl-0 pr-2 sm:pr-4 text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100">
+                    <td className="py-1.5 sm:py-1.5 pl-0 pr-2 sm:pr-4 text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100">
                       {formatDate(trade.date)}
                     </td>
                     <td className="py-1.5 sm:py-1.5 px-2 sm:px-4">
-                      <span className="text-[10px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100">{trade.ticker}</span>
+                      <span className="text-[12px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100">{trade.ticker}</span>
                     </td>
-                    <td className="py-1.5 sm:py-1.5 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-right">
+                    <td className="py-1.5 sm:py-1.5 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-semibold text-right">
                       <span className={getPnlColor(trade.realized_pnl || 0)}>
                         {formatCurrency(trade.realized_pnl || 0)}
                       </span>
                     </td>
-                    <td className="py-1.5 sm:py-1.5 px-2 sm:px-4 text-[10px] sm:text-xs 2xl:text-sm font-semibold text-right">
+                    <td className="py-1.5 sm:py-1.5 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-semibold text-right">
                       <span className={getPnlColor(trade.percent_diff || 0)}>
                         {formatPercent(trade.percent_diff || 0)}
                       </span>
@@ -332,7 +335,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="py-6 sm:py-8 px-3 sm:px-6 text-center text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100">
+                  <td colSpan={5} className="py-6 sm:py-8 px-3 sm:px-6 text-center text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100">
                     No trades yet. Click the + button to add your first trade.
                   </td>
                 </tr>

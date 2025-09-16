@@ -1,8 +1,8 @@
 "use client";
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
-import MobileBottomNav from './MobileBottomNav';
+import MobileSidebar from './MobileSidebar';
 import AuthModal from './AuthModal';
 import { disableBodyScroll, enableBodyScroll } from '../utils/scrollLock';
 import { useAuth } from '../contexts/AuthContext';
@@ -15,15 +15,24 @@ interface SidebarLayoutProps {
 export default function SidebarLayout({ children }: SidebarLayoutProps) {
   const { logout } = useAuth();
   const { isAuthModalOpen, hideAuthModal } = useAuthModal();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (isAuthModalOpen) {
+    if (isAuthModalOpen || isMobileSidebarOpen) {
       disableBodyScroll();
     } else {
       enableBodyScroll();
     }
     return () => enableBodyScroll();
-  }, [isAuthModalOpen]);
+  }, [isAuthModalOpen, isMobileSidebarOpen]);
+
+  const handleMobileMenuClick = () => {
+    setIsMobileSidebarOpen(true);
+  };
+
+  const handleMobileSidebarClose = () => {
+    setIsMobileSidebarOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
@@ -34,16 +43,20 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
 
       {/* Mobile Header */}
       <div className="md:hidden">
-        <Header onLogout={logout} />
+        <Header onLogout={logout} onMenuClick={handleMobileMenuClick} />
       </div>
 
       {/* Content */}
-      <div className="pl-56 pb-16 md:pb-0">
+      <div className="md:pl-56 md:pb-0">
         {children}
       </div>
 
-      {/* Mobile Bottom Nav */}
-      <MobileBottomNav />
+      {/* Mobile Sidebar */}
+      <MobileSidebar
+        isOpen={isMobileSidebarOpen}
+        onClose={handleMobileSidebarClose}
+        onLogout={logout}
+      />
 
       <AuthModal
         isOpen={isAuthModalOpen}

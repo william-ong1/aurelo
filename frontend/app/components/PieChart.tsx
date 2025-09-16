@@ -152,7 +152,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
           <div className="text-center">
             <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto mb-3 sm:mb-4"></div>
             <div className="text-xs sm:text-sm 2xl:text-base text-black dark:text-white font-medium">Retrieving portfolio...</div>
-            <div className="text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">Loading your assets</div>
+            <div className="text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">Loading your assets</div>
           </div>
         </div>
       );
@@ -220,12 +220,16 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
 
     return (
       <div className="w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] 2xl:h-[360px]">
-        <Doughnut 
-          key={`default-chart-${isDarkMode}`} 
-          data={defaultData} 
-          options={defaultOptions} 
-          plugins={[defaultCenterText]} 
-        />
+        <div className="flex items-center justify-center w-full h-full">
+          <div className="relative w-[300px] h-[300px] sm:w-[300px] sm:h-[300px] md:w-[320px] md:h-[320px]">
+            <Doughnut 
+              key={`default-chart-${isDarkMode}`} 
+              data={defaultData} 
+              options={defaultOptions} 
+              plugins={[defaultCenterText]} 
+            />
+          </div>
+        </div>
       </div>
     );
   }
@@ -237,7 +241,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
   //       <div className="text-center">
   //         <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto mb-3 sm:mb-4"></div>
   //         <div className="text-xs sm:text-sm 2xl:text-base text-black dark:text-white font-medium">Loading prices...</div>
-  //         <div className="text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">Fetching real-time data</div>
+  //         <div className="text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">Fetching real-time data</div>
   //       </div>
   //     </div>
   //   );
@@ -619,7 +623,8 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
     const angle = (sortedValues.slice(0, index).reduce((sum, val) => sum + val, 0) + value / 2) / totalValue * 2 * Math.PI;
     
     // Position logos closer to the edge for better connection
-    const radius = 120; // 80% of 150px radius - closer to the edge
+    // Use average size for positioning (300px base)
+    const radius = 120; // 40% of 300px - closer to the edge
     const centerX = 150; // Half of 300px width
     const centerY = 150; // Half of 300px height
     
@@ -637,9 +642,9 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
 
   return (
     <div className="flex items-center justify-center w-full h-full">
-      <div className="relative w-[300px] h-[300px]">
+      <div className="relative w-[300px] h-[300px] sm:w-[300px] sm:h-[300px] md:w-[320px] md:h-[320px]">
         <Doughnut 
-          key={`chart-${assets.length}-${totalValue.toFixed(2)}-${portfolioChange.toFixed(2)}-${timePeriod}-${isDarkMode}-${JSON.stringify(values)}`} 
+          key={`chart-${assets.length}-${timePeriod}-${isDarkMode}-${assets.map(a => `${a.id}-${a.shares || a.balance}-${a.currentPrice || a.apy}`).join('-')}`} 
           data={data} 
           options={options} 
           plugins={[smallSegmentTooltip, centerText]} 
@@ -793,17 +798,17 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <div className="flex items-baseline space-x-2 flex-1 min-w-0">
-                            <div className="text-[8px] sm:text-[10px] 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
+                            <div className="text-[8px] sm:text-[12px] 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
                               {asset.isStock ? asset.ticker : "CASH"}
                             </div>
-                            <div className="text-[8px] sm:text-[10px] 2xl:text-sm text-black dark:text-white truncate">
+                            <div className="text-[8px] sm:text-[12px] 2xl:text-sm text-black dark:text-white truncate">
                               {asset.name}
                             </div>
                           </div>
                           <div className="flex items-center space-x-2 flex-shrink-0">
                             <div className="w-12 sm:w-16 flex justify-end">
                               {!isEditMode && (
-                                <div className="text-[8px] sm:text-[10px] 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                <div className="text-[8px] sm:text-[12px] 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100">
                                   {displayPercentage}
                                 </div>
                               )}
@@ -834,7 +839,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
                             </div>
                           </div>
                         </div>
-                        <div className="flex flex-row items-center justify-between mt-1 text-[8px] sm:text-[10px] 2xl:text-sm text-gray-900 dark:text-gray-100 gap-1">
+                        <div className="flex flex-row items-center justify-between mt-1 text-[8px] sm:text-[12px] 2xl:text-sm text-gray-900 dark:text-gray-100 gap-1">
                           <span className="truncate">
                             {asset.isStock ? (
                               <div className="flex flex-col sm:flex-row">
@@ -878,7 +883,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
                 {processedInvalidAssets.length > 0 && (
                   <>
                     <div className="mt-4 mb-2">
-                      <div className="text-[8px] sm:text-[10px] 2xl:text-sm font-medium text-gray-900 dark:text-gray-100 tracking-wide px-3">
+                      <div className="text-[8px] sm:text-[12px] 2xl:text-sm font-medium text-gray-900 dark:text-gray-100 tracking-wide px-3">
                         Invalid Tickers (No Real-Time Data)
                       </div>
                     </div>
@@ -902,17 +907,17 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
                               <div className="flex items-baseline space-x-2 flex-1 min-w-0">
-                                <div className="text-[8px] sm:text-[10px] 2xl:text-sm font-semibold text-gray-700 truncate">
+                                <div className="text-[8px] sm:text-[12px] 2xl:text-sm font-semibold text-gray-700 truncate">
                                   {asset.ticker}
                                 </div>
-                                <div className="text-[8px] sm:text-[10px] 2xl:text-sm text-gray-900 dark:text-gray-100 truncate hidden sm:block">
+                                <div className="text-[8px] sm:text-[12px] 2xl:text-sm text-gray-900 dark:text-gray-100 truncate hidden sm:block">
                                   {asset.name}
                                 </div>
                               </div>
                               <div className="flex items-center space-x-2 flex-shrink-0">
                                 <div className="w-12 sm:w-16 flex justify-end">
                                   {!isEditMode && (
-                                    <div className="text-[8px] sm:text-[10px] 2xl:text-sm font-semibold text-gray-700">
+                                    <div className="text-[8px] sm:text-[12px] 2xl:text-sm font-semibold text-gray-700">
                                       {displayPercentage}
                                     </div>
                                   )}
@@ -943,7 +948,7 @@ export default function PieChart({ assets, isEditMode = false, onEdit, onDelete,
                                 </div>
                               </div>
                             </div>
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-1 text-[8px] sm:text-[10px] 2xl:text-sm text-gray-900 dark:text-gray-100 gap-1">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-1 text-[8px] sm:text-[12px] 2xl:text-sm text-gray-900 dark:text-gray-100 gap-1">
                               <span className="truncate">
                                 {(asset.shares || 0).toLocaleString()} @ ${(asset.purchasePrice || asset.currentPrice || 0).toFixed(2)} (No real-time data)
                               </span>

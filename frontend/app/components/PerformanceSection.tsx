@@ -6,18 +6,18 @@ export default function PerformanceSection() {
     <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Performance</h3>
+          <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Performance</h3>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-3">
-          <div className="flex items-center bg-gray-100 dark:bg-black backdrop-blur-sm rounded-full p-1 border border-gray-200/30 dark:border-gray-600 gap-1">
+          <div className="flex items-center bg-gray-50 dark:bg-gray-900/50 backdrop-blur rounded-full p-1 border border-gray-200/60 dark:border-gray-700/60 shadow-sm gap-1">
             {(['1D', '1W', '1M', '3M', '1Y', 'ALL'] as const).map((period) => (
               <button
                 key={period}
                 disabled
-                className={`px-1.5 sm:px-2 2xl:px-3 py-.7 sm:py-1 2xl:py-1.5 text-[.5rem] sm:text-[.6rem] 2xl:text-[.8rem] font-medium rounded-full transition-all duration-200 cursor-not-allowed ${
+                className={`px-1.5 sm:px-2 2xl:px-3 py-.7 sm:py-1 2xl:py-1.5 text-[.5rem] sm:text-[.6rem] 2xl:text-[.8rem] font-medium rounded-full transition-all duration-200 cursor-not-allowed focus:outline-none ${
                   period === '1M'
-                    ? 'text-gray-900 dark:text-white bg-white dark:bg-gray-800 shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-semibold'
-                    : 'text-gray-400 dark:text-gray-500'
+                    ? 'text-gray-900 dark:text-white bg-white dark:bg-gray-800 shadow ring-1 ring-gray-300 dark:ring-gray-700 font-semibold'
+                    : 'text-gray-600 dark:text-gray-400'
                 }`}
               >
                 {period}
@@ -68,7 +68,7 @@ export default function PerformanceSection() {
           </svg>
         </div>
         
-        <div className="mt-4 flex items-center justify-between text-[10px] sm:text-xs 2xl:text-sm text-gray-400 dark:text-gray-500">
+        <div className="mt-4 flex items-center justify-between text-[12px] sm:text-xs 2xl:text-sm text-gray-400 dark:text-gray-500">
           <span>Start: $0</span>
           <span>1M period</span>
           <span>Current: $0</span>

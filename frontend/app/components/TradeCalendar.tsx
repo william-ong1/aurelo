@@ -165,9 +165,13 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
     const dayOfWeek = day.getDay();
     const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Monday = 1, Sunday = 0
     weekStart.setDate(weekStart.getDate() - daysToSubtract);
-    const weekKey = weekStart.toISOString().split('T')[0];
+    const weekKey = weekStart.getFullYear() + '-' + 
+      String(weekStart.getMonth() + 1).padStart(2, '0') + '-' + 
+      String(weekStart.getDate()).padStart(2, '0');
     
-    const dateString = day.toISOString().split('T')[0];
+    const dateString = day.getFullYear() + '-' + 
+      String(day.getMonth() + 1).padStart(2, '0') + '-' + 
+      String(day.getDate()).padStart(2, '0');
     const dayStats = dailyStats[dateString];
     
     if (!weeklyStats.has(weekKey)) {
@@ -232,37 +236,37 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-black rounded-lg p-4 pt-3 shadow-sm border border-slate-200 dark:border-gray-600 flex-1 flex flex-col">
+    <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 pt-2 sm:pt-3 shadow-sm border border-slate-200 dark:border-gray-600 flex-1 flex flex-col">
           {/* Calendar Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">P&L Calendar</h3>
-            <div className="flex bg-gray-100 dark:bg-black rounded-md p-0.5 ml-28 relative border border-gray-200/30 dark:border-gray-800/80">
+            <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">P&L Calendar</h3>
+            <div className="flex bg-gray-100 dark:bg-black rounded-md p-0.5 ml-8 sm:ml-6 lg:ml-28 relative border border-gray-200/30 dark:border-gray-800/80">
               <button
                 onClick={() => {
                   setDisplayMode('price');
                   localStorage.setItem('tradeCalendarDisplayMode', 'price');
                 }}
-                className={`flex items-center justify-center w-6 h-5 rounded-sm transition-all duration-200 ${
+                className={`flex items-center justify-center w-5 h-4 sm:w-6 sm:h-5 rounded-sm transition-all duration-200 ${
                   displayMode === 'price' 
                     ? 'bg-white dark:bg-gray-900 text-slate-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-semibold' 
                     : 'text-slate-500 dark:text-gray-400 hover:text-slate-600 dark:hover:text-gray-300'
                 }`}
               >
-                <DollarSign className="h-2.5 w-2.5" />
+                <DollarSign className="h-2.5 w-2.5 sm:h-2.5 sm:w-2.5" />
               </button>
               <button
                 onClick={() => {
                   setDisplayMode('percentage');
                   localStorage.setItem('tradeCalendarDisplayMode', 'percentage');
                 }}
-                className={`flex items-center justify-center w-6 h-5 rounded-sm transition-all duration-200 ${
+                className={`flex items-center justify-center w-5 h-4 sm:w-6 sm:h-5 rounded-sm transition-all duration-200 ${
                   displayMode === 'percentage' 
                     ? 'bg-white dark:bg-gray-900 text-slate-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-semibold' 
                     : 'text-slate-500 dark:text-gray-400 hover:text-slate-600 dark:hover:text-gray-300'
                 }`}
               >
-                <Percent className="h-2.5 w-2.5" />
+                <Percent className="h-2.5 w-2.5 sm:h-2.5 sm:w-2.5" />
               </button>
               <div className="flex">
                 <button
@@ -270,20 +274,20 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                     setDisplayMode('r');
                     localStorage.setItem('tradeCalendarDisplayMode', 'r');
                   }}
-                  className={`flex items-center justify-center w-6 h-5 transition-all duration-200 ${
+                  className={`flex items-center justify-center w-5 h-4 sm:w-6 sm:h-5 transition-all duration-200 ${
                     displayMode === 'r' 
                       ? 'bg-white dark:bg-gray-900 text-slate-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-semibold rounded-l-sm' 
                       : 'text-slate-500 dark:text-gray-400 hover:text-slate-600 dark:hover:text-gray-300 rounded-sm'
                   }`}
                 >
-                  <span className="text-[.6rem] font-bold">R</span>
+                  <span className="text-[.55rem] sm:text-[.6rem] font-bold">R</span>
                 </button>
                 {displayMode === 'r' && (
                   <input
                     type="number"
                     value={rValue === 0 ? '' : rValue}
                     onChange={handleRValueChange}
-                     className="w-8 h-5 text-[.6rem] text-center border border-gray-200/30 dark:border-gray-800/80 rounded-r-sm bg-white dark:bg-gray-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-300 ring-1 ring-gray-300 dark:ring-gray-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none leading-none py-0 px-0 font-medium shadow-sm"
+                     className="w-7 h-4 sm:w-8 sm:h-5 text-[.55rem] sm:text-[.6rem] text-center border border-gray-200/30 dark:border-gray-800/80 rounded-r-sm bg-white dark:bg-gray-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-300 ring-1 ring-gray-300 dark:ring-gray-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none leading-none py-0 px-0 font-medium shadow-sm"
                     min="0"
                     step="0.1"
                   />
@@ -291,14 +295,14 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center lg:gap-2">
             <button
               onClick={goToPreviousMonth}
               className="text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 transition-all duration-200 rounded-lg"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <span className="w-16 text-center px-0 py-1.5 text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">
+            <span className="w-16 text-center px-0 py-1.5 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">
               {monthNames[month]} {year}
             </span>
             <button
@@ -331,7 +335,9 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
             
             // Add the 5 weekdays
             weekDays.forEach((day, dayIndex) => {
-              const dateString = day.toISOString().split('T')[0];
+              const dateString = day.getFullYear() + '-' + 
+                String(day.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(day.getDate()).padStart(2, '0');
               const isCurrentMonth = day.getMonth() === month;
               const isToday = day.toDateString() === new Date().toDateString();
               const dayStats = dailyStats[dateString];
@@ -391,11 +397,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
             calendarDays.push(
               <div
                 key={`week-${weekIndex}`}
-                className={`relative p-2 pb-1 min-h-[60px] border rounded-md transition-all duration-200 flex flex-col justify-between ${
-                  hasWeekData 
-                    ? getDayBackgroundColor(weekData.pnl)
-                    : 'bg-slate-50 dark:bg-gray-950/80 border-slate-100 dark:border-gray-800/80'
-                }`}
+                className="relative p-2 pb-1 min-h-[60px] border rounded-md transition-all duration-200 flex flex-col justify-between bg-slate-50 dark:bg-gray-950/80 border-slate-100 dark:border-gray-800/80"
               >
                 {/* Week Label */}
                 <div className="text-[.6rem] font-semibold text-slate-500 dark:text-gray-400 text-left">

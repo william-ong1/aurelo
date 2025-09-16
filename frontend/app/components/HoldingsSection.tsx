@@ -275,7 +275,7 @@ export default function HoldingsSection({
     return (
       <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600 h-[400px] flex flex-col">
         <div className="flex items-center justify-between mb-4 flex-shrink-0">
-          <h3 className="text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Holdings</h3>
+          <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Holdings</h3>
         </div>
         <div className="space-y-2 flex-1 overflow-y-auto">
           {[1, 2, 3].map((i) => (
@@ -300,7 +300,7 @@ export default function HoldingsSection({
     <div className="bg-white dark:bg-black rounded-lg px-0 pt-3 shadow-sm border border-slate-200 dark:border-gray-600 h-[400px] flex flex-col">
       <div className="flex items-center justify-between mb-4 flex-shrink-0 px-4">
         <h3 className="text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Holdings</h3>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2.5 sm:gap-1">
           <button
             onClick={onToggleEditMode}
             disabled={assets.length === 0}
@@ -313,7 +313,7 @@ export default function HoldingsSection({
             }`}
             title={assets.length === 0 ? "No assets to edit" : isEditMode && assets.length > 0 ? "Exit Edit Mode" : "Edit Portfolio"}
           >
-            <Edit2 className='w-3 h-3 sm:w-3 sm:h-3 2xl:w-5 2xl:h-5' />
+            <Edit2 className='w-3.5 h-3.5 2xl:w-5 2xl:h-5' />
           </button>
           <button
             onClick={onAddAsset}
@@ -325,7 +325,7 @@ export default function HoldingsSection({
             }`}
             title={isEditMode && assets.length > 0 ? "Exit edit mode to add assets" : "Add Asset"}
           >
-            <Plus className='w-3 h-3 sm:w-4 sm:h-4 2xl:w-5 2xl:h-5' />
+            <Plus className='w-4 h-4 sm:w-4.5 sm:h-4.5 2xl:w-5 2xl:h-5' />
           </button>
         </div>
       </div>

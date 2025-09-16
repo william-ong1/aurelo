@@ -127,7 +127,7 @@ export default function WatchlistModal({
         <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           {/* Ticker Symbol */}
           <div>
-            <label htmlFor="ticker" className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
+            <label htmlFor="ticker" className="block text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
               Ticker Symbol *
             </label>
             <input
@@ -151,7 +151,7 @@ export default function WatchlistModal({
 
           {/* Notes */}
           <div>
-            <label htmlFor="notes" className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
+            <label htmlFor="notes" className="block text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
               Notes (Optional)
             </label>
             <textarea
@@ -172,7 +172,7 @@ export default function WatchlistModal({
 
           {/* Chart Link */}
           <div>
-            <label htmlFor="chart_link" className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
+            <label htmlFor="chart_link" className="block text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
               Custom Chart Link (Optional)
             </label>
             <input
@@ -208,7 +208,7 @@ export default function WatchlistModal({
               {isLoading ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  <span className="text-[10px] sm:text-xs 2xl:text-sm">{editingItem ? 'Updating...' : 'Adding...'}</span>
+                  <span className="text-[12px] sm:text-xs 2xl:text-sm">{editingItem ? 'Updating...' : 'Adding...'}</span>
                 </div>
               ) : (
                 editingItem ? 'Update Item' : 'Add to Watchlist'

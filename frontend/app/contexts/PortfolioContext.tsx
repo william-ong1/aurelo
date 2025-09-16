@@ -141,16 +141,9 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
         // Only reload if we haven't loaded from storage yet or if there's a significant difference
         const storedAssets = loadAssetsFromStorage();
         if (storedAssets.length > 0 && (!hasLoadedFromStorage || Math.abs(storedAssets.length - assets.length) > 0)) {
-          // Preserve scroll position before updating assets
-          const scrollPosition = window.scrollY;
-          
           setAssets(storedAssets);
           setHasLoadedFromStorage(true);
-          
-          // Restore scroll position after a brief delay
-          setTimeout(() => {
-            window.scrollTo(0, scrollPosition);
-          }, 50);
+          // Don't restore scroll position on tab switch - let browser handle it naturally
         }
       }
     };

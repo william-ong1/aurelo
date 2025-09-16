@@ -179,13 +179,13 @@ export default function PerformanceChart({ assets, timePeriod }: PerformanceChar
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-sm sm:text-base 2xl:text-lg font-semibold text-gray-900">Performance</h3>
-          <p className="text-[10px] sm:text-xs 2xl:text-sm text-black">Portfolio value over time</p>
+          <p className="text-[12px] sm:text-xs 2xl:text-sm text-black">Portfolio value over time</p>
         </div>
         <div className="text-right">
           <div className="text-lg sm:text-xl 2xl:text-2xl font-bold text-gray-900">
             {formatCurrency(endValue)}
           </div>
-          <div className={`text-[10px] sm:text-xs 2xl:text-sm font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+          <div className={`text-[12px] sm:text-xs 2xl:text-sm font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
             {isPositive ? '+' : ''}{formatCurrency(totalChange)} ({isPositive ? '+' : ''}{totalChangePercent.toFixed(2)}%)
           </div>
         </div>
@@ -195,7 +195,7 @@ export default function PerformanceChart({ assets, timePeriod }: PerformanceChar
         <Line data={chartData} options={options} />
       </div>
       
-      <div className="mt-4 flex items-center justify-between text-[10px] sm:text-xs 2xl:text-sm text-gray-900">
+      <div className="mt-4 flex items-center justify-between text-[12px] sm:text-xs 2xl:text-sm text-gray-900">
         <span>Start: {formatCurrency(startValue)}</span>
         <span>{timePeriod} period</span>
         <span>Current: {formatCurrency(endValue)}</span>

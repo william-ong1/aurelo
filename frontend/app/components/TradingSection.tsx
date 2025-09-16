@@ -378,7 +378,7 @@ export default function TradingSection() {
             <p className="text-xs sm:text-sm 2xl:text-base text-black dark:text-white font-medium">
               {isAuthLoading ? 'Checking authentication...' : 'Loading trades...'}
             </p>
-            <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">
+            <p className="text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">
               {isAuthLoading ? 'Verifying your login status' : 'Retrieving your trading data'}
             </p>
           </div>

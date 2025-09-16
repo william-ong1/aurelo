@@ -129,7 +129,7 @@ export default function JournalModal({
         <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           {/* Title */}
           <div>
-            <label htmlFor="title" className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
+            <label htmlFor="title" className="block text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
               Title *
             </label>
             <input
@@ -150,7 +150,7 @@ export default function JournalModal({
 
           {/* Content */}
           <div>
-            <label htmlFor="content" className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
+            <label htmlFor="content" className="block text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
               Content *
             </label>
             <textarea
@@ -171,7 +171,7 @@ export default function JournalModal({
 
           {/* Tags */}
           <div>
-            <label htmlFor="tags" className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
+            <label htmlFor="tags" className="block text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
               Tags (Optional)
             </label>
             <input
@@ -207,7 +207,7 @@ export default function JournalModal({
               {isLoading ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  <span className="text-[10px] sm:text-xs 2xl:text-sm">{editingEntry ? 'Updating...' : 'Adding...'}</span>
+                  <span className="text-[12px] sm:text-xs 2xl:text-sm">{editingEntry ? 'Updating...' : 'Adding...'}</span>
                 </div>
               ) : (
                 editingEntry ? 'Update Entry' : 'Add Entry'

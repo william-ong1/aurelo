@@ -134,7 +134,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
 
 
           <div>
-            <label className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
+            <label className="block text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
               Email Address
             </label>
             <input
@@ -148,7 +148,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
           </div>
 
           <div>
-            <label className="block text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
+            <label className="block text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
               Password
             </label>
             <div className="relative">
@@ -176,19 +176,19 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-black dark:text-white rounded-lg hover:bg-gray-100 dark:bg-black dark:hover:bg-gray-900 font-medium transition-colors cursor-pointer text-[10px] sm:text-xs 2xl:text-sm"
+              className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-black dark:text-white rounded-lg hover:bg-gray-100 dark:bg-black dark:hover:bg-gray-900 font-medium transition-colors cursor-pointer text-[12px] sm:text-xs 2xl:text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-xs 2xl:text-sm"
+              className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[12px] sm:text-xs 2xl:text-sm"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  <span className="text-[10px] sm:text-xs 2xl:text-sm">{mode === 'login' ? 'Signing In...' : 'Creating Account...'}</span>
+                  <span className="text-[12px] sm:text-xs 2xl:text-sm">{mode === 'login' ? 'Signing In...' : 'Creating Account...'}</span>
                 </div>
               ) : (
                 mode === 'login' ? 'Sign In' : 'Create Account'
@@ -200,7 +200,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
             <button
               type="button"
               onClick={switchMode}
-              className="text-blue-600 hover:text-blue-700 text-[10px] sm:text-xs 2xl:text-sm font-medium cursor-pointer"
+              className="text-blue-600 hover:text-blue-700 text-[12px] sm:text-xs 2xl:text-sm font-medium cursor-pointer"
             >
               {mode === 'login' 
                 ? "Don't have an account? Sign up" 

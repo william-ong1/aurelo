@@ -362,7 +362,7 @@ export default function Home() {
           <p className="text-xs sm:text-sm 2xl:text-base text-black dark:text-white font-medium">
             Loading portfolio...
           </p>
-          <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">
+          <p className="text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">
             Retrieving your portfolio data
           </p>
         </div>
@@ -385,7 +385,7 @@ export default function Home() {
     //     <div className="text-center">
     //       <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto mb-3 sm:mb-4"></div>
     //       <div className="text-xs sm:text-sm 2xl:text-base text-black dark:text-white font-medium">Loading prices...</div>
-    //       <div className="text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">Fetching real-time data</div>
+    //       <div className="text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">Fetching real-time data</div>
     //     </div>
     //   </div>
     // );
@@ -397,7 +397,7 @@ export default function Home() {
           <p className="text-xs sm:text-sm 2xl:text-base text-black dark:text-white font-medium">
             Loading prices...
           </p>
-          <p className="text-[10px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">
+          <p className="text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">
             Fetching real-time data
           </p>
         </div>
@@ -409,33 +409,33 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       {isPageReady && (
-        <main className="mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-9 max-w-6xl 2xl:max-w-7xl">
+        <main className="mx-auto px-4 sm:px-6 lg:px-8 pt-19 sm:pt-9 pb-8 sm:pb-9 max-w-6xl 2xl:max-w-7xl">
           {/* Top Row - Overview and Holdings */}
           <div className="flex flex-col lg:flex-row gap-4 mb-4">
             {/* Overview Box - Fixed size */}
             <div className="lg:w-2/5 bg-white dark:bg-black rounded-lg p-4 pt-3 shadow-sm border border-slate-200 dark:border-gray-600 h-[400px]">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-[10px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Overview</h3>
+                  <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Overview</h3>
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-3">
-                  <div className="flex items-center bg-gray-100 dark:bg-black backdrop-blur-sm rounded-full p-1 border border-gray-200/30 dark:border-gray-600 gap-1">
+                  <div className="flex items-center bg-gray-50 dark:bg-gray-900/50 backdrop-blur rounded-full p-1 border border-gray-200/60 dark:border-gray-700/60 shadow-sm gap-1">
                     <button
                       onClick={() => setTimePeriod('all-time')}
-                      className={`px-1.5 sm:px-2 2xl:px-3 py-.7 sm:py-1 2xl:py-1.5 text-[.5rem] sm:text-[.6rem] 2xl:text-[.8rem] font-medium rounded-full transition-all duration-200 cursor-pointer ${
-                        timePeriod === 'all-time' 
-                          ? 'text-gray-900 dark:text-white bg-white dark:bg-gray-800 shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-semibold' 
-                          : 'text-gray-400 dark:text-gray-500'
+                      className={`px-1.5 sm:px-2 2xl:px-3 py-.7 sm:py-1 2xl:py-1.5 text-[.55rem] 2xl:text-[.8rem] font-medium rounded-full transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 ${
+                        timePeriod === 'all-time'
+                          ? 'text-gray-900 dark:text-white bg-white dark:bg-gray-800 shadow ring-1 ring-gray-300 dark:ring-gray-700 font-semibold'
+                          : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/50'
                       }`}
                     >
                       All Time
                     </button>
                     <button
                       onClick={() => setTimePeriod('today')}
-                      className={`px-1.5 sm:px-2 2xl:px-3 py-.7 sm:py-1 2xl:py-1.5 text-[.5rem] sm:text-[.6rem] 2xl:text-[.8rem] font-medium rounded-full transition-all duration-200 cursor-pointer ${
-                        timePeriod === 'today' 
-                          ? 'text-gray-900 dark:text-white bg-white dark:bg-gray-800 shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-semibold' 
-                          : 'text-gray-400 dark:text-gray-500'
+                      className={`px-1.5 sm:px-2 2xl:px-3 py-.7 sm:py-1 2xl:py-1.5 text-[.55rem] 2xl:text-[.8rem] font-medium rounded-full transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 ${
+                        timePeriod === 'today'
+                          ? 'text-gray-900 dark:text-white bg-white dark:bg-gray-800 shadow ring-1 ring-gray-300 dark:ring-gray-700 font-semibold'
+                          : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/50'
                       }`}
                     >
                       Today

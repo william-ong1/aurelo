@@ -30,8 +30,8 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
         <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png"/>
-        {/* <meta name="theme-color" content="#f9fafb"/> */}
-        <meta name="theme-color" content="#fff"/> 
+        {/* <meta name="theme-color" content="#f9fafb" /> */}
+        <meta name="theme-color" content="#000"/> 
         <link rel="icon" href="/favicon/favicon.ico"/>
         <link rel="icon" type="image/png" sizes="512x512" href="/favicon/android-chrome-512x512.png"/>
         <link rel="icon" type="image/png" sizes="192x192" href="/favicon/android-chrome-192x192.png"/>
@@ -43,15 +43,15 @@ export default function RootLayout({
             __html: `
               // Prevent hydration mismatch by ensuring consistent initial state
               (function() {
-                // Always start with no dark class to match server
-                document.documentElement.classList.remove("dark");
-                
-                // Then apply theme immediately after
                 try {
                   const isDark = localStorage.theme === "dark" ||
                     (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches);
+                  
+                  // Apply theme before React hydration
                   if (isDark) {
                     document.documentElement.classList.add("dark");
+                  } else {
+                    document.documentElement.classList.remove("dark");
                   }
                   
                   // Update theme-color meta tag
@@ -61,6 +61,7 @@ export default function RootLayout({
                   }
                 } catch (e) {
                   // Keep light mode if localStorage is not available
+                  document.documentElement.classList.remove("dark");
                 }
               })();
             `,

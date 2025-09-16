@@ -1,0 +1,248 @@
+"use client";
+import React, { useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { LogIn, LogOut, Eye, PieChart, BarChart3, Star, BookOpen, Sun, Moon, X } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { useAuthModal } from '../contexts/AuthModalContext';
+
+interface MobileSidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onLogout?: () => void;
+}
+
+export default function MobileSidebar({ isOpen, onClose, onLogout }: MobileSidebarProps) {
+  const { isAuthenticated, logout } = useAuth();
+  const { showAuthModal } = useAuthModal();
+  const pathname = usePathname();
+  const [isDarkMode, setIsDarkMode] = React.useState(false);
+  const [isHydrated, setIsHydrated] = React.useState(false);
+
+  // Initialize dark mode state from the already-set HTML class
+  useEffect(() => {
+    setIsHydrated(true);
+    // Small delay to ensure the script has run
+    const checkTheme = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      setIsDarkMode(isDark);
+    };
+    
+    // Check immediately and also after a small delay
+    checkTheme();
+    const timeoutId = setTimeout(checkTheme, 10);
+    
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  // Close sidebar when route changes
+  useEffect(() => {
+    if (isOpen) {
+      onClose();
+    }
+  }, [pathname]); // Remove isOpen and onClose from dependencies
+
+  // Prevent body scroll when sidebar is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
+  const handleLogout = () => {
+    logout();
+    if (onLogout) onLogout();
+    onClose();
+  };
+
+  const handleShowAuthModal = () => {
+    showAuthModal();
+    onClose();
+  };
+
+  // Toggle dark mode function
+  const toggleDarkMode = () => {
+    if (isDarkMode) {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      setIsDarkMode(false);
+      
+      // Update theme-color meta tag
+      const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute('content', '#ffffff');
+      }
+    } else {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      setIsDarkMode(true);
+      
+      // Update theme-color meta tag
+      const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute('content', '#000000');
+      }
+    }
+  };
+
+  const isPortfolioActive = pathname === '/' || pathname.startsWith('/portfolio');
+  const isTradingActive = pathname.startsWith('/trading');
+  const isWatchlistActive = pathname.startsWith('/watchlist');
+  const isJournalActive = pathname.startsWith('/journal');
+
+  return (
+    <>
+      {/* Backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] md:hidden"
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Sidebar (right side on mobile, offset below fixed header) */}
+      <div className={`fixed inset-y-0 right-0 top-0 w-56 bg-white dark:bg-black backdrop-blur-sm border-l border-gray-200/30 dark:border-gray-700/40 shadow-sm z-[70] md:hidden transition-transform duration-300 ease-in-out flex flex-col select-none ${
+        isOpen ? 'translate-x-0' : 'translate-x-full'
+      }`} suppressHydrationWarning>
+        {/* Brand */}
+        <div className="pl-4 pr-0 sm:px-5 pt-2 pb-2 border-b border-gray-200/30 dark:border-gray-700/40">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl 2xl:text-3xl font-bold text-amber-500 tracking-tight">Aurelo</h1>
+              <span className="px-1.5 py-0.5 text-[9px] 2xl:text-[11px] leading-none font-semibold rounded-full border bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-gray-700">
+                Beta
+              </span>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Close menu"
+            >
+              <X className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            </button>
+          </div>
+          <p className="-mt-1 text-[.7rem] 2xl:text-[.9rem] text-black dark:text-white">
+            Your finances, simplified.
+          </p>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 px-2 sm:px-3 py-3 space-y-1">
+          <Link
+            href="/"
+            className={`relative block px-3 py-2 rounded-lg text-xs 2xl:text-base font-medium transition-all ${
+              isPortfolioActive
+                ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 shadow-sm'
+                : 'text-black dark:text-white hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:shadow-sm'
+            }`}
+          >
+            {isPortfolioActive && (
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500 rounded-r-sm"></div>
+            )}
+            <div className="flex items-center gap-2">
+              <PieChart className="w-4 h-4" />
+              Portfolio
+            </div>
+          </Link>
+          <Link
+            href="/trading"
+            className={`relative block px-3 py-2 rounded-lg text-xs 2xl:text-base font-medium transition-all ${
+              isTradingActive
+                ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 shadow-sm'
+                : 'text-black dark:text-white hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:shadow-sm'
+            }`}
+          >
+            {isTradingActive && (
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500 rounded-r-sm"></div>
+            )}
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Trading
+            </div>
+          </Link>
+          <Link
+            href="/watchlist"
+            className={`relative block px-3 py-2 rounded-lg text-xs 2xl:text-base font-medium transition-all ${
+              isWatchlistActive
+                ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 shadow-sm'
+                : 'text-black dark:text-white hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:shadow-sm'
+            }`}
+          >
+            {isWatchlistActive && (
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500 rounded-r-sm"></div>
+            )}
+            <div className="flex items-center gap-2">
+              <Star className="w-4 h-4" />
+              Watchlist
+            </div>
+          </Link>
+          <Link
+            href="/journal"
+            className={`relative block px-3 py-2 rounded-lg text-xs 2xl:text-base font-medium transition-all ${
+              isJournalActive
+                ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 shadow-sm'
+                : 'text-black dark:text-white hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:shadow-sm'
+            }`}
+          >
+            {isJournalActive && (
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500 rounded-r-sm"></div>
+            )}
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              Journal
+            </div>
+          </Link>
+          
+          {/* Dark Mode Toggle */}
+          <div className="relative block w-full pl-3 pr-5 py-2 rounded-lg text-xs 2xl:text-base font-medium text-black dark:text-white">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {isHydrated && isDarkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                <span>Dark Mode</span>
+              </div>
+              <button
+                onClick={toggleDarkMode}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors -mr-3 cursor-pointer ${
+                  isHydrated && isDarkMode ? 'bg-amber-500' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                    isHydrated && isDarkMode ? 'translate-x-5' : 'translate-x-0.5'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        {/* Auth */}
+        <div className="px-3 sm:px-4 py-2 border-t border-gray-200/60 dark:border-gray-600">
+          {isAuthenticated ? (
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 text-xs 2xl:text-base font-medium transition-colors cursor-pointer py-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </button>
+          ) : (
+            <button
+              onClick={handleShowAuthModal}
+              className="w-full flex items-center justify-center gap-2 text-xs 2xl:text-base font-medium transition-colors cursor-pointer py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+            >
+              <LogIn className="w-4 h-4" />
+              Sign In
+            </button>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
