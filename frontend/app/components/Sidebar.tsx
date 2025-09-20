@@ -73,12 +73,12 @@ export default function Sidebar({ onLogout }: SidebarProps) {
   const isJournalActive = pathname.startsWith('/journal');
 
   return (
-    <aside className="fixed inset-y-0 left-0 w-56 bg-white dark:bg-black backdrop-blur-sm border-r border-gray-200/60 dark:border-gray-600 shadow-sm z-40 flex flex-col transition-colors select-none">
+    <aside className="fixed inset-y-0 left-0 w-56 bg-white dark:bg-black backdrop-blur-sm border-r border-gray-200 dark:border-gray-800/70 shadow-sm z-40 flex flex-col transition-colors select-none">
       {/* Brand */}
-      <div className="px-4 sm:px-5 pt-4 sm:pt-8 pb-3 border-b border-gray-200/60 dark:border-gray-600">
+      <div className="px-4 sm:px-5 pt-4 sm:pt-8 pb-3 border-b border-gray-200 dark:border-gray-800/70">
         <div className="flex items-center gap-2">
           <h1 className="text-xl 2xl:text-3xl font-bold text-amber-500 tracking-tight">Aurelo</h1>
-          <span className="px-1.5 py-0.5 text-[9px] 2xl:text-[11px] leading-none font-semibold rounded-full border bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-gray-600">
+          <span className="px-1.5 py-0.5 text-[9px] 2xl:text-[11px] leading-none font-medium rounded-full border bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-gray-800/70">
             Beta
           </span>
         </div>
@@ -178,7 +178,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
       </nav>
 
       {/* Auth */}
-      <div className="px-3 sm:px-4 py-2 border-t border-gray-200/60 dark:border-gray-600">
+      <div className="px-3 sm:px-4 py-2 border-t border-gray-200 dark:border-gray-800/70">
         {isAuthenticated ? (
           <button
             onClick={handleLogout}

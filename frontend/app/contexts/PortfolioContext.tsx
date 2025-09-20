@@ -134,23 +134,6 @@ export function PortfolioProvider({ children }: PortfolioProviderProps) {
     }
   }, [assets, isAuthenticated, token, isAuthLoading]);
 
-  // Handle page visibility changes to reload assets when navigating back to the app
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden && !isAuthenticated && !isAuthLoading) {
-        // Only reload if we haven't loaded from storage yet or if there's a significant difference
-        const storedAssets = loadAssetsFromStorage();
-        if (storedAssets.length > 0 && (!hasLoadedFromStorage || Math.abs(storedAssets.length - assets.length) > 0)) {
-          setAssets(storedAssets);
-          setHasLoadedFromStorage(true);
-          // Don't restore scroll position on tab switch - let browser handle it naturally
-        }
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [isAuthenticated, isAuthLoading, assets.length, hasLoadedFromStorage]);
 
   const loadPortfolioFromBackend = async () => {
     if (!token) return;

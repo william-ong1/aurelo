@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useMemo } from 'react';
-import { Edit2, Trash2, Plus, Download, ChevronUp, ChevronDown } from 'lucide-react';
+import { Edit2, Trash2, Plus, Download, ChevronUp, ChevronDown, Calendar, Tag, DollarSign, Percent, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Trade {
@@ -225,23 +225,23 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
 
   return (
     <>
-      <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 pb-2 shadow-sm border border-slate-200 dark:border-gray-600">
-        <div className="flex items-center justify-between mb-3">
+      <div className="bg-white dark:bg-black rounded-lg px-3 py-3 pb-2 sm:px-4 sm:py-4 sm:pb-2 border border-gray-200 dark:border-gray-800/70">
+        <div className="flex items-center justify-between mb-2">
           <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Trade History</h3>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2.5 sm:gap-1">
             <button
               onClick={exportToCsv}
               className="p-0.5 pr-1.5 rounded-md transition-colors text-gray-400 hover:text-black dark:hover:text-white dark:text-white transition-all cursor-pointer"
               title="Export CSV"
             >
-              <Download className='w-3 h-3 sm:w-4 sm:h-4 2xl:w-5 2xl:h-5' />
+              <Download className='w-4 h-4 sm:w-4.5 sm:h-4.5 2xl:w-5 2xl:h-5' />
             </button>
             <button
               onClick={onAdd}
               className="p-0.5 pr-1.5 rounded-md transition-colors text-gray-400 hover:text-black dark:hover:text-white dark:text-white transition-all cursor-pointer"
               title="Add Trade"
             >
-              <Plus className='w-3 h-3 sm:w-4 sm:h-4 2xl:w-5 2xl:h-5' />
+              <Plus className='w-4 h-4 sm:w-4.5 sm:h-4.5 2xl:w-5 2xl:h-5' />
             </button>
           </div>
         </div>
@@ -249,67 +249,76 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
         <div className="overflow-x-auto">
           <table className="w-full table-fixed">
             <thead className="sticky top-0 bg-white dark:bg-black select-none">
-              <tr className="border-b border-gray-200 dark:border-gray-800/80">
+              <tr className="border-b border-gray-200 dark:border-gray-800/70">
                 <th 
-                  className="text-left py-1.5 sm:py-1.5 pl-0 pr-2 sm:pr-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
+                  className="text-left py-3 pl-0 pr-2 text-xs font-medium text-gray-700 dark:text-gray-300 cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
                   onClick={() => handleSort('date')}
                 >
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="h-3 w-3 text-gray-500" />
                     Date
                     {getSortIcon('date')}
                   </div>
                 </th>
                 <th 
-                  className="text-left py-1.5 sm:py-1.5 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
+                  className="text-left py-3 px-2 text-xs font-medium text-gray-700 dark:text-gray-300 cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
                   onClick={() => handleSort('ticker')}
                 >
-                  <div className="flex items-center gap-1">
-                    Ticker
+                  <div className="flex items-center gap-1.5">
+                    <Tag className="h-3 w-3 text-gray-500" />
+                    Name
                     {getSortIcon('ticker')}
                   </div>
                 </th>
                 <th 
-                  className="text-right py-1.5 sm:py-1.5 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
+                  className="text-center py-3 px-2 text-xs font-medium text-gray-700 dark:text-gray-300 cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
                   onClick={() => handleSort('realized_pnl')}
                 >
-                  <div className="flex items-center gap-1 justify-end">
+                  <div className="flex items-center gap-1.5 justify-center">
+                    <DollarSign className="h-3 w-3 text-gray-500" />
                     P&L
                     {getSortIcon('realized_pnl')}
                   </div>
                 </th>
                 <th 
-                  className="text-right py-1.5 sm:py-1.5 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
+                  className="text-center py-3 px-2 text-xs font-medium text-gray-700 dark:text-gray-300 cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/5"
                   onClick={() => handleSort('percent_diff')}
                 >
-                  <div className="flex items-center gap-1 justify-end">
-                    % Return
+                  <div className="flex items-center gap-1.5 justify-center">
+                    <Percent className="h-3 w-3 text-gray-500" />
+                    Return
                     {getSortIcon('percent_diff')}
                   </div>
                 </th>
-                <th className="text-center py-1.5 sm:py-1.5 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white select-none w-1/5">Actions</th>
+                <th className="text-center py-3 px-2 text-xs font-medium text-gray-700 dark:text-gray-300 select-none w-1/5">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <Settings className="h-3 w-3 text-gray-500" />
+                    Actions
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody>
               {sortedTrades.length > 0 ? (
                 (displayCount === 'today' ? sortedTrades : sortedTrades.slice(0, typeof displayCount === 'number' ? displayCount : sortedTrades.length)).map((trade) => (
-                  <tr key={trade.id} className="border-b border-slate-200 dark:border-gray-800/80">
-                    <td className="py-1.5 sm:py-1.5 pl-0 pr-2 sm:pr-4 text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100">
+                  <tr key={trade.id} className="border-b border-gray-200 dark:border-gray-900">
+                    <td className="py-3 pl-0 pr-2 text-xs text-gray-900 dark:text-gray-100">
                       {formatDate(trade.date)}
                     </td>
-                    <td className="py-1.5 sm:py-1.5 px-2 sm:px-4">
-                      <span className="text-[12px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100">{trade.ticker}</span>
+                    <td className="py-3 px-2">
+                      <span className="text-xs font-medium text-gray-900 dark:text-gray-100">{trade.ticker}</span>
                     </td>
-                    <td className="py-1.5 sm:py-1.5 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-semibold text-right">
+                    <td className="py-3 px-2 text-xs font-medium text-center">
                       <span className={getPnlColor(trade.realized_pnl || 0)}>
                         {formatCurrency(trade.realized_pnl || 0)}
                       </span>
                     </td>
-                    <td className="py-1.5 sm:py-1.5 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-semibold text-right">
+                    <td className="py-3 px-2 text-xs font-medium text-center">
                       <span className={getPnlColor(trade.percent_diff || 0)}>
                         {formatPercent(trade.percent_diff || 0)}
                       </span>
                     </td>
-                    <td className="py-2 sm:py-2 px-2 sm:px-4 text-center">
+                    <td className="py-3 px-2 text-center">
                       <div className="flex items-center justify-center gap-1 sm:gap-2">
                         <button
                           onClick={() => onEdit(trade)}
@@ -335,7 +344,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="py-6 sm:py-8 px-3 sm:px-6 text-center text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100">
+                  <td colSpan={5} className="py-6 sm:py-8 px-3 sm:px-6 text-center text-xs text-gray-900 dark:text-gray-100">
                     No trades yet. Click the + button to add your first trade.
                   </td>
                 </tr>
@@ -346,10 +355,10 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
         
         {/* Trade Count Footer */}
         {sortedTrades.length > 0 && (
-          <div className="flex justify-end items-center mt-1">
+          <div className="flex justify-end items-center mt-2" >
             {/* Trade Count */}
             <div className="flex items-center gap-1">
-              <span className="text-[.6rem] text-slate-500">Showing</span>
+              <span className="text-[.6rem] text-slate-500 dark:text-gray-300">Showing</span>
               <div className="relative flex items-center">
                 <select
                   value={displayCount === 'today' ? 'today' : displayCount === 'all' ? 'all' : displayCount}
@@ -363,7 +372,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                       setDisplayCount(parseInt(value));
                     }
                   }}
-                  className={`text-[.6rem] text-slate-500 bg-transparent border-none outline-none cursor-pointer hover:text-slate-600 transition-colors appearance-none ${displayCount === 5 ? 'pr-0' : displayCount === 100 ? 'pr-3' : displayCount === "today" ? 'pr-3' : 'pr-2'}`}
+                  className={`text-[.6rem] text-slate-500 dark:text-gray-300 bg-transparent border-none outline-none cursor-pointer hover:text-slate-600 dark:hover:text-gray-100 transition-colors appearance-none ${displayCount === 5 ? 'pr-0' : displayCount === 100 ? 'pr-3' : displayCount === "today" ? 'pr-3' : 'pr-2'}`}
                 >
                   <option value="5">5</option>
                   <option value="10">10</option>
@@ -374,7 +383,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                 </select>
                 <ChevronDown className="absolute right-0 h-2.5 w-2.5 text-slate-400 pointer-events-none" />
               </div>
-              <span className="text-[.6rem] text-slate-500">trades</span>
+              <span className="text-[.6rem] text-slate-500 dark:text-gray-300">trades</span>
             </div>
           </div>
         )}

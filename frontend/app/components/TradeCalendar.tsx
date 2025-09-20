@@ -22,9 +22,9 @@ interface TradeCalendarProps {
 const formatLargeNumber = (value: number): string => {
   const absValue = Math.abs(value);
   if (absValue >= 1000000) {
-    return `$${(absValue / 1000000).toFixed(1)}M`;
+    return `$${(absValue / 1000000).toFixed(2)}M`;
   } else if (absValue >= 1000) {
-    return `$${(absValue / 1000).toFixed(1)}K`;
+    return `$${(absValue / 1000).toFixed(2)}K`;
   }
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -80,14 +80,20 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
   const getDayBackgroundColor = (pnl: number) => {
     if (pnl > 0) return 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700';
     if (pnl < 0) return 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700';
-    return 'bg-white dark:bg-black border-slate-100 dark:border-gray-800/80';
+    return 'bg-white dark:bg-black border-gray-100 dark:border-gray-800/80';
   };
 
   const getPnlIntensity = (pnl: number) => {
     const absPnl = Math.abs(pnl);
     if (absPnl > 1000) return 'font-bold';
-    if (absPnl > 500) return 'font-semibold';
+    if (absPnl > 500) return 'font-medium';
     return 'font-medium';
+  };
+
+  const getWeekBackgroundColor = (pnl: number) => {
+    if (pnl > 0) return 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700';
+    if (pnl < 0) return 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700';
+    return 'bg-slate-50 dark:bg-gray-950/80 border-gray-100 dark:border-gray-800/80';
   };
 
   // Group trades by date
@@ -193,6 +199,41 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
     }
   });
 
+  // Calculate monthly P&L for current month
+  const monthlyPnl = Object.entries(dailyStats).reduce((total, [date, stats]) => {
+    const dateObj = new Date(date);
+    if (dateObj.getMonth() === month && dateObj.getFullYear() === year) {
+      return total + stats.pnl;
+    }
+    return total;
+  }, 0);
+
+  // Calculate monthly percentage return
+  const monthlyInvested = Object.entries(dailyStats).reduce((total, [date, stats]) => {
+    const dateObj = new Date(date);
+    if (dateObj.getMonth() === month && dateObj.getFullYear() === year) {
+      return total + stats.totalInvested;
+    }
+    return total;
+  }, 0);
+
+  const monthlyPercentageReturn = monthlyInvested > 0 ? (monthlyPnl / monthlyInvested) * 100 : 0;
+  const monthlyRReturn = rValue > 0 ? monthlyPnl / rValue : 0;
+
+  // Calculate monthly win rate
+  const monthlyTrades = Object.entries(tradesByDate).reduce((trades, [date, stats]) => {
+    const dateObj = new Date(date);
+    if (dateObj.getMonth() === month && dateObj.getFullYear() === year) {
+      return trades.concat(tradesByDate[date] || []);
+    }
+    return trades;
+  }, [] as Trade[]);
+
+  const monthlyWins = monthlyTrades.filter(trade => (trade.realized_pnl || 0) > 0).length;
+  const monthlyLosses = monthlyTrades.filter(trade => (trade.realized_pnl || 0) < 0).length;
+  const monthlyBreakEvens = monthlyTrades.filter(trade => (trade.realized_pnl || 0) === 0).length;
+  const monthlyWinRate = monthlyTrades.length > 0 ? (monthlyWins / monthlyTrades.length) * 100 : 0;
+
   const monthNames = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
@@ -236,37 +277,37 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 pt-2 sm:pt-3 shadow-sm border border-slate-200 dark:border-gray-600 flex-1 flex flex-col">
-          {/* Calendar Header */}
-        <div className="flex items-center justify-between mb-3">
+    <div className="bg-white dark:bg-black rounded-lg p-2 sm:p-4 pt-2 sm:pt-3 shadow-sm border border-gray-200 dark:border-gray-800/70 flex-1 flex flex-col">
+        {/* Calendar Header */}
+        <div className="flex items-center justify-between mb-1 px-1">
           <div className="flex items-center gap-2">
             <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">P&L Calendar</h3>
-            <div className="flex bg-gray-100 dark:bg-black rounded-md p-0.5 ml-8 sm:ml-6 lg:ml-28 relative border border-gray-200/30 dark:border-gray-800/80">
+            <div className="flex bg-gray-100 dark:bg-black rounded-md p-0.5 ml-8 sm:ml-10 lg:ml-28 relative border border-gray-200/30 dark:border-gray-800/80">
               <button
                 onClick={() => {
                   setDisplayMode('price');
                   localStorage.setItem('tradeCalendarDisplayMode', 'price');
                 }}
-                className={`flex items-center justify-center w-5 h-4 sm:w-6 sm:h-5 rounded-sm transition-all duration-200 ${
+                className={`flex items-center justify-center w-6 h-5 sm:w-6 sm:h-5 rounded-sm transition-all duration-200 ${
                   displayMode === 'price' 
-                    ? 'bg-white dark:bg-gray-900 text-slate-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-semibold' 
+                    ? 'bg-white dark:bg-gray-900 text-slate-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-medium' 
                     : 'text-slate-500 dark:text-gray-400 hover:text-slate-600 dark:hover:text-gray-300'
-                }`}
+                } cursor-pointer`}
               >
-                <DollarSign className="h-2.5 w-2.5 sm:h-2.5 sm:w-2.5" />
+                <DollarSign className="w-3 h-3 sm:h-2.5 sm:w-2.5 " />
               </button>
               <button
                 onClick={() => {
                   setDisplayMode('percentage');
                   localStorage.setItem('tradeCalendarDisplayMode', 'percentage');
                 }}
-                className={`flex items-center justify-center w-5 h-4 sm:w-6 sm:h-5 rounded-sm transition-all duration-200 ${
+                className={`flex items-center justify-center w-6 h-5 sm:w-6 sm:h-5 rounded-sm transition-all duration-200 ${
                   displayMode === 'percentage' 
-                    ? 'bg-white dark:bg-gray-900 text-slate-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-semibold' 
+                    ? 'bg-white dark:bg-gray-900 text-slate-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-medium' 
                     : 'text-slate-500 dark:text-gray-400 hover:text-slate-600 dark:hover:text-gray-300'
-                }`}
+                } cursor-pointer`}
               >
-                <Percent className="h-2.5 w-2.5 sm:h-2.5 sm:w-2.5" />
+                <Percent className="w-3 h-3 sm:h-2.5 sm:w-2.5" />
               </button>
               <div className="flex">
                 <button
@@ -274,20 +315,20 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                     setDisplayMode('r');
                     localStorage.setItem('tradeCalendarDisplayMode', 'r');
                   }}
-                  className={`flex items-center justify-center w-5 h-4 sm:w-6 sm:h-5 transition-all duration-200 ${
+                  className={`flex items-center justify-center w-6 h-5 sm:w-6 sm:h-5 transition-all duration-200 ${
                     displayMode === 'r' 
-                      ? 'bg-white dark:bg-gray-900 text-slate-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-semibold rounded-l-sm' 
+                      ? 'bg-white dark:bg-gray-900 text-slate-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-medium rounded-l-sm' 
                       : 'text-slate-500 dark:text-gray-400 hover:text-slate-600 dark:hover:text-gray-300 rounded-sm'
-                  }`}
+                  } cursor-pointer`}
                 >
-                  <span className="text-[.55rem] sm:text-[.6rem] font-bold">R</span>
+                  <span className="text-[.65rem] sm:text-[.6rem] font-bold">R</span>
                 </button>
                 {displayMode === 'r' && (
                   <input
                     type="number"
                     value={rValue === 0 ? '' : rValue}
                     onChange={handleRValueChange}
-                     className="w-7 h-4 sm:w-8 sm:h-5 text-[.55rem] sm:text-[.6rem] text-center border border-gray-200/30 dark:border-gray-800/80 rounded-r-sm bg-white dark:bg-gray-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-300 ring-1 ring-gray-300 dark:ring-gray-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none leading-none py-0 px-0 font-medium shadow-sm"
+                     className="w-7 h-5 sm:w-8 sm:h-5 text-[.65rem] sm:text-[.6rem] text-center border border-gray-200/30 dark:border-gray-800/80 rounded-r-sm bg-white dark:bg-gray-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-300 ring-1 ring-gray-300 dark:ring-gray-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none leading-none py-0 px-0 font-medium shadow-sm"
                     min="0"
                     step="0.1"
                   />
@@ -295,10 +336,10 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
               </div>
             </div>
           </div>
-          <div className="flex items-center lg:gap-2">
+          <div className="flex items-center lg:gap-1">
             <button
               onClick={goToPreviousMonth}
-              className="text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 transition-all duration-200 rounded-lg"
+              className="text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 transition-all duration-200 rounded-lg cursor-pointer"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -307,7 +348,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
             </span>
             <button
               onClick={goToNextMonth}
-              className="text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 transition-all duration-200 rounded-lg"
+              className="text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 transition-all duration-200 rounded-lg cursor-pointer"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -315,11 +356,11 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
         </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-6 gap-1 flex-1">
+      <div className="grid grid-cols-6 gap-0.75 lg:gap-1.5 flex-1">
         {/* Day Headers */}
         {dayNames.map((day) => (
-          <div key={day} className="p-2 text-center">
-            <span className="text-[.6rem] font-semibold text-slate-500 dark:text-gray-400 uppercase tracking-wider">
+          <div key={day} className="p-2 pb-0 text-center">
+            <span className="text-[.6rem] font-medium text-slate-500 dark:text-gray-400 uppercase tracking-wider">
               {day}
             </span>
           </div>
@@ -347,18 +388,19 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
               calendarDays.push(
                 <div
                   key={`day-${i + dayIndex}`}
-                  className={`relative p-2 pb-1 min-h-[60px] border rounded-md transition-all duration-200 flex flex-col justify-between ${
+                  className={`relative p-1 lg:p-1.5 min-h-[60px] lg:min-h-[70px] border rounded-md transition-all duration-200 flex flex-col justify-between ${
                     hasTrades 
                       ? getDayBackgroundColor(dayStats.pnl)
                       : isCurrentMonth 
-                        ? 'bg-white dark:bg-black border-slate-100 dark:border-gray-800/80'
-                        : 'bg-slate-50 dark:bg-gray-950/80 border-slate-100 dark:border-gray-800/80'
-                  } ${isToday ? 'ring-1 ring-blue-300 ring-offset-0' : ''} ${
+                        ? 'bg-white dark:bg-black border-gray-100 dark:border-gray-800/80'
+                        : 'bg-slate-50 dark:bg-gray-950/80 border-gray-100 dark:border-gray-800/80'
+                  } ${
                     !isCurrentMonth && hasTrades ? 'opacity-60' : ''
                   }`}
                 >
+                  {/* ${isToday ? 'ring-0 ring-blue-300 ring-offset-1' : ''}  */}
                   {/* Date Number */}
-                  <div className={`text-[.6rem] font-semibold text-left ${
+                  <div className={`text-[.5rem] lg:text-[.6rem] font-medium text-left ${
                     isCurrentMonth ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-gray-500'
                   }`}>
                     {day.getDate()}
@@ -367,7 +409,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                   {/* P&L and Percentage Display */}
                   {hasTrades && (
                     <div className={`text-right ${getPnlColor(dayStats.pnl)} font-medium`} >
-                      <div className="text-[.75rem] uppercase">
+                      <div className="text-[.6rem] sm:text-[.75rem] uppercase">
                         {sign}{displayMode === 'price' 
                           ? formatCurrency(Math.abs(dayStats.pnl))
                           : displayMode === 'percentage'
@@ -375,10 +417,33 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                           : rValue > 0 ? formatR(Math.abs(dayStats.rReturn)) : '0.0R'
                         }
                       </div>
-                      {/* Trade Count as gray text underneath */}
+                      {/* Trade Count with wins/losses as gray text underneath */}
                       {tradesByDate[dateString] && tradesByDate[dateString].length > 0 && (
-                        <div className="text-[.55rem] text-gray-900 dark:text-gray-300 font-medium -mt-0.5">
-                          {tradesByDate[dateString].length} trades
+                        <div className="text-[.45rem] lg:text-[.5rem] text-gray-900 dark:text-gray-300 font-medium -mt-0.5">
+                          {(() => {
+                            const dayTrades = tradesByDate[dateString];
+                            const wins = dayTrades.filter(trade => (trade.realized_pnl || 0) > 0).length;
+                            const losses = dayTrades.filter(trade => (trade.realized_pnl || 0) < 0).length;
+                            const breakEvens = dayTrades.filter(trade => (trade.realized_pnl || 0) === 0).length;
+                            return (
+                              <div>
+                                <div>{dayTrades.length} trades</div>
+                                <div>
+                                  <span className="text-gray-900 dark:text-gray-300">(</span>
+                                  <span className="text-green-600">{wins}</span>
+                                  <span className="text-gray-900 dark:text-gray-300">/</span>
+                                  <span className="text-red-600">{losses}</span>
+                                  {breakEvens > 0 && (
+                                    <>
+                                      <span className="text-gray-900 dark:text-gray-300">/</span>
+                                      <span className="text-gray-500">{breakEvens}</span>
+                                    </>
+                                  )}
+                                  <span className="text-gray-900 dark:text-gray-300">)</span>
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </div>
                       )}
                     </div>
@@ -394,20 +459,29 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
             const hasWeekData = weekData && (weekData.pnl !== 0 || weekData.trades > 0);
             const weekSign = hasWeekData ? (weekData.pnl > 0 ? '+' : weekData.pnl < 0 ? '-' : '') : '';
             
+            // Check if any weekdays in this week belong to the current month
+            const hasCurrentMonthDays = weekDays.some(day => day.getMonth() === month);
+            
             calendarDays.push(
-              <div
-                key={`week-${weekIndex}`}
-                className="relative p-2 pb-1 min-h-[60px] border rounded-md transition-all duration-200 flex flex-col justify-between bg-slate-50 dark:bg-gray-950/80 border-slate-100 dark:border-gray-800/80"
-              >
+                <div
+                  key={`week-${weekIndex}`}
+                  className={`relative ml-0 p-1 lg:p-1.5 min-h-[60px] lg:min-h-[70px] border rounded-md transition-all duration-200 flex flex-col justify-between ${
+                    hasWeekData 
+                      ? getWeekBackgroundColor(weekData.pnl)
+                      : 'bg-slate-50 dark:bg-gray-950/80 border-gray-100 dark:border-gray-800/80'
+                  } ${
+                    !hasCurrentMonthDays ? 'opacity-60' : ''
+                  }`}
+                >
                 {/* Week Label */}
-                <div className="text-[.6rem] font-semibold text-slate-500 dark:text-gray-400 text-left">
+                <div className="text-[.5rem] lg:text-[.6rem] font-medium text-slate-500 dark:text-gray-400 text-left">
                   Week {weekIndex + 1}
                 </div>
 
                 {/* Weekly P&L and Percentage Display */}
                 {hasWeekData && (
                   <div className={`text-right ${getPnlColor(weekData.pnl)} font-medium`}>
-                    <div className="text-[.75rem] uppercase">
+                    <div className="text-[.6rem] sm:text-[.75rem] uppercase">
                       {weekSign}{displayMode === 'price' 
                         ? formatCurrency(Math.abs(weekData.pnl))
                         : displayMode === 'percentage'
@@ -415,10 +489,44 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                         : rValue > 0 ? formatR(Math.abs(weekData.pnl / rValue)) : '0.0R'
                       }
                     </div>
-                    {/* Weekly Trade Count */}
+                    {/* Weekly Trade Count with wins/losses */}
                     {weekData.trades > 0 && (
-                      <div className="text-[.55rem] text-gray-900 dark:text-gray-300 font-medium -mt-0.5">
-                        {weekData.trades} trades
+                      <div className="text-[.45rem] lg:text-[.5rem] text-gray-900 dark:text-gray-300 font-medium -mt-0.5">
+                        {(() => {
+                          // Get all trades for this week
+                          const weekTrades = [];
+                          for (let i = 0; i < 5; i++) {
+                            const dayDate = new Date(weekStart);
+                            dayDate.setDate(dayDate.getDate() + i);
+                            const dayString = dayDate.getFullYear() + '-' + 
+                              String(dayDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                              String(dayDate.getDate()).padStart(2, '0');
+                            if (tradesByDate[dayString]) {
+                              weekTrades.push(...tradesByDate[dayString]);
+                            }
+                          }
+                          const wins = weekTrades.filter(trade => (trade.realized_pnl || 0) > 0).length;
+                          const losses = weekTrades.filter(trade => (trade.realized_pnl || 0) < 0).length;
+                          const breakEvens = weekTrades.filter(trade => (trade.realized_pnl || 0) === 0).length;
+                          return (
+                            <div>
+                              <div>{weekData.trades} trades</div>
+                              <div>
+                                <span className="text-gray-900 dark:text-gray-300">(</span>
+                                <span className="text-green-600">{wins}</span>
+                                <span className="text-gray-900 dark:text-gray-300">/</span>
+                                <span className="text-red-600">{losses}</span>
+                                {breakEvens > 0 && (
+                                  <>
+                                    <span className="text-gray-900 dark:text-gray-300">/</span>
+                                    <span className="text-gray-500">{breakEvens}</span>
+                                  </>
+                                )}
+                                <span className="text-gray-900 dark:text-gray-300">)</span>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>
@@ -434,24 +542,36 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
       </div>
 
       {/* Legend */}
-      <div className="mt-2 pt-2 border-t border-slate-200 dark:border-gray-800/80">
+      <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-800/80">
         <div className="flex items-center justify-between">
-          <div> </div>
-          {/* <div className="flex items-center gap-1.5">
-            <div className="flex items-center gap-0.5">
-              <div className="w-2 h-2 bg-emerald-50 border border-emerald-200 rounded"></div>
-              <span className="text-[.6rem] font-medium text-slate-600">Profit</span>
+          <div className="text-[.65rem] lg:text-[.65rem] text-slate-500 dark:text-gray-400">
+            <div className="font-medium">
+              Monthly P&L: {monthlyPnl !== 0 ? (
+                <span className={getPnlColor(monthlyPnl)}>
+                  {displayMode === 'price' 
+                    ? formatCurrency(Math.abs(monthlyPnl))
+                    : displayMode === 'percentage'
+                    ? formatPercent(Math.abs(monthlyPercentageReturn))
+                    : rValue > 0 ? formatR(Math.abs(monthlyRReturn)) : '0.0R'
+                  }
+                </span>
+              ) : (
+                <span className="text-slate-400 dark:text-gray-500">
+                  {displayMode === 'price' ? '$0.00' : displayMode === 'percentage' ? '0.0%' : '0.0R'}
+                </span>
+              )}
             </div>
-            <div className="flex items-center gap-0.5">
-              <div className="w-2 h-2 bg-rose-50 border border-rose-200 rounded"></div>
-              <span className="text-[.6rem] font-medium text-slate-600">Loss</span>
+          </div>
+          <div className="text-[.65rem] lg:text-[.65rem] text-slate-500 dark:text-gray-400 text-right">
+            <div className="font-medium">
+              Win Rate: {monthlyTrades.length > 0 ? (
+                <span className={monthlyWinRate >= 50 ? 'text-green-600' : 'text-red-600'}>
+                  {monthlyWinRate.toFixed(1)}%
+                </span>
+              ) : (
+                <span className="text-slate-400 dark:text-gray-500">0.0%</span>
+              )}
             </div>
-            <div className="flex items-center gap-1">
-              <span className="text-[.55rem] font-medium text-gray-900">Multiple trades shown as gray text</span>
-            </div>
-          </div> */}
-          <div className="text-[.55rem] text-slate-500 dark:text-gray-400 text-right">
-            <div className="font-medium">Today: {new Date().toLocaleDateString()}</div>
           </div>
         </div>
       </div>

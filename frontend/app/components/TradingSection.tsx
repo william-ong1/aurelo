@@ -356,11 +356,11 @@ export default function TradingSection() {
 
   // if (!isAuthenticated) {
   //   return (
-  //     <div className="bg-white dark:bg-black rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-600 text-center">
+  //     <div className="bg-white dark:bg-black rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-800/70 text-center">
   //       <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
   //         <BarChart3 className="h-8 w-8 text-gray-400" />
   //       </div>
-  //       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Sign in to track trades</h3>
+  //       <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Sign in to track trades</h3>
   //       <p className="text-black dark:text-white">
   //         Create an account or sign in to start tracking your trading performance and view detailed analytics.
   //       </p>
@@ -388,7 +388,7 @@ export default function TradingSection() {
       {/* Duplicate Check Loading State */}
       {isCheckingDuplicates && (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-black backdrop-blur-sm rounded-lg shadow-2xl p-6 w-full max-w-sm mx-auto border border-gray-200 dark:border-gray-600/50">
+          <div className="bg-white dark:bg-black backdrop-blur-sm rounded-lg shadow-2xl p-6 w-full max-w-sm mx-auto border border-gray-200 dark:border-gray-800/70/50">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
               <p className="text-sm 2xl:text-base text-black dark:text-white font-medium">
@@ -408,7 +408,7 @@ export default function TradingSection() {
           {/* Header */}
           {/* <div className="flex flex-row justify-between items-center gap-4 mb-0">
             <div className="flex items-center gap-3">
-              <h2 className="text-base text-lg 2xl:text-2xl font-semibold text-gray-800">Trading Dashboard</h2>
+              <h2 className="text-base text-lg 2xl:text-2xl font-medium text-gray-800">Trading Dashboard</h2>
             </div>
           </div>
 

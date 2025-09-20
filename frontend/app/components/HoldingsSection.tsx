@@ -257,7 +257,7 @@ export default function HoldingsSection({
     if (asset.isStock) {
       return (
         <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-          <span className="text-blue-600 font-semibold text-[12px]">
+          <span className="text-blue-600 font-medium text-[12px]">
             {asset.ticker?.slice(0, 2).toUpperCase() || 'ST'}
           </span>
         </div>
@@ -273,7 +273,7 @@ export default function HoldingsSection({
 
     if (isLoadingAssets) {
     return (
-      <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600 h-[400px] flex flex-col">
+      <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800/70 h-[400px] flex flex-col">
         <div className="flex items-center justify-between mb-4 flex-shrink-0">
           <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Holdings</h3>
         </div>
@@ -297,7 +297,7 @@ export default function HoldingsSection({
   }
 
   return (
-    <div className="bg-white dark:bg-black rounded-lg px-0 pt-3 shadow-sm border border-slate-200 dark:border-gray-600 h-[400px] flex flex-col">
+    <div className="bg-white dark:bg-black rounded-lg px-0 pt-3 shadow-sm border border-gray-200 dark:border-gray-800/70 h-[400px] flex flex-col">
       <div className="flex items-center justify-between mb-4 flex-shrink-0 px-4">
         <h3 className="text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Holdings</h3>
         <div className="flex items-center gap-2.5 sm:gap-1">

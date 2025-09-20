@@ -101,7 +101,7 @@ export default function JournalSection() {
         const data = await response.json();
         setEntries(data.entries || []);
       } else {
-        console.error('Failed to load journal entries');
+        console.log('Failed to load journal entries');
       }
     } catch (error) {
       console.error('Error loading journal entries:', error);
@@ -248,7 +248,7 @@ export default function JournalSection() {
       {/* Content - Only show after authentication and entries are loaded */}
       {!isAuthLoading && !isLoadingEntries && (
         <div className="py-9">
-          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Journal</h3>
               <div className="flex items-center gap-1.5">
@@ -265,7 +265,7 @@ export default function JournalSection() {
             <div className="overflow-x-auto">
               <table className="w-full table-fixed">
                 <thead className="sticky top-0 bg-white dark:bg-black select-none">
-                  <tr className="border-b border-slate-200 dark:border-gray-800/80">
+                  <tr className="border-b border-gray-200 dark:border-gray-800/70">
                     <th 
                       className="text-left py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/8"
                       onClick={() => handleSort('title')}
@@ -292,9 +292,9 @@ export default function JournalSection() {
                 <tbody>
                   {sortedEntries.length > 0 ? (
                     sortedEntries.map((entry) => (
-                      <tr key={entry.id} className="border-b border-slate-200 dark:border-gray-800/80">
+                      <tr key={entry.id} className="border-b border-gray-200 dark:border-gray-900">
                         <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 w-1/8">
-                          <span className="font-semibold">{entry.title}</span>
+                          <span className="font-medium">{entry.title}</span>
                         </td>
                         <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm text-black dark:text-white w-3/5">
                           <div className="break-words whitespace-pre-wrap leading-relaxed max-h-32 overflow-y-auto">

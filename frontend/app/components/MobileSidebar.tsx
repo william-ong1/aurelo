@@ -115,7 +115,7 @@ export default function MobileSidebar({ isOpen, onClose, onLogout }: MobileSideb
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h1 className="text-xl 2xl:text-3xl font-bold text-amber-500 tracking-tight">Aurelo</h1>
-              <span className="px-1.5 py-0.5 text-[9px] 2xl:text-[11px] leading-none font-semibold rounded-full border bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-gray-700">
+              <span className="px-1.5 py-0.5 text-[9px] 2xl:text-[11px] leading-none font-medium rounded-full border bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-gray-700">
                 Beta
               </span>
             </div>
@@ -223,7 +223,7 @@ export default function MobileSidebar({ isOpen, onClose, onLogout }: MobileSideb
         </nav>
 
         {/* Auth */}
-        <div className="px-3 sm:px-4 py-2 border-t border-gray-200/60 dark:border-gray-600">
+        <div className="px-3 sm:px-4 py-2 border-t border-gray-200/60 dark:border-gray-800/70">
           {isAuthenticated ? (
             <button
               onClick={handleLogout}

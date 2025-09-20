@@ -40,10 +40,11 @@ interface TradeAnalyticsProps {
 // Utility function to format large numbers with K and M notation
 const formatLargeNumber = (value: number): string => {
   const absValue = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
   if (absValue >= 1000000) {
-    return `$${(absValue / 1000000).toFixed(1)}M`;
+    return `${sign}$${(absValue / 1000000).toFixed(2)}M`;
   } else if (absValue >= 1000) {
-    return `$${(absValue / 1000).toFixed(1)}K`;
+    return `${sign}$${(absValue / 1000).toFixed(2)}K`;
   }
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -209,12 +210,19 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
     return { profitFactor, riskRewardRatio, avgPositionReturn, avgPercentReturn };
   };
 
-  const getBehavioralMetrics = () => {
-    if (trades.length === 0) return { maxConsecutiveWins: 0, maxConsecutiveLosses: 0, bestDay: 'N/A' };
-    
+    const getBehavioralMetrics = () => {
+    if (trades.length === 0) return { 
+      maxConsecutiveWins: 0, 
+      maxConsecutiveLosses: 0, 
+      bestDay: 'N/A',
+      worstDay: 'N/A',
+      dayPerformance: {}
+    };
+
     // Sort trades by date
     const sortedTrades = trades.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     
+    // Calculate consecutive wins/losses
     let currentWinStreak = 0;
     let currentLossStreak = 0;
     let maxConsecutiveWins = 0;
@@ -236,26 +244,151 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
         }
       }
     });
-    
-    // Performance by day of week
+
+    // Performance by day of week - calculate once for both best and worst
     const dayPerformance = trades.reduce((acc, trade) => {
-      const day = new Date(trade.date).toLocaleDateString('en-US', { weekday: 'long' });
-      if (!acc[day]) {
-        acc[day] = { total: 0, count: 0 };
+      try {
+        const tradeDate = new Date(trade.date);
+        if (isNaN(tradeDate.getTime())) {
+          console.warn('Invalid date:', trade.date);
+          return acc;
+        }
+        
+        const day = tradeDate.toLocaleDateString('en-US', { weekday: 'long' });
+        if (!acc[day]) {
+          acc[day] = { total: 0, count: 0 };
+        }
+        
+        acc[day].total += trade.realized_pnl || 0;
+        acc[day].count++;
+      } catch (error) {
+        console.warn('Error parsing date:', trade.date, error);
       }
-      acc[day].total += trade.realized_pnl || 0;
-      acc[day].count++;
       return acc;
     }, {} as Record<string, { total: number; count: number }>);
-    
-    const bestDay = Object.entries(dayPerformance)
-      .sort(([,a], [,b]) => (b.total / b.count) - (a.total / a.count))[0];
-    
-    return { 
-      maxConsecutiveWins, 
-      maxConsecutiveLosses, 
-      bestDay: bestDay ? bestDay[0] : 'N/A' 
+
+    // Find best and worst days - only include days with actual trades
+    const dayEntries = Object.entries(dayPerformance).filter(([, data]) => data.count > 0);
+    const bestDay = dayEntries.length > 0 
+      ? dayEntries.sort(([,a], [,b]) => b.total - a.total)[0]?.[0] || 'N/A'
+      : 'N/A';
+      
+    const worstDay = dayEntries.length > 0 
+      ? dayEntries.sort(([,a], [,b]) => a.total - b.total)[0]?.[0] || 'N/A'
+      : 'N/A';
+
+    return {
+      maxConsecutiveWins,
+      maxConsecutiveLosses,
+      bestDay,
+      worstDay,
+      dayPerformance // Include the raw data for additional analysis if needed
     };
+  };
+
+  // If you need separate functions, you can extract them like this:
+  const getBestDay = () => {
+    const metrics = getBehavioralMetrics();
+    return metrics.bestDay;
+  };
+
+  const getWorstDay = () => {
+    const metrics = getBehavioralMetrics();
+    return metrics.worstDay;
+  };
+
+  const getMaxDrawdown = () => {
+    if (trades.length === 0) return 0;
+    
+    // Group trades by date and calculate daily P&L
+    const dailyPnl = trades.reduce((acc, trade) => {
+      try {
+        const tradeDate = new Date(trade.date);
+        if (isNaN(tradeDate.getTime())) {
+          return acc;
+        }
+        
+        const dateKey = tradeDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+        if (!acc[dateKey]) {
+          acc[dateKey] = 0;
+        }
+        acc[dateKey] += trade.realized_pnl || 0;
+      } catch (error) {
+        console.warn('Error parsing date:', trade.date, error);
+      }
+      return acc;
+    }, {} as Record<string, number>);
+    
+    // Sort by date and calculate running totals
+    const sortedDays = Object.entries(dailyPnl).sort(([a], [b]) => a.localeCompare(b));
+    
+    let runningTotal = 0;
+    let peak = 0;
+    let maxDrawdown = 0;
+    
+    sortedDays.forEach(([date, dailyPnl]) => {
+      runningTotal += dailyPnl;
+      
+      // Update peak if we hit a new high
+      if (runningTotal > peak) {
+        peak = runningTotal;
+      }
+      
+      // Calculate drawdown from peak
+      const drawdown = peak - runningTotal;
+      if (drawdown > maxDrawdown) {
+        maxDrawdown = drawdown;
+      }
+    });
+    
+    return maxDrawdown;
+  };
+
+  const getMaxRunup = () => {
+    if (trades.length === 0) return 0;
+    
+    // Group trades by date and calculate daily P&L
+    const dailyPnl = trades.reduce((acc, trade) => {
+      try {
+        const tradeDate = new Date(trade.date);
+        if (isNaN(tradeDate.getTime())) {
+          return acc;
+        }
+        
+        const dateKey = tradeDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+        if (!acc[dateKey]) {
+          acc[dateKey] = 0;
+        }
+        acc[dateKey] += trade.realized_pnl || 0;
+      } catch (error) {
+        console.warn('Error parsing date:', trade.date, error);
+      }
+      return acc;
+    }, {} as Record<string, number>);
+    
+    // Sort by date and calculate running totals
+    const sortedDays = Object.entries(dailyPnl).sort(([a], [b]) => a.localeCompare(b));
+    
+    let runningTotal = 0;
+    let trough = 0;
+    let maxRunup = 0;
+    
+    sortedDays.forEach(([date, dailyPnl]) => {
+      runningTotal += dailyPnl;
+      
+      // Update trough if we hit a new low
+      if (runningTotal < trough) {
+        trough = runningTotal;
+      }
+      
+      // Calculate runup from trough
+      const runup = runningTotal - trough;
+      if (runup > maxRunup) {
+        maxRunup = runup;
+      }
+    });
+    
+    return maxRunup;
   };
 
   const getPositionSizing = () => {
@@ -342,16 +475,19 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
 
         {/* Analytics Cards - 2x3 Grid */}
         <div className="flex flex-col h-full">
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-2 gap-4 gap-x-2 lg:gap-x-4 mb-4">
             {/* Overall Performance */}
-            <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-slate-200 dark:border-gray-600">
-              <div>
-                <h3 className="text-[11px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Overall</h3>
+            <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
+              <div className="mb-3">
+                <h3 className="text-[11px] lg:text-xs font-medium text-black dark:text-white uppercase tracking-wide">Performance</h3>
               </div>
-              <div className="space-y-1 mt-2">
+              <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-[11px] sm:text-xs 2xl:text-sm text-black dark:text-white">This Month</span>
-                  <span className={`text-[12px] sm:text-sm 2xl:text-base font-semibold ${getPnlColor(trades.filter(t => {
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-3 w-3 text-gray-500" />
+                    <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">This Month</span>
+                  </div>
+                  <span className={`text-xs lg:text-sm font-bold ${getPnlColor(trades.filter(t => {
                     const tradeDate = new Date(t.date);
                     const now = new Date();
                     return tradeDate.getMonth() === now.getMonth() && tradeDate.getFullYear() === now.getFullYear();
@@ -364,8 +500,11 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[11px] sm:text-xs 2xl:text-sm text-black dark:text-white">All Time</span>
-                  <span className={`text-[12px] sm:text-sm 2xl:text-base font-semibold ${getPnlColor(analytics.total_pnl)}`}>
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-3 w-3 text-gray-500" />
+                    <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">All Time</span>
+                  </div>
+                  <span className={`text-xs lg:text-sm font-bold ${getPnlColor(analytics.total_pnl)}`}>
                     {formatCurrency(analytics.total_pnl)}
                   </span>
                 </div>
@@ -373,20 +512,29 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             </div>
 
             {/* Win/Loss Analysis */}
-            <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-slate-200 dark:border-gray-600" >
-              <div>
-                <h3 className="text-[11px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Win/Loss</h3>
+            <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
+              <div className="mb-3">
+                <h3 className="text-[11px] lg:text-xs font-medium text-black dark:text-white uppercase tracking-wide">Success Rate</h3>
               </div>
-              <div className="space-y-1 mt-2">
+              <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-[11px] sm:text-xs 2xl:text-sm text-black dark:text-white" >Wins/Losses</span>
-                  <span className="text-[12px] sm:text-sm 2xl:text-base font-semibold text-gray-900 dark:text-gray-100">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    </div>
+                    <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">Wins/Losses</span>
+                  </div>
+                  <span className="text-xs lg:text-sm font-bold text-gray-900 dark:text-gray-100">
                     {analytics.winning_trades}/{analytics.losing_trades}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[11px] sm:text-xs 2xl:text-sm text-black dark:text-white">Success Rate</span>
-                  <span className="text-[12px] sm:text-sm 2xl:text-base font-semibold text-green-600">
+                  <div className="flex items-center gap-2">
+                    <Percent className="h-3 w-3 text-gray-500" />
+                    <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">Success Rate</span>
+                  </div>
+                  <span className="text-xs lg:text-sm font-bold text-green-600">
                     {formatPercent(analytics.success_rate)}
                   </span>
                 </div>
@@ -394,96 +542,110 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             </div>
 
             {/* Risk/Reward Analysis */}
-            <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-slate-200 dark:border-gray-600">
-              <div className="mb-2">
-                <h3 className="text-[11px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Risk/Reward</h3>
+            <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
+              <div className="mb-3">
+                <h3 className="text-[11px] lg:text-xs font-medium text-black dark:text-white uppercase tracking-wide">Efficiency</h3>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  {/* <InfoTooltip tooltip="Gross profit divided by gross loss. Above 1.0 means profitable trading."> */}
-                    <span className="text-[11px] sm:text-xs 2xl:text-sm text-black dark:text-white">Profit Factor</span>
-                  {/* </InfoTooltip> */}
-                  <span className="text-[12px] sm:text-sm 2xl:text-base font-semibold text-gray-900 dark:text-gray-100">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-3 w-3 text-gray-500" />
+                    <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">Profit Factor</span>
+                  </div>
+                  <span className={`text-xs lg:text-sm font-bold ${profitFactor >= 1 ? 'text-green-600' : 'text-red-600'}`}>
                     {profitFactor.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  {/* <InfoTooltip tooltip="Average win divided by average loss. Higher ratio = better risk management."> */}
-                    <span className="text-[11px] sm:text-xs 2xl:text-sm text-black dark:text-white">Risk/Reward</span>
-                  {/* </InfoTooltip> */}
-                  <span className="text-[12px] sm:text-sm 2xl:text-base font-semibold text-gray-900 dark:text-gray-100">
+                  <div className="flex items-center gap-2">
+                    <Target className="h-3 w-3 text-gray-500" />
+                    <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">Risk/Reward</span>
+                  </div>
+                  <span className={`text-xs lg:text-sm font-bold ${riskRewardRatio >= 1 ? 'text-green-600' : 'text-orange-600'}`}>
                     {riskRewardRatio.toFixed(2)}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Risk Management */}
-            <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-slate-200 dark:border-gray-600">
-              <div className="mb-2">
-                <h3 className="text-[11px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Risk Management</h3>
+
+            {/* Trade Quality */}
+            <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
+              <div className="mb-3">
+                <h3 className="text-[11px] lg:text-xs font-medium text-black dark:text-white uppercase tracking-wide"> Average Returns</h3>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  {/* <InfoTooltip tooltip="Average dollar amount invested per trade (estimated from P&L and percentage)."> */}
-                    <span className="text-[11px] sm:text-xs 2xl:text-sm text-black dark:text-white">Avg Position</span>
-                  {/* </InfoTooltip> */}
-                  <span className="text-[12px] sm:text-sm 2xl:text-base font-semibold text-gray-900 dark:text-gray-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300"> Win</span>
+                  </div>
+                  <span className="text-xs lg:text-sm font-bold text-green-600">
+                    {formatCurrency(avgWin)} ({avgWinPercent > 0 ? '+' : ''}{avgWinPercent.toFixed(1)}%)
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300"> Loss</span>
+                  </div>
+                  <span className="text-xs lg:text-sm font-bold text-red-600">
+                    {formatCurrency(Math.abs(avgLoss))} ({avgLossPercent.toFixed(1)}%)
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Risk Management */}
+            <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
+              <div className="mb-3">
+                <h3 className="text-[11px] lg:text-xs font-medium text-black dark:text-white uppercase tracking-wide">Position Size</h3>
+              </div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-3 w-3 text-gray-500" />
+                    <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">Avg Position</span>
+                  </div>
+                  <span className="text-xs lg:text-sm font-bold text-gray-900 dark:text-gray-100">
                     {formatCurrency(avgPositionSize)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  {/* <InfoTooltip tooltip="Average percentage return per trade across all positions."> */}
-                    <span className="text-[11px] sm:text-xs 2xl:text-sm text-black dark:text-white">Avg Return</span>
-                  {/* </InfoTooltip> */}
-                  <span className={`text-[12px] sm:text-sm 2xl:text-base font-semibold ${avgPercentReturn > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <div className="flex items-center gap-2">
+                    <Percent className="h-3 w-3 text-gray-500" />
+                    <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">Avg Return</span>
+                  </div>
+                  <span className={`text-xs lg:text-sm font-bold ${avgPercentReturn > 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {formatPercent(avgPercentReturn)}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Trade Quality */}
-            <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-slate-200 dark:border-gray-600">
+            {/* Drawdown Analysis */}
+            <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
               <div className="mb-3">
-                <h3 className="text-[11px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Trade Quality</h3>
+                <h3 className="text-[11px] lg:text-xs font-medium text-black dark:text-white uppercase tracking-wide">Risk Profile</h3>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  {/* <InfoTooltip tooltip="Average win on profitable trades and respective percentage of position size."> */}
-                    <span className="text-[11px] sm:text-xs 2xl:text-sm text-black dark:text-white">Avg Win</span>
-                  {/* </InfoTooltip> */}
-                  <span className="text-[12px] sm:text-sm 2xl:text-base font-semibold text-green-600">
-                    {formatCurrency(avgWin)} ({avgWinPercent > 0 ? '+' : ''}{avgWinPercent.toFixed(1)}%)
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-3 w-3 text-green-500" />
+                    <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">Max Runup</span>
+                  </div>
+                  <span className="text-xs lg:text-sm font-bold text-green-600">
+                    {formatCurrency(getMaxRunup())}
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  {/* <InfoTooltip tooltip="Average loss on losing trades and respective percentage of position size."> */}
-                    <span className="text-[11px] sm:text-xs 2xl:text-sm text-black dark:text-white">Avg Loss</span>
-                  {/* </InfoTooltip> */}
-                  <span className="text-[12px] sm:text-sm 2xl:text-base font-semibold text-red-600">
-                    {formatCurrency(Math.abs(avgLoss))} ({avgLossPercent.toFixed(1)}%)
-                  </span>
-                </div>
-              </div>
-            </div>
 
-            {/* Trading Activity */}
-            <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-slate-200 dark:border-gray-600">
-              <div className="mb-3">
-                <h3 className="text-[11px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Trading Activity</h3>
-              </div>
-              <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-[11px] sm:text-xs 2xl:text-sm text-black dark:text-white">Total Trades</span>
-                  <span className="text-[12px] sm:text-sm 2xl:text-base font-semibold text-gray-900 dark:text-gray-100">
-                    {analytics.total_trades}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[11px] sm:text-xs 2xl:text-sm text-black dark:text-white">Unique Tickers</span>
-                  <span className="text-[12px] sm:text-sm 2xl:text-base font-semibold text-gray-900 dark:text-gray-100">
-                    {uniqueTickers}
+                  <div className="flex items-center gap-2">
+                    <TrendingDown className="h-3 w-3 text-red-500" />
+                    <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">Max Drawdown</span>
+                  </div>
+                  <span className="text-xs lg:text-sm font-bold text-red-600">
+                    {formatCurrency(getMaxDrawdown())}
                   </span>
                 </div>
               </div>
@@ -491,20 +653,40 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
           </div>
 
           {/* Monthly Performance */}
-          <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-slate-200 dark:border-gray-600 flex-1 flex flex-col">
-            <div className="mb-3">
+          <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-800/70 flex-1 flex flex-col">
+            <div className="mb-2">
               <h3 className="text-[11px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Monthly Performance</h3>
             </div>
             <div className={`overflow-y-auto flex-1 ${Object.keys(analytics.monthly_performance).length > 2 ? 'max-h-[115px]' : ''}`}>
               <table className="w-full">
-                                  <thead className="sticky top-0 bg-white dark:bg-black">
-                    <tr className="border-b border-slate-200 dark:border-gray-800/80">
-                      <th className="text-left py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white">Month</th>
-                      <th className="text-right py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white">Trades</th>
-                      <th className="text-right py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white">Win Rate</th>
-                      <th className="text-right py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white">Total P&L</th>
-                    </tr>
-                  </thead>
+                <thead className="sticky top-0 bg-white dark:bg-black">
+                  <tr className="border-b border-gray-200 dark:border-gray-800/70">
+                    <th className="text-left py-3 pl-0 pr-2 text-xs font-medium text-gray-700 dark:text-gray-300">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="h-3 w-3 text-gray-500" />
+                        Month
+                      </div>
+                    </th>
+                    <th className="text-right py-3 px-2 text-xs font-medium text-gray-700 dark:text-gray-300">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Target className="h-3 w-3 text-gray-500" />
+                        Trades
+                      </div>
+                    </th>
+                    <th className="text-right py-3 px-2 text-xs font-medium text-gray-700 dark:text-gray-300">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Percent className="h-3 w-3 text-gray-500" />
+                        Win Rate
+                      </div>
+                    </th>
+                    <th className="text-right py-3 px-2 text-xs font-medium text-gray-700 dark:text-gray-300">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <DollarSign className="h-3 w-3 text-gray-500" />
+                        Total P&L
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
                                   <tbody>
                     {(() => {
                       const months = Object.entries(analytics.monthly_performance)
@@ -515,33 +697,35 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
                     if (monthCount === 0) {
                       // No data - show 2 empty rows
                       return [
-                        <tr key="empty-1" className="border-b border-slate-200 dark:border-gray-800/80">
-                          <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[12px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100">-</td>
+                        <tr key="empty-1" className="border-b border-gray-200 dark:border-gray-900">
+                          <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-gray-100">-</td>
                           <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
                           <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
-                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100 text-right">-</td>
+                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-gray-100 text-right">-</td>
                         </tr>,
-                        <tr key="empty-2" className="border-b border-slate-200 dark:border-gray-800/80">
-                          <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[12px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100">-</td>
+                        <tr key="empty-2" className="border-b border-gray-200 dark:border-gray-900">
+                          <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-gray-100">-</td>
                           <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
                           <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
-                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100 text-right">-</td>
+                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-gray-100 text-right">-</td>
                         </tr>
                       ];
                     }
                     
                     return months.map(([monthKey, data], index) => (
-                      <tr key={monthKey} className="border-b border-slate-200 dark:border-gray-800/80">
-                        <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[12px] sm:text-xs 2xl:text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      <tr key={monthKey} className="border-b border-gray-200 dark:border-gray-900">
+                        <td className="py-3 pl-0 pr-2 text-xs font-medium text-gray-900 dark:text-gray-100">
                           {formatMonth(monthKey)}
                         </td>
-                        <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">
-                          {data.total_trades}
+                        <td className="py-3 px-2 text-xs text-gray-900 dark:text-gray-100 text-right">
+                          <span className="font-medium">{data.total_trades}</span>
                         </td>
-                        <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">
-                          {formatPercent(data.success_rate)}
+                        <td className="py-3 px-2 text-xs text-right">
+                          <span className={`font-medium ${data.success_rate >= 50 ? 'text-green-600' : 'text-red-600'}`}>
+                            {formatPercent(data.success_rate)}
+                          </span>
                         </td>
-                        <td className={`py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-semibold text-right ${getPnlColor(data.total_pnl)}`}>
+                        <td className={`py-3 px-2 text-xs font-medium text-right ${getPnlColor(data.total_pnl)}`}>
                           {formatCurrency(data.total_pnl)}
                         </td>
                       </tr>

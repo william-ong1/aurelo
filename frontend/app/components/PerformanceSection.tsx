@@ -3,7 +3,7 @@ import React from 'react';
 
 export default function PerformanceSection() {
   return (
-    <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
+    <div className="bg-white dark:bg-black rounded-lg p-4 pt-3 shadow-sm border border-gray-200 dark:border-gray-800/70">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Performance</h3>
@@ -16,7 +16,7 @@ export default function PerformanceSection() {
                 disabled
                 className={`px-1.5 sm:px-2 2xl:px-3 py-.7 sm:py-1 2xl:py-1.5 text-[.5rem] sm:text-[.6rem] 2xl:text-[.8rem] font-medium rounded-full transition-all duration-200 cursor-not-allowed focus:outline-none ${
                   period === '1M'
-                    ? 'text-gray-900 dark:text-white bg-white dark:bg-gray-800 shadow ring-1 ring-gray-300 dark:ring-gray-700 font-semibold'
+                    ? 'text-gray-900 dark:text-white bg-white dark:bg-gray-800 shadow ring-1 ring-gray-300 dark:ring-gray-700 font-medium'
                     : 'text-gray-600 dark:text-gray-400'
                 }`}
               >

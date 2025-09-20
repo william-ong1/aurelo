@@ -41,7 +41,7 @@ function InputField({ label, ...props }: { label: string; [key: string]: unknown
       </label>
       <input
         {...props}
-        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
+        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
       />
     </div>
   );
@@ -409,11 +409,11 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       {isPageReady && (
-        <main className="mx-auto px-4 sm:px-6 lg:px-8 pt-19 sm:pt-9 pb-8 sm:pb-9 max-w-6xl 2xl:max-w-7xl">
+        <main className="mx-auto px-2 sm:px-6 lg:px-8 pt-19 sm:pt-9 pb-8 sm:pb-9 max-w-6xl 2xl:max-w-7xl">
           {/* Top Row - Overview and Holdings */}
           <div className="flex flex-col lg:flex-row gap-4 mb-4">
             {/* Overview Box - Fixed size */}
-            <div className="lg:w-2/5 bg-white dark:bg-black rounded-lg p-4 pt-3 shadow-sm border border-slate-200 dark:border-gray-600 h-[400px]">
+            <div className="lg:w-2/5 bg-white dark:bg-black rounded-lg p-4 pt-3 shadow-sm border border-gray-200 dark:border-gray-800/70 h-[400px]">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Overview</h3>
@@ -424,7 +424,7 @@ export default function Home() {
                       onClick={() => setTimePeriod('all-time')}
                       className={`px-1.5 sm:px-2 2xl:px-3 py-.7 sm:py-1 2xl:py-1.5 text-[.55rem] 2xl:text-[.8rem] font-medium rounded-full transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 ${
                         timePeriod === 'all-time'
-                          ? 'text-gray-900 dark:text-white bg-white dark:bg-gray-800 shadow ring-1 ring-gray-300 dark:ring-gray-700 font-semibold'
+                          ? 'text-gray-900 dark:text-white bg-white dark:bg-gray-800 shadow ring-1 ring-gray-300 dark:ring-gray-700 font-medium'
                           : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/50'
                       }`}
                     >
@@ -434,7 +434,7 @@ export default function Home() {
                       onClick={() => setTimePeriod('today')}
                       className={`px-1.5 sm:px-2 2xl:px-3 py-.7 sm:py-1 2xl:py-1.5 text-[.55rem] 2xl:text-[.8rem] font-medium rounded-full transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 ${
                         timePeriod === 'today'
-                          ? 'text-gray-900 dark:text-white bg-white dark:bg-gray-800 shadow ring-1 ring-gray-300 dark:ring-gray-700 font-semibold'
+                          ? 'text-gray-900 dark:text-white bg-white dark:bg-gray-800 shadow ring-1 ring-gray-300 dark:ring-gray-700 font-medium'
                           : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/50'
                       }`}
                     >
@@ -488,9 +488,9 @@ export default function Home() {
           <div 
             className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-all p-3 sm:p-4"
           >
-            <div className="bg-white dark:bg-black backdrop-blur-sm rounded-lg shadow-2xl p-3 sm:p-6 w-full max-w-sm mx-auto border border-gray-200 dark:border-gray-600 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-black backdrop-blur-sm rounded-lg shadow-2xl p-3 sm:p-6 w-full max-w-sm mx-auto border border-gray-200 dark:border-gray-800/70 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-3 sm:mb-4">
-                <h2 className="text-sm sm:text-lg 2xl:text-lg font-semibold text-black dark:text-white">
+                <h2 className="text-sm sm:text-lg 2xl:text-lg font-medium text-black dark:text-white">
                   {editingAsset ? 'Edit Asset' : 'Add New Asset'}
                 </h2>
                 <button
@@ -508,8 +508,8 @@ export default function Home() {
                       onClick={() => setUploadMode('manual')}
                       className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-1 transition-all cursor-pointer ${
                         uploadMode === 'manual'
-                          ? 'border-gray-200 dark:border-gray-600 text-black dark:text-white ring-1 ring-black dark:ring-white'
-                          : 'border-gray-200 dark:border-gray-600 text-black dark:text-white hover:border-gray-300'
+                          ? 'border-gray-200 dark:border-gray-800/70 text-black dark:text-white ring-1 ring-black dark:ring-white'
+                          : 'border-gray-200 dark:border-gray-800/70 text-black dark:text-white hover:border-gray-300'
                       }`}
                     >
                       <FileText size={14} className="sm:w-4 sm:h-4" />
@@ -519,22 +519,22 @@ export default function Home() {
                       onClick={() => setUploadMode('image')}
                       className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-1 transition-all cursor-pointer ${
                         uploadMode === 'image'
-                          ? 'border-gray-200 dark:border-gray-600 text-black dark:text-white ring-1 ring-black dark:ring-white'
-                          : 'border-gray-200 dark:border-gray-600 text-black dark:text-white hover:border-gray-300'
+                          ? 'border-gray-200 dark:border-gray-800/70 text-black dark:text-white ring-1 ring-black dark:ring-white'
+                          : 'border-gray-200 dark:border-gray-800/70 text-black dark:text-white hover:border-gray-300'
                       }`}
                     >
                       <Upload size={14} className="sm:w-4 sm:h-4" />
                       <span className="font-medium text-[10px] sm:text-[12px] 2xl:text-sm">Upload Image</span>
                     </button>
                   </div>
-                  <div className="border-t border-gray-200 dark:border-gray-600 mt-3 sm:mt-4"></div>
+                  <div className="border-t border-gray-200 dark:border-gray-800/70 mt-3 sm:mt-4"></div>
                 </div>
               )}
 
               {uploadMode === 'image' && !editingAsset ? (
                 <div className="space-y-3 sm:space-y-4">
                   {selectedImages.length === 0 ? (
-                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-3 sm:p-6 text-center">
+                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-800/70 rounded-lg p-3 sm:p-6 text-center">
                       <Upload className="mx-auto h-6 w-6 sm:h-10 sm:w-10 text-gray-400 mb-2 sm:mb-3" />
                       <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-black dark:text-white mb-2 sm:mb-3">
                         Upload images of your portfolio or holdings
@@ -625,7 +625,7 @@ export default function Home() {
                                 setSelectedImages([]);
                                 setIsProcessing(false);
                               }}
-                              className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
+                              className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 dark:border-gray-800/70 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
                             >
                               Try Again
                             </button>
@@ -684,7 +684,7 @@ export default function Home() {
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
                         placeholder="e.g. Apple Inc."
                         required
                       />
@@ -699,7 +699,7 @@ export default function Home() {
                           const { name, value } = e.target;
                           setFormData(prev => ({ ...prev, [name]: value.toUpperCase() }));
                         }}
-                        className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm ${
+                        className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm ${
                           !formData.isStock 
                             ? 'bg-gray-100 dark:bg-gray-900 text-gray-400 dark:text-gray-500 cursor-not-allowed' 
                             : 'bg-white dark:bg-black text-black dark:text-white'
@@ -721,7 +721,7 @@ export default function Home() {
                           name="shares"
                           value={formData.shares}
                           onChange={handleInputChange}
-                          className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
                           step="0.001"
                           placeholder="e.g., 10.5"
                           required
@@ -736,7 +736,7 @@ export default function Home() {
                             name="price"
                             value={formData.price}
                             onChange={handleInputChange}
-                            className="w-full pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
+                            className="w-full pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
                             step="0.01"
                             placeholder="0.00"
                             required
@@ -755,7 +755,7 @@ export default function Home() {
                             name="balance"
                             value={formData.balance}
                             onChange={handleInputChange}
-                            className="w-full pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
+                            className="w-full pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
                             step="0.01"
                             placeholder="0.00"
                             required
@@ -769,7 +769,7 @@ export default function Home() {
                           name="apy"
                           value={formData.apy}
                           onChange={handleInputChange}
-                          className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
                           step="0.1"
                           placeholder="0.0"
                           required
@@ -780,7 +780,7 @@ export default function Home() {
 
                   {/* Buttons */}
                   <div className="flex flex-row gap-2 sm:gap-3 pt-2 sm:pt-3">
-                    <button onClick={closeModal} className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-black dark:text-white rounded-lg hover:bg-gray-100 dark:bg-black dark:hover:bg-gray-900 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm">Cancel</button>
+                    <button onClick={closeModal} className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 dark:border-gray-800/70 text-black dark:text-white rounded-lg hover:bg-gray-100 dark:bg-black dark:hover:bg-gray-900 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm">Cancel</button>
                     <button onClick={handleSubmit} className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm">{editingAsset ? 'Update Asset' : 'Add Asset'}</button>
                   </div>
                 </div>

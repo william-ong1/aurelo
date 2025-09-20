@@ -175,10 +175,10 @@ export default function PerformanceChart({ assets, timePeriod }: PerformanceChar
   };
 
   return (
-    <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+    <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-sm sm:text-base 2xl:text-lg font-semibold text-gray-900">Performance</h3>
+          <h3 className="text-sm sm:text-base 2xl:text-lg font-medium text-gray-900">Performance</h3>
           <p className="text-[12px] sm:text-xs 2xl:text-sm text-black">Portfolio value over time</p>
         </div>
         <div className="text-right">

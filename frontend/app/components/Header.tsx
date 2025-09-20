@@ -28,7 +28,7 @@ export default function Header({ onLogout, onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="fixed top-0 w-full z-40 bg-white/80 dark:bg-black/70 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-800/50 shadow-sm lg:sticky" suppressHydrationWarning>
+    <header className="fixed top-0 w-full z-40 bg-white/80 dark:bg-black/70 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-800/70 shadow-sm lg:sticky" suppressHydrationWarning>
       <div className="container pl-4 pr-2 sm:px-6 lg:px-8 max-w-7xl">
         <div className="flex items-center justify-between h-14 sm:h-20">
           {/* Branding (left on mobile and desktop) */}
@@ -38,7 +38,7 @@ export default function Header({ onLogout, onMenuClick }: HeaderProps) {
                 Aurelo
               </h1>
               {/* Mobile-only Beta badge */}
-              <span className="sm:hidden px-1.5 py-0.5 text-[9px] leading-none font-semibold rounded-full border bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-gray-700">
+              <span className="sm:hidden px-1.5 py-0.5 text-[9px] leading-none font-medium rounded-full border bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-gray-700">
                 Beta
               </span>
             </div>

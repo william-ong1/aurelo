@@ -105,9 +105,9 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-all p-3 sm:p-4">
-      <div className="bg-white dark:bg-black backdrop-blur-sm rounded-lg shadow-2xl p-3 sm:p-6 w-full max-w-xs mx-auto border border-gray-200 dark:border-gray-600 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-black backdrop-blur-sm rounded-lg shadow-2xl p-3 sm:p-6 w-full max-w-xs mx-auto border border-gray-200 dark:border-gray-800/70 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-3 sm:mb-4">
-          <h2 className="text-sm sm:text-lg 2xl:text-lg font-semibold text-black dark:text-white">
+          <h2 className="text-sm sm:text-lg 2xl:text-lg font-medium text-black dark:text-white">
             {mode === 'login' ? 'Sign In' : 'Create Account'}
           </h2>
           <button
@@ -141,7 +141,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-[12px] bg-white dark:bg-black text-black dark:text-white"
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-[12px] bg-white dark:bg-black text-black dark:text-white"
               placeholder="Enter your email"
               required
             />
@@ -156,7 +156,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-[12px] pr-12 bg-white dark:bg-black text-black dark:text-white"
+                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-[12px] pr-12 bg-white dark:bg-black text-black dark:text-white"
                 placeholder="Enter your password"
                 required
                 minLength={6}
@@ -176,7 +176,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-black dark:text-white rounded-lg hover:bg-gray-100 dark:bg-black dark:hover:bg-gray-900 font-medium transition-colors cursor-pointer text-[12px] sm:text-xs 2xl:text-sm"
+              className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 dark:border-gray-800/70 text-black dark:text-white rounded-lg hover:bg-gray-100 dark:bg-black dark:hover:bg-gray-900 font-medium transition-colors cursor-pointer text-[12px] sm:text-xs 2xl:text-sm"
             >
               Cancel
             </button>

@@ -58,7 +58,7 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
   //   return (
   //     <div className="">
   //       <div className="flex flex-row items-center justify-between gap-2 mb-2">
-  //         <h2 className="text-base text-lg 2xl:text-2xl font-semibold text-gray-800">Analytics</h2>
+  //         <h2 className="text-base text-lg 2xl:text-2xl font-medium text-gray-800">Analytics</h2>
   //         <div className="text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 font-medium">
   //           Loading...
   //         </div>
@@ -69,7 +69,7 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
   //       <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-6">
   //         {/* Loading cards - match exact structure of real cards */}
   //         {[1, 2, 3, 4].map((i) => (
-  //           <div key={i} className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600 animate-pulse">
+  //           <div key={i} className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800/70 animate-pulse">
   //             <div className="flex items-center justify-between mb-3">
   //               <div className="w-24 h-3 bg-gray-200 rounded"></div>
   //               <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
@@ -146,25 +146,25 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
           {/* Left side - First 2 cards (2/5 width) */}
           <div className="w-2/5 grid grid-cols-2 gap-4">
             {/* Total Value */}
-            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
+            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Total Value</h3>
                 <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
               </div>
               <div className="space-y-4">
               <div>
-                    <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    <div className="text-xs sm:text-lg 2xl:text-2xl font-semibold text-gray-900 dark:text-gray-100">
                     ${totalPortfolioValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                   </div>
               <div className="text-xs 2xl:text-sm text-black dark:text-white">Portfolio Value</div>
                 </div>
                 <div className="flex gap-8">
                                   <div>
-                      <div className="text-[10px] sm:text-base 2xl:text-lg font-bold text-gray-900 dark:text-gray-100">${totalStockValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+                      <div className="text-[10px] sm:text-base 2xl:text-lg font-semibold text-gray-900 dark:text-gray-100">${totalStockValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
                       <div className="text-xs 2xl:text-sm text-black dark:text-white">Stocks</div>
                     </div>
                     <div>
-                      <div className="text-[10px] sm:text-base 2xl:text-lg font-bold text-gray-900 dark:text-gray-100">${totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+                      <div className="text-[10px] sm:text-base 2xl:text-lg font-semibold text-gray-900 dark:text-gray-100">${totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
                       <div className="text-xs 2xl:text-sm text-black dark:text-white">Cash</div>
                     </div>
                 </div>
@@ -172,20 +172,20 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
             </div>
 
             {/* Portfolio Breakdown */}
-            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
+            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Breakdown</h3>
                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
               </div>
               <div className="space-y-3">
                 <div>
-                  <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  <div className="text-xs sm:text-lg 2xl:text-2xl font-semibold text-gray-900 dark:text-gray-100">
                     {stockAllocation.toFixed(1)}%
                   </div>
                   <div className="text-xs 2xl:text-sm text-black dark:text-white">Stocks & ETFs</div>
                 </div>
                 <div>
-                  <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  <div className="text-xs sm:text-lg 2xl:text-2xl font-semibold text-gray-900 dark:text-gray-100">
                     {cashAllocation.toFixed(1)}%
                   </div>
                   <div className="text-xs 2xl:text-sm text-black dark:text-white">Cash</div>
@@ -198,14 +198,14 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
           {/* Right side - Last 3 cards (3/5 width) */}
           <div className="w-3/5 grid grid-cols-3 gap-4">
             {/* Asset Count */}
-            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
+            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Assets</h3>
                 <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
               </div>
               <div className="space-y-4">
                 <div>
-                  <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  <div className="text-xs sm:text-lg 2xl:text-2xl font-semibold text-gray-900 dark:text-gray-100">
                     {assets.length}
                   </div>
               <div className="text-xs 2xl:text-sm text-black dark:text-white">Total Assets</div>
@@ -224,14 +224,14 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
             </div>
 
             {/* Cash Interest */}
-            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
+            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Cash Interest</h3>
                 <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
               </div>
               <div className="space-y-4">
                 <div>
-                  <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  <div className="text-xs sm:text-lg 2xl:text-2xl font-semibold text-gray-900 dark:text-gray-100">
                     {(weightedAPY * 100).toFixed(2)}%
                   </div>
               <div className="text-xs 2xl:text-sm text-black dark:text-white">Weighted APY</div>
@@ -250,14 +250,14 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
             </div>
 
             {/* Best Performer */}
-            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
+            <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Best Performer</h3>
                 <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
               </div>
               <div className="space-y-4">
                 <div>
-                  <div className="text-xs sm:text-lg 2xl:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  <div className="text-xs sm:text-lg 2xl:text-2xl font-semibold text-gray-900 dark:text-gray-100">
                     {bestPerformer ? (() => {
                       const currentPrice = realTimePrices[bestPerformer.ticker!];
                       const returnPercent = ((currentPrice - bestPerformer.purchasePrice!) / bestPerformer.purchasePrice!) * 100;
@@ -291,25 +291,25 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
         <div className="grid grid-cols-2 gap-4 mb-4">
           {/* Row 1 */}
           {/* Total Value */}
-          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xs font-medium text-black dark:text-white uppercase tracking-wide">Total Value</h3>
               <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
             </div>
             <div className="space-y-4">
               <div>
-                <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   ${totalPortfolioValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </div>
                 <div className="text-xs text-black dark:text-white">Portfolio Value</div>
               </div>
               <div className="flex gap-4">
                 <div>
-                  <div className="text-xs font-bold text-gray-900 dark:text-gray-100">${totalStockValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+                  <div className="text-xs font-semibold text-gray-900 dark:text-gray-100">${totalStockValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
                   <div className="text-xs text-black dark:text-white">Stocks</div>
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-gray-900 dark:text-gray-100">${totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+                  <div className="text-xs font-semibold text-gray-900 dark:text-gray-100">${totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
                   <div className="text-xs text-black dark:text-white">Cash</div>
                 </div>
               </div>
@@ -317,20 +317,20 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
           </div>
 
           {/* Portfolio Breakdown */}
-          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xs font-medium text-black dark:text-white uppercase tracking-wide">Breakdown</h3>
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
             </div>
             <div className="space-y-3">
               <div>
-                <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {stockAllocation.toFixed(1)}%
                 </div>
                 <div className="text-xs text-black dark:text-white">Stocks & ETFs</div>
               </div>
               <div>
-                <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {cashAllocation.toFixed(1)}%
                 </div>
                 <div className="text-xs text-black dark:text-white">Cash</div>
@@ -340,14 +340,14 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
 
           {/* Row 2 */}
           {/* Asset Count */}
-          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xs font-medium text-black dark:text-white uppercase tracking-wide">Assets</h3>
               <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
             </div>
             <div className="space-y-4">
               <div>
-                <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {assets.length}
                 </div>
                 <div className="text-xs text-black dark:text-white">Total Assets</div>
@@ -366,14 +366,14 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
           </div>
 
           {/* Cash Interest */}
-          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xs font-medium text-black dark:text-white uppercase tracking-wide">Cash Interest</h3>
               <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
             </div>
             <div className="space-y-4">
               <div>
-                <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {(weightedAPY * 100).toFixed(2)}%
                 </div>
                 <div className="text-xs text-black dark:text-white">Weighted APY</div>
@@ -393,14 +393,14 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
 
           {/* Row 3 */}
           {/* Best Performer */}
-          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xs font-medium text-black dark:text-white uppercase tracking-wide">Best Performer</h3>
               <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
             </div>
             <div className="space-y-4">
               <div>
-                <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {bestPerformer ? (() => {
                     const currentPrice = realTimePrices[bestPerformer.ticker!];
                     const returnPercent = ((currentPrice - bestPerformer.purchasePrice!) / bestPerformer.purchasePrice!) * 100;
@@ -427,14 +427,14 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
           </div>
 
           {/* Worst Performer - Mobile Only */}
-          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-slate-200 dark:border-gray-600">
+          <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xs font-medium text-black dark:text-white uppercase tracking-wide">Worst Performer</h3>
               <div className="w-2 h-2 bg-red-500 rounded-full"></div>
             </div>
             <div className="space-y-4">
               <div>
-                <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {worstPerformer ? (() => {
                     const currentPrice = realTimePrices[worstPerformer.ticker!];
                     const returnPercent = ((currentPrice - worstPerformer.purchasePrice!) / worstPerformer.purchasePrice!) * 100;
