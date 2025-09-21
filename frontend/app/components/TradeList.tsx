@@ -148,11 +148,23 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
       <ChevronDown className="h-3 w-3" />;
   };
 
-  const formatCurrency = (amount: number) => {
+  // Utility function to format large numbers with K and M notation
+  const formatLargeNumber = (value: number): string => {
+    const absValue = Math.abs(value);
+    const sign = value < 0 ? '-' : '';
+    if (absValue >= 1000000) {
+      return `${sign}$${(absValue / 1000000).toFixed(2)}M`;
+    } else if (absValue >= 1000) {
+      return `${sign}$${(absValue / 1000).toFixed(2)}K`;
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-    }).format(amount);
+    }).format(value);
+  };
+
+  const formatCurrency = (amount: number) => {
+    return formatLargeNumber(amount);
   };
 
   const formatPercent = (value: number) => {
@@ -172,7 +184,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
   };
 
   const getPnlColor = (pnl: number) => {
-    return pnl >= 0 ? 'text-green-600' : 'text-red-600';
+    return pnl >= 0 ? 'text-emerald-600' : 'text-rose-600';
   };
 
 
@@ -225,20 +237,20 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
 
   return (
     <>
-      <div className="bg-white dark:bg-black rounded-lg px-3 py-3 pb-2 sm:px-4 sm:py-4 sm:pb-2 border border-gray-200 dark:border-gray-800/70">
+      <div className="bg-white dark:bg-black rounded-lg shadow-sm px-3 py-3 pb-2 sm:px-4 sm:py-4 sm:pb-2 border border-gray-200 dark:border-gray-800/70">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Trade History</h3>
-          <div className="flex items-center gap-2.5 sm:gap-1">
+          <div className="flex items-center gap-2.5 sm:gap-2">
             <button
               onClick={exportToCsv}
-              className="p-0.5 pr-1.5 rounded-md transition-colors text-gray-400 hover:text-black dark:hover:text-white dark:text-white transition-all cursor-pointer"
+              className="p-0.5 pr-1.5 rounded-lg transition-colors text-gray-400 hover:text-black dark:hover:text-white dark:text-white transition-all cursor-pointer"
               title="Export CSV"
             >
               <Download className='w-4 h-4 sm:w-4.5 sm:h-4.5 2xl:w-5 2xl:h-5' />
             </button>
             <button
               onClick={onAdd}
-              className="p-0.5 pr-1.5 rounded-md transition-colors text-gray-400 hover:text-black dark:hover:text-white dark:text-white transition-all cursor-pointer"
+              className="p-0.5 pr-1.5 rounded-lg transition-colors text-gray-400 hover:text-black dark:hover:text-white dark:text-white transition-all cursor-pointer"
               title="Add Trade"
             >
               <Plus className='w-4 h-4 sm:w-4.5 sm:h-4.5 2xl:w-5 2xl:h-5' />
@@ -255,7 +267,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                   onClick={() => handleSort('date')}
                 >
                   <div className="flex items-center gap-1.5">
-                    <Calendar className="h-3 w-3 text-gray-500" />
+                    <Calendar className="h-3 w-3 text-gray-500 hidden sm:block" />
                     Date
                     {getSortIcon('date')}
                   </div>
@@ -265,7 +277,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                   onClick={() => handleSort('ticker')}
                 >
                   <div className="flex items-center gap-1.5">
-                    <Tag className="h-3 w-3 text-gray-500" />
+                    <Tag className="h-3 w-3 text-gray-500 hidden sm:block" />
                     Name
                     {getSortIcon('ticker')}
                   </div>
@@ -275,7 +287,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                   onClick={() => handleSort('realized_pnl')}
                 >
                   <div className="flex items-center gap-1.5 justify-center">
-                    <DollarSign className="h-3 w-3 text-gray-500" />
+                    <DollarSign className="h-3 w-3 text-gray-500 hidden sm:block" />
                     P&L
                     {getSortIcon('realized_pnl')}
                   </div>
@@ -285,14 +297,14 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                   onClick={() => handleSort('percent_diff')}
                 >
                   <div className="flex items-center gap-1.5 justify-center">
-                    <Percent className="h-3 w-3 text-gray-500" />
+                    <Percent className="h-3 w-3 text-gray-500 hidden sm:block" />
                     Return
                     {getSortIcon('percent_diff')}
                   </div>
                 </th>
-                <th className="text-center py-3 px-2 text-xs font-medium text-gray-700 dark:text-gray-300 select-none w-1/5">
-                  <div className="flex items-center justify-center gap-1.5">
-                    <Settings className="h-3 w-3 text-gray-500" />
+                <th className="text-right py-3 px-2 text-xs font-medium text-gray-700 dark:text-gray-300 select-none w-1/6">
+                  <div className="flex items-center justify-end gap-1.5">
+                    <Settings className="h-3 w-3 text-gray-500 hidden sm:block" />
                     Actions
                   </div>
                 </th>
@@ -302,24 +314,28 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
               {sortedTrades.length > 0 ? (
                 (displayCount === 'today' ? sortedTrades : sortedTrades.slice(0, typeof displayCount === 'number' ? displayCount : sortedTrades.length)).map((trade) => (
                   <tr key={trade.id} className="border-b border-gray-200 dark:border-gray-900">
-                    <td className="py-3 pl-0 pr-2 text-xs text-gray-900 dark:text-gray-100">
-                      {formatDate(trade.date)}
+                    <td className="py-3 pl-0 pr-2 text-[10px] md:text-[11px] lg:text-xs text-gray-900 dark:text-gray-100">
+                      <div className="overflow-x-auto scrollbar-hide">
+                        <span className="whitespace-nowrap">{formatDate(trade.date)}</span>
+                      </div>
                     </td>
                     <td className="py-3 px-2">
-                      <span className="text-xs font-medium text-gray-900 dark:text-gray-100">{trade.ticker}</span>
+                      <div className="overflow-x-auto scrollbar-hide">
+                        <span className="text-[10px] md:text-[11px] lg:text-xs font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">{trade.ticker}</span>
+                      </div>
                     </td>
-                    <td className="py-3 px-2 text-xs font-medium text-center">
+                    <td className="py-3 px-2 text-[10px] md:text-[11px] lg:text-xs font-medium text-center">
                       <span className={getPnlColor(trade.realized_pnl || 0)}>
                         {formatCurrency(trade.realized_pnl || 0)}
                       </span>
                     </td>
-                    <td className="py-3 px-2 text-xs font-medium text-center">
+                    <td className="py-3 px-2 text-[10px] md:text-[11px] lg:text-xs font-medium text-center">
                       <span className={getPnlColor(trade.percent_diff || 0)}>
                         {formatPercent(trade.percent_diff || 0)}
                       </span>
                     </td>
-                    <td className="py-3 px-2 text-center">
-                      <div className="flex items-center justify-center gap-1 sm:gap-2">
+                    <td className="py-3 px-2 text-right">
+                      <div className="flex items-center justify-end gap-1 sm:gap-2">
                         <button
                           onClick={() => onEdit(trade)}
                           className="p-0.5 text-gray-400 hover:text-blue-600 transition-colors"
@@ -333,7 +349,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                               onDelete(trade.id);
                             }
                           }}
-                          className="p-0.5 text-gray-400 hover:text-red-600 transition-colors"
+                          className="p-0.5 text-gray-400 hover:text-rose-600 transition-colors"
                           title="Delete trade"
                         >
                           <Trash2 className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
@@ -354,39 +370,37 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
         </div>
         
         {/* Trade Count Footer */}
-        {sortedTrades.length > 0 && (
-          <div className="flex justify-end items-center mt-2" >
-            {/* Trade Count */}
-            <div className="flex items-center gap-1">
-              <span className="text-[.6rem] text-slate-500 dark:text-gray-300">Showing</span>
-              <div className="relative flex items-center">
-                <select
-                  value={displayCount === 'today' ? 'today' : displayCount === 'all' ? 'all' : displayCount}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === 'all') {
-                      setDisplayCount('all');
-                    } else if (value === 'today') {
-                      setDisplayCount('today');
-                    } else {
-                      setDisplayCount(parseInt(value));
-                    }
-                  }}
-                  className={`text-[.6rem] text-slate-500 dark:text-gray-300 bg-transparent border-none outline-none cursor-pointer hover:text-slate-600 dark:hover:text-gray-100 transition-colors appearance-none ${displayCount === 5 ? 'pr-0' : displayCount === 100 ? 'pr-3' : displayCount === "today" ? 'pr-3' : 'pr-2'}`}
-                >
-                  <option value="5">5</option>
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="100">100</option>
-                  <option value="all">all</option>
-                  <option value="today">today</option>
-                </select>
-                <ChevronDown className="absolute right-0 h-2.5 w-2.5 text-slate-400 pointer-events-none" />
-              </div>
-              <span className="text-[.6rem] text-slate-500 dark:text-gray-300">trades</span>
+        <div className="flex justify-end items-center mt-2" >
+          {/* Trade Count */}
+          <div className="flex items-center gap-1">
+            <span className="text-[.6rem] text-gray-500 dark:text-gray-300">Showing</span>
+            <div className="relative flex items-center">
+              <select
+                value={displayCount === 'today' ? 'today' : displayCount === 'all' ? 'all' : displayCount}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === 'all') {
+                    setDisplayCount('all');
+                  } else if (value === 'today') {
+                    setDisplayCount('today');
+                  } else {
+                    setDisplayCount(parseInt(value));
+                  }
+                }}
+                className={`text-[.6rem] text-gray-500 dark:text-gray-300 bg-transparent border-none outline-none cursor-pointer hover:text-gray-600 dark:hover:text-gray-100 transition-colors appearance-none ${displayCount === 5 ? 'pr-0' : displayCount === 100 ? 'pr-3' : displayCount === "today" ? 'pr-3' : 'pr-2'}`}
+              >
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="100">100</option>
+                <option value="all">all</option>
+                <option value="today">today</option>
+              </select>
+              <ChevronDown className="absolute right-0 h-2.5 w-2.5 text-gray-400 pointer-events-none" />
             </div>
+            <span className="text-[.6rem] text-gray-500 dark:text-gray-300">trades</span>
           </div>
-        )}
+        </div>
       </div>
     </>
   );

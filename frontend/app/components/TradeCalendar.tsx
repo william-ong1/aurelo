@@ -74,7 +74,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
   const getPnlColor = (pnl: number) => {
     if (pnl > 0) return 'text-emerald-600';
     if (pnl < 0) return 'text-rose-600';
-    return 'text-slate-600';
+    return 'text-gray-600';
   };
 
   const getDayBackgroundColor = (pnl: number) => {
@@ -93,7 +93,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
   const getWeekBackgroundColor = (pnl: number) => {
     if (pnl > 0) return 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700';
     if (pnl < 0) return 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700';
-    return 'bg-slate-50 dark:bg-gray-950/80 border-gray-100 dark:border-gray-800/80';
+    return 'bg-gray-50 dark:bg-gray-950/80 border-gray-100 dark:border-gray-800/80';
   };
 
   // Group trades by date
@@ -282,7 +282,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
         <div className="flex items-center justify-between mb-1 px-1">
           <div className="flex items-center gap-2">
             <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">P&L Calendar</h3>
-            <div className="flex bg-gray-100 dark:bg-black rounded-md p-0.5 ml-8 sm:ml-10 lg:ml-28 relative border border-gray-200/30 dark:border-gray-800/80">
+            <div className="flex bg-gray-100 dark:bg-black rounded-lg p-0.5 ml-8 sm:ml-10 lg:ml-28 relative border border-gray-200/30 dark:border-gray-800/80">
               <button
                 onClick={() => {
                   setDisplayMode('price');
@@ -290,8 +290,8 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                 }}
                 className={`flex items-center justify-center w-6 h-5 sm:w-6 sm:h-5 rounded-sm transition-all duration-200 ${
                   displayMode === 'price' 
-                    ? 'bg-white dark:bg-gray-900 text-slate-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-medium' 
-                    : 'text-slate-500 dark:text-gray-400 hover:text-slate-600 dark:hover:text-gray-300'
+                    ? 'bg-white dark:bg-gray-900 text-gray-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-medium' 
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
                 } cursor-pointer`}
               >
                 <DollarSign className="w-3 h-3 sm:h-2.5 sm:w-2.5 " />
@@ -303,8 +303,8 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                 }}
                 className={`flex items-center justify-center w-6 h-5 sm:w-6 sm:h-5 rounded-sm transition-all duration-200 ${
                   displayMode === 'percentage' 
-                    ? 'bg-white dark:bg-gray-900 text-slate-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-medium' 
-                    : 'text-slate-500 dark:text-gray-400 hover:text-slate-600 dark:hover:text-gray-300'
+                    ? 'bg-white dark:bg-gray-900 text-gray-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-medium' 
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
                 } cursor-pointer`}
               >
                 <Percent className="w-3 h-3 sm:h-2.5 sm:w-2.5" />
@@ -317,8 +317,8 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                   }}
                   className={`flex items-center justify-center w-6 h-5 sm:w-6 sm:h-5 transition-all duration-200 ${
                     displayMode === 'r' 
-                      ? 'bg-white dark:bg-gray-900 text-slate-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-medium rounded-l-sm' 
-                      : 'text-slate-500 dark:text-gray-400 hover:text-slate-600 dark:hover:text-gray-300 rounded-sm'
+                      ? 'bg-white dark:bg-gray-900 text-gray-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-medium rounded-l-sm' 
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-sm'
                   } cursor-pointer`}
                 >
                   <span className="text-[.65rem] sm:text-[.6rem] font-bold">R</span>
@@ -339,7 +339,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
           <div className="flex items-center lg:gap-1">
             <button
               onClick={goToPreviousMonth}
-              className="text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 transition-all duration-200 rounded-lg cursor-pointer"
+              className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-200 rounded-lg cursor-pointer"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -348,7 +348,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
             </span>
             <button
               onClick={goToNextMonth}
-              className="text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300 transition-all duration-200 rounded-lg cursor-pointer"
+              className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-200 rounded-lg cursor-pointer"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -360,7 +360,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
         {/* Day Headers */}
         {dayNames.map((day) => (
           <div key={day} className="p-2 pb-0 text-center">
-            <span className="text-[.6rem] font-medium text-slate-500 dark:text-gray-400 uppercase tracking-wider">
+            <span className="text-[.6rem] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               {day}
             </span>
           </div>
@@ -388,12 +388,12 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
               calendarDays.push(
                 <div
                   key={`day-${i + dayIndex}`}
-                  className={`relative p-1 lg:p-1.5 min-h-[60px] lg:min-h-[70px] border rounded-md transition-all duration-200 flex flex-col justify-between ${
+                  className={`relative p-1 lg:p-1.5 min-h-[60px] lg:min-h-[70px] border rounded-lg transition-all duration-200 flex flex-col justify-between ${
                     hasTrades 
                       ? getDayBackgroundColor(dayStats.pnl)
                       : isCurrentMonth 
                         ? 'bg-white dark:bg-black border-gray-100 dark:border-gray-800/80'
-                        : 'bg-slate-50 dark:bg-gray-950/80 border-gray-100 dark:border-gray-800/80'
+                        : 'bg-gray-50 dark:bg-gray-950/80 border-gray-100 dark:border-gray-800/80'
                   } ${
                     !isCurrentMonth && hasTrades ? 'opacity-60' : ''
                   }`}
@@ -401,7 +401,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                   {/* ${isToday ? 'ring-0 ring-blue-300 ring-offset-1' : ''}  */}
                   {/* Date Number */}
                   <div className={`text-[.5rem] lg:text-[.6rem] font-medium text-left ${
-                    isCurrentMonth ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-gray-500'
+                    isCurrentMonth ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'
                   }`}>
                     {day.getDate()}
                   </div>
@@ -465,16 +465,16 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
             calendarDays.push(
                 <div
                   key={`week-${weekIndex}`}
-                  className={`relative ml-0 p-1 lg:p-1.5 min-h-[60px] lg:min-h-[70px] border rounded-md transition-all duration-200 flex flex-col justify-between ${
+                  className={`relative ml-0 p-1 lg:p-1.5 min-h-[60px] lg:min-h-[70px] border rounded-lg transition-all duration-200 flex flex-col justify-between ${
                     hasWeekData 
                       ? getWeekBackgroundColor(weekData.pnl)
-                      : 'bg-slate-50 dark:bg-gray-950/80 border-gray-100 dark:border-gray-800/80'
+                      : 'bg-gray-50 dark:bg-gray-950/80 border-gray-100 dark:border-gray-800/80'
                   } ${
                     !hasCurrentMonthDays ? 'opacity-60' : ''
                   }`}
                 >
                 {/* Week Label */}
-                <div className="text-[.5rem] lg:text-[.6rem] font-medium text-slate-500 dark:text-gray-400 text-left">
+                <div className="text-[.5rem] lg:text-[.6rem] font-medium text-gray-500 dark:text-gray-400 text-left">
                   Week {weekIndex + 1}
                 </div>
 
@@ -544,7 +544,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
       {/* Legend */}
       <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-800/80">
         <div className="flex items-center justify-between">
-          <div className="text-[.65rem] lg:text-[.65rem] text-slate-500 dark:text-gray-400">
+          <div className="text-[.65rem] lg:text-[.7rem] text-gray-700 dark:text-gray-300">
             <div className="font-medium">
               Monthly P&L: {monthlyPnl !== 0 ? (
                 <span className={getPnlColor(monthlyPnl)}>
@@ -556,20 +556,20 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                   }
                 </span>
               ) : (
-                <span className="text-slate-400 dark:text-gray-500">
+                <span className="text-gray-400 dark:text-gray-500">
                   {displayMode === 'price' ? '$0.00' : displayMode === 'percentage' ? '0.0%' : '0.0R'}
                 </span>
               )}
             </div>
           </div>
-          <div className="text-[.65rem] lg:text-[.65rem] text-slate-500 dark:text-gray-400 text-right">
+          <div className="text-[.65rem] lg:text-[.7rem] text-gray-700 dark:text-gray-300 text-right">
             <div className="font-medium">
               Win Rate: {monthlyTrades.length > 0 ? (
-                <span className={monthlyWinRate >= 50 ? 'text-green-600' : 'text-red-600'}>
+                <span className={monthlyWinRate >= 50 ? 'text-emerald-600' : 'text-rose-600'}>
                   {monthlyWinRate.toFixed(1)}%
                 </span>
               ) : (
-                <span className="text-slate-400 dark:text-gray-500">0.0%</span>
+                <span className="text-gray-400 dark:text-gray-500">0.0%</span>
               )}
             </div>
           </div>

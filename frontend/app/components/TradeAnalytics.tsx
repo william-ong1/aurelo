@@ -67,7 +67,7 @@ const InfoTooltip = ({ children, tooltip }: { children: React.ReactNode; tooltip
         >
           <Info className="h-3 w-3 text-gray-400 hover:text-black dark:text-white" />
           {showTooltip && (
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1.5 px-2 py-1.5 bg-gray-900 text-gray-100 text-[12px] rounded-md shadow-sm z-10 whitespace-nowrap opacity-90">
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1.5 px-2 py-1.5 bg-gray-900 text-gray-100 text-[12px] rounded-lg shadow-sm z-10 whitespace-nowrap opacity-90">
               {tooltip}
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-t-3 border-transparent border-t-gray-700"></div>
             </div>
@@ -103,7 +103,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
   };
 
   const getPnlColor = (pnl: number) => {
-    return pnl >= 0 ? 'text-green-600' : 'text-red-600';
+    return pnl >= 0 ? 'text-emerald-600' : 'text-rose-600';
   };
 
   const getPnlBgColor = (pnl: number) => {
@@ -479,7 +479,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             {/* Overall Performance */}
             <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
               <div className="mb-3">
-                <h3 className="text-[11px] lg:text-xs font-medium text-black dark:text-white uppercase tracking-wide">Performance</h3>
+                <h3 className="text-[11px] lg:text-xs font-medium text-black dark:text-white uppercase tracking-wide">Overall</h3>
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
@@ -514,14 +514,14 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
             {/* Win/Loss Analysis */}
             <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
               <div className="mb-3">
-                <h3 className="text-[11px] lg:text-xs font-medium text-black dark:text-white uppercase tracking-wide">Success Rate</h3>
+                <h3 className="text-[11px] lg:text-xs font-medium text-black dark:text-white uppercase tracking-wide">Performance</h3>
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <div className="flex gap-1">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-emerald-600 rounded-full"></div>
+                      <div className="w-2 h-2 bg-rose-600 rounded-full"></div>
                     </div>
                     <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">Wins/Losses</span>
                   </div>
@@ -532,9 +532,9 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <Percent className="h-3 w-3 text-gray-500" />
-                    <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">Success Rate</span>
+                    <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">Win Rate</span>
                   </div>
-                  <span className="text-xs lg:text-sm font-bold text-green-600">
+                  <span className="text-xs lg:text-sm font-bold text-emerald-600">
                     {formatPercent(analytics.success_rate)}
                   </span>
                 </div>
@@ -552,7 +552,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
                     <DollarSign className="h-3 w-3 text-gray-500" />
                     <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">Profit Factor</span>
                   </div>
-                  <span className={`text-xs lg:text-sm font-bold ${profitFactor >= 1 ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className={`text-xs lg:text-sm font-bold ${profitFactor >= 1 ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {profitFactor.toFixed(2)}
                   </span>
                 </div>
@@ -561,7 +561,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
                     <Target className="h-3 w-3 text-gray-500" />
                     <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">Risk/Reward</span>
                   </div>
-                  <span className={`text-xs lg:text-sm font-bold ${riskRewardRatio >= 1 ? 'text-green-600' : 'text-orange-600'}`}>
+                  <span className={`text-xs lg:text-sm font-bold ${riskRewardRatio >= 1 ? 'text-emerald-600' : 'text-orange-600'}`}>
                     {riskRewardRatio.toFixed(2)}
                   </span>
                 </div>
@@ -577,19 +577,19 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="w-2 h-2 bg-emerald-600 rounded-full"></div>
                     <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300"> Win</span>
                   </div>
-                  <span className="text-xs lg:text-sm font-bold text-green-600">
+                  <span className="text-xs lg:text-sm font-bold text-emerald-600">
                     {formatCurrency(avgWin)} ({avgWinPercent > 0 ? '+' : ''}{avgWinPercent.toFixed(1)}%)
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <div className="w-2 h-2 bg-rose-600 rounded-full"></div>
                     <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300"> Loss</span>
                   </div>
-                  <span className="text-xs lg:text-sm font-bold text-red-600">
+                  <span className="text-xs lg:text-sm font-bold text-rose-600">
                     {formatCurrency(Math.abs(avgLoss))} ({avgLossPercent.toFixed(1)}%)
                   </span>
                 </div>
@@ -616,7 +616,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
                     <Percent className="h-3 w-3 text-gray-500" />
                     <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">Avg Return</span>
                   </div>
-                  <span className={`text-xs lg:text-sm font-bold ${avgPercentReturn > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className={`text-xs lg:text-sm font-bold ${avgPercentReturn > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {formatPercent(avgPercentReturn)}
                   </span>
                 </div>
@@ -631,20 +631,20 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <TrendingUp className="h-3 w-3 text-green-500" />
+                    <TrendingUp className="h-3 w-3 text-emerald-500" />
                     <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">Max Runup</span>
                   </div>
-                  <span className="text-xs lg:text-sm font-bold text-green-600">
+                  <span className="text-xs lg:text-sm font-bold text-emerald-600">
                     {formatCurrency(getMaxRunup())}
                   </span>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <TrendingDown className="h-3 w-3 text-red-500" />
+                    <TrendingDown className="h-3 w-3 text-rose-500" />
                     <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">Max Drawdown</span>
                   </div>
-                  <span className="text-xs lg:text-sm font-bold text-red-600">
+                  <span className="text-xs lg:text-sm font-bold text-rose-600">
                     {formatCurrency(getMaxDrawdown())}
                   </span>
                 </div>
@@ -721,7 +721,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
                           <span className="font-medium">{data.total_trades}</span>
                         </td>
                         <td className="py-3 px-2 text-xs text-right">
-                          <span className={`font-medium ${data.success_rate >= 50 ? 'text-green-600' : 'text-red-600'}`}>
+                          <span className={`font-medium ${data.success_rate >= 50 ? 'text-emerald-600' : 'text-rose-600'}`}>
                             {formatPercent(data.success_rate)}
                           </span>
                         </td>

@@ -256,7 +256,7 @@ export default function WatchlistSection() {
           <div className="flex items-center gap-1.5">
             <button
               onClick={handleAdd}
-              className="p-0.5 pr-1.5 rounded-md transition-colors text-gray-400 hover:text-black dark:text-white dark:hover:text-white transition-all cursor-pointer"
+              className="p-0.5 pr-1.5 rounded-lg transition-colors text-gray-400 hover:text-black dark:text-white dark:hover:text-white transition-all cursor-pointer"
               title="Add to Watchlist"
             >
               <Plus className='w-3 h-3 sm:w-4 sm:h-4 2xl:w-5 2xl:h-5' />

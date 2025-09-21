@@ -279,8 +279,8 @@ export default function HoldingsSection({
         </div>
         <div className="space-y-2 flex-1 overflow-y-auto">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-center gap-2 p-1.5 bg-white dark:bg-black rounded-md animate-pulse">
-              <div className="w-6 h-6 bg-gray-200 rounded-md"></div>
+            <div key={i} className="flex items-center gap-2 p-1.5 bg-white dark:bg-black rounded-lg animate-pulse">
+              <div className="w-6 h-6 bg-gray-200 rounded-lg"></div>
               <div className="flex-1 space-y-1.5">
                 <div className="w-20 h-2.5 bg-gray-200 rounded"></div>
                 <div className="w-14 h-2 bg-gray-200 rounded"></div>
@@ -304,7 +304,7 @@ export default function HoldingsSection({
           <button
             onClick={onToggleEditMode}
             disabled={assets.length === 0}
-            className={`p-1 sm:p-1.5 rounded-md transition-all duration-200 ${
+            className={`p-1 sm:p-1.5 rounded-lg transition-all duration-200 ${
               assets.length === 0
                 ? 'text-gray-200 cursor-not-allowed'
                 : isEditMode && assets.length > 0
@@ -318,7 +318,7 @@ export default function HoldingsSection({
           <button
             onClick={onAddAsset}
             disabled={isEditMode && assets.length > 0}
-            className={`p-1 sm:p-1.5 rounded-md transition-colors ${
+            className={`p-1 sm:p-1.5 rounded-lg transition-colors ${
               isEditMode && assets.length > 0
                 ? 'text-gray-200 cursor-not-allowed' 
                 : 'text-gray-400 hover:text-black dark:hover:text-white dark:text-white transition-all cursor-pointer'
@@ -365,7 +365,7 @@ export default function HoldingsSection({
                     >
                       {/* Border with left/right margins - hide for last item */}
                       {index < validAssets.length - 1 && (
-                        <div className="absolute left-4 right-1 bottom-0 h-px bg-slate-200 dark:bg-gray-800/60"></div>
+                        <div className="absolute left-4 right-1 bottom-0 h-px bg-gray-200 dark:bg-gray-800/60"></div>
                       )}
                       {/* Circular Icon */}
                       <div 
@@ -494,7 +494,7 @@ export default function HoldingsSection({
                         >
                           {/* Border with left/right margins - hide for last item */}
                           {index < invalidAssets.length - 1 && (
-                            <div className="absolute left-4 right-1 bottom-0 h-px bg-slate-200 dark:bg-gray-800/60"></div>
+                            <div className="absolute left-4 right-1 bottom-0 h-px bg-gray-200 dark:bg-gray-800/60"></div>
                           )}
                           {/* Circular Icon */}
                           <div 

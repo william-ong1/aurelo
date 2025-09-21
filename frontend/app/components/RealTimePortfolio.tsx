@@ -137,7 +137,7 @@ export default function RealTimePortfolio({ assets }: RealTimePortfolioProps) {
 
   if (!portfolioValue) {
     return (
-      <div className="mt-6 sm:mt-8 rounded-lg p-4 sm:p-6 bg-gradient-to-br from-slate-50 to-slate-100 shadow-lg">
+      <div className="mt-6 sm:mt-8 rounded-lg p-4 sm:p-6 bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg">
         <div className="flex items-center justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <span className="ml-3 text-black dark:text-white">Loading portfolio data...</span>
@@ -147,7 +147,7 @@ export default function RealTimePortfolio({ assets }: RealTimePortfolioProps) {
   }
 
   return (
-    <div className="mt-6 sm:mt-8 rounded-lg p-4 sm:p-6 bg-gradient-to-br from-slate-50 to-slate-100 shadow-lg">
+    <div className="mt-6 sm:mt-8 rounded-lg p-4 sm:p-6 bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
         <h2 className="text-lg sm:text-xl font-medium text-gray-800 dark:text-gray-200">Real-Time Portfolio</h2>
         <button
