@@ -242,7 +242,7 @@ export default function WatchlistSection() {
               {isAuthLoading ? 'Checking authentication...' : 'Loading watchlist...'}
             </p>
             <p className="text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">
-              {isAuthLoading ? 'Verifying your login status' : 'Retrieving your watchlist data'}
+              {isAuthLoading ? 'Verifying your login status' : 'Retrieving your watchlist'}
             </p>
           </div>
         </div>

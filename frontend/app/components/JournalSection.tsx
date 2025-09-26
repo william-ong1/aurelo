@@ -239,7 +239,7 @@ export default function JournalSection() {
               {isAuthLoading ? 'Checking authentication...' : 'Loading journal...'}
             </p>
             <p className="text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">
-              {isAuthLoading ? 'Verifying your login status' : 'Retrieving your journal entries'}
+              {isAuthLoading ? 'Verifying your login status' : 'Retrieving your journal'}
             </p>
           </div>
         </div>

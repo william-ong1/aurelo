@@ -120,13 +120,13 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
 
         <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-[12px]">
+            <div className="p-3 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800/50 rounded-lg text-rose-600 dark:text-rose-400 text-[12px]">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-[12px]">
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-lg text-emerald-600 dark:text-emerald-400 text-[12px]">
               {success}
             </div>
           )}
