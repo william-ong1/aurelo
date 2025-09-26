@@ -467,7 +467,7 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
   return (
     <>
       {/* Analytics and Calendar Layout */}
-      <div className="pt-10 sm:p-0 grid grid-cols-1 lg:grid-cols-2 gap-4 mb-0">
+      <div className="pt-11 md:p-0 grid grid-cols-1 lg:grid-cols-2 gap-4 mb-0">
         {/* Daily P&L Calendar */}
         <div className="flex flex-col h-full">
           <TradeCalendar trades={trades} />

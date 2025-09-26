@@ -388,7 +388,7 @@ export default function TradingSection() {
       {/* Duplicate Check Loading State */}
       {isCheckingDuplicates && (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-black backdrop-blur-sm rounded-lg shadow-2xl p-6 w-full max-w-sm mx-auto border border-gray-200 dark:border-gray-800/70/50">
+          <div className="bg-white dark:bg-black backdrop-blur-sm rounded-lg shadow-2xl p-6 w-full max-w-sm mx-auto border border-gray-200 dark:border-gray-800/50">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
               <p className="text-sm 2xl:text-base text-black dark:text-white font-medium">

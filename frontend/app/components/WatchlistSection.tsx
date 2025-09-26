@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Edit2, Trash2, ExternalLink, Eye, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Edit2, Trash2, ExternalLink, Eye, ChevronUp, ChevronDown, Tag, Clock, StickyNote, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAuthModal } from '../contexts/AuthModalContext';
 import WatchlistModal from './WatchlistModal';
@@ -28,6 +28,7 @@ export default function WatchlistSection() {
   const [isLoadingWatchlist, setIsLoadingWatchlist] = useState(true);
   const [sortField, setSortField] = useState<SortField>('updated_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Load watchlist when authenticated
   useEffect(() => {
@@ -168,7 +169,7 @@ export default function WatchlistSection() {
     
     if (!token) return;
     
-    if (!window.confirm('Confirm removal from watchlist?')) {
+    if (!window.confirm('Remove from watchlist?')) {
       return;
     }
     
@@ -249,17 +250,36 @@ export default function WatchlistSection() {
 
       {/* Content - Only show after authentication and watchlist are loaded */}
       {!isAuthLoading && !isLoadingWatchlist && (
-        <div className="py-9">
-        <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
-        <div className="flex items-center justify-between mb-3">
+        <div className="pb-10 pt-20 md:py-10">
+        <div className="bg-white dark:bg-black rounded-md shadow-sm px-3 py-3 pb-3 sm:px-4 sm:py-4 sm:pb-4 border border-gray-200 dark:border-gray-800/70">
+        <div className="flex items-center justify-between mb-2">
           <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Watchlist</h3>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2.5 sm:gap-1">
+            <button
+              onClick={() => {if (watchlist.length > 0) {setIsEditMode(!isEditMode)}}}
+              disabled={watchlist.length === 0}
+              className={`p-1 sm:p-1.5 rounded-lg transition-all duration-200 ${
+                watchlist.length === 0
+                  ? 'text-gray-200 dark:text-gray-600 cursor-not-allowed'
+                  : isEditMode && watchlist.length > 0
+                  ? 'text-gray-900 dark:text-gray-100 bg-white dark:bg-black shadow-sm ring-1 ring-gray-300 cursor-pointer' 
+                  : 'text-gray-400 hover:text-black dark:hover:text-white dark:text-white transition-all cursor-pointer'
+              }`}
+              title={watchlist.length === 0 ? "No items to edit" : isEditMode && watchlist.length > 0 ? "Exit Edit Mode" : "Edit Watchlist"}
+            >
+              <Edit2 className='w-3.5 h-3.5 2xl:w-5 2xl:h-5' />
+            </button>
             <button
               onClick={handleAdd}
-              className="p-0.5 pr-1.5 rounded-lg transition-colors text-gray-400 hover:text-black dark:text-white dark:hover:text-white transition-all cursor-pointer"
-              title="Add to Watchlist"
+              disabled={isEditMode && watchlist.length > 0}
+              className={`p-1 sm:p-1.5 rounded-lg transition-colors ${
+                isEditMode && watchlist.length > 0
+                  ? 'text-gray-200 dark:text-gray-600 cursor-not-allowed' 
+                  : 'text-gray-400 hover:text-black dark:hover:text-white dark:text-white transition-all cursor-pointer'
+              }`}
+              title={isEditMode && watchlist.length > 0 ? "Exit edit mode to add items" : "Add to Watchlist"}
             >
-              <Plus className='w-3 h-3 sm:w-4 sm:h-4 2xl:w-5 2xl:h-5' />
+              <Plus className='w-4 h-4 sm:w-4.5 sm:h-4.5 2xl:w-5 2xl:h-5' />
             </button>
           </div>
         </div>
@@ -269,26 +289,46 @@ export default function WatchlistSection() {
                 <thead className="sticky top-0 bg-white dark:bg-black select-none">
                   <tr className="border-b border-gray-200 dark:border-gray-800/70">
                     <th 
-                      className="text-left py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/8"
+                      className="text-left py-3 pl-0 pr-2 text-xs font-medium text-gray-700 dark:text-gray-300 cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/4"
                       onClick={() => handleSort('ticker')}
                     >
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
+                        <Tag className="h-3 w-3 text-gray-500 hidden sm:block" />
                         Ticker
                         {getSortIcon('ticker')}
                       </div>
                     </th>
-                    <th className="text-left py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white select-none w-2/5">Notes</th>
-                    <th className="text-center py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white select-none w-1/8">Chart</th>
-                    <th 
-                      className="text-left py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/6"
-                      onClick={() => handleSort('updated_at')}
-                    >
-                      <div className="flex items-center gap-1">
-                        <span className="whitespace-nowrap">Modified</span>
-                        {getSortIcon('updated_at')}
+                    <th className="text-left py-3 px-2 text-xs font-medium text-gray-700 dark:text-gray-300 select-none w-1/4">
+                      <div className="flex items-center gap-1.5">
+                        <StickyNote className="h-3 w-3 text-gray-500 hidden sm:block" />
+                        Notes
                       </div>
                     </th>
-                    <th className="text-center py-2 sm:py-2 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white select-none w-1/20">Actions</th>
+                    <th className="text-center py-3 px-2 text-xs font-medium text-gray-700 dark:text-gray-300 select-none w-1/4">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <ExternalLink className="h-3 w-3 text-gray-500 hidden sm:block" />
+                        Chart
+                      </div>
+                    </th>
+                    <th 
+                      className="text-right py-3 px-2 text-xs font-medium text-gray-700 dark:text-gray-300 cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors select-none w-1/4"
+                      onClick={() => !isEditMode && handleSort('updated_at')}
+                    >
+                      <div className="flex items-center justify-end gap-1.5">
+                        {isEditMode ? (
+                          <>
+                            <Settings className="h-3 w-3 text-gray-500 hidden sm:block" />
+                            Actions
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="h-3 w-3 text-gray-500 hidden sm:block" />
+                            <span className="whitespace-nowrap"> Modified</span>
+                            {getSortIcon('updated_at')}
+                          </>
+                        )}
+                      </div>
+                    </th>
                   </tr>
                 </thead>
             <tbody>
@@ -296,52 +336,53 @@ export default function WatchlistSection() {
               {sortedWatchlist.length > 0 ? (
                 sortedWatchlist.map((item) => (
                   <tr key={item.id} className="border-b border-gray-200 dark:border-gray-900">
-                    <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 w-1/8">
-                      <span className="font-medium">{item.ticker}</span>
+                    <td className="py-3 pl-0 pr-2 text-[11px] md:text-[12px] lg:text-xs text-gray-900 dark:text-gray-100 w-1/4">
+                      <span className="font-medium whitespace-nowrap">{item.ticker}</span>
                     </td>
-                    <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm text-black dark:text-white w-3/5">
+                    <td className="py-3 px-2 text-[11px] md:text-[12px] lg:text-xs text-black dark:text-white w-1/2">
                       <div className="break-words whitespace-pre-wrap leading-relaxed max-h-32 overflow-y-auto" title={item.notes || ''}>
                         {item.notes || '-'}
                       </div>
                     </td>
-                    <td className="py-2 sm:py-2 px-2 sm:px-4 text-center w-1/8">
+                    <td className="py-3 px-2 text-center w-1/4">
                       <a
                         href={getChartLink(item)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-[12px] sm:text-xs 2xl:text-sm font-medium"
+                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 text-[11px] md:text-[12px] lg:text-xs font-medium"
                       >
-                        <ExternalLink className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                        <ExternalLink className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                         View
                       </a>
                     </td>
-                    <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 w-1/6">
-                      {formatDate(item.updated_at || item.created_at)}
-                    </td>
-                    <td className="py-2 sm:py-2 px-2 sm:px-4 text-center w-1/20">
-                      <div className="flex items-center justify-center gap-1 sm:gap-2">
-                        <button
-                          onClick={() => handleEdit(item)}
-                          className="p-0.5 text-gray-400 hover:text-blue-600 transition-colors"
-                          title="Edit item"
-                        >
-                          <Edit2 className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteItem(item.id)}
-                          className="p-0.5 text-gray-400 hover:text-red-600 transition-colors"
-                          title="Delete item"
-                        >
-                          <Trash2 className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                        </button>
-                      </div>
+                    <td className="py-3 px-2 text-[11px] md:text-[12px] lg:text-xs text-gray-900 dark:text-gray-100 w-1/4 text-right">
+                      {!isEditMode ? (
+                        formatDate(item.updated_at || item.created_at)
+                      ) : (
+                        <div className="flex items-center justify-end gap-3">
+                          <button
+                            onClick={() => handleEdit(item)}
+                            className="p-0.5 text-gray-400 hover:text-blue-600 transition-colors"
+                            title="Edit item"
+                          >
+                            <Edit2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteItem(item.id)}
+                            className="p-0.5 text-gray-400 hover:text-red-600 transition-colors"
+                            title="Delete item"
+                          >
+                            <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="py-6 sm:py-8 px-3 sm:px-6 text-center text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100">
-                    No watchlist items yet. Click the + button to add your first item.
+                  <td colSpan={4} className="pt-5 pb-2 px-3 sm:px-6 text-center text-xs text-gray-900 dark:text-gray-100">
+                    No items in your watchlist.
                   </td>
                 </tr>
               )}

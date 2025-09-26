@@ -110,7 +110,7 @@ export default function WatchlistModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-all p-3 sm:p-4">
-      <div className="bg-white dark:bg-black backdrop-blur-sm rounded-lg shadow-2xl p-3 sm:p-6 w-full max-w-sm mx-auto border border-gray-200 dark:border-gray-800/70 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-black backdrop-blur-sm rounded-lg shadow-2xl p-4 sm:p-6 w-full max-w-sm mx-auto border border-gray-200 dark:border-gray-800/70 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-3 sm:mb-4">
           <h2 className="text-sm sm:text-lg 2xl:text-lg font-medium text-black dark:text-white">
             {editingItem ? 'Edit Watchlist Item' : 'Add to Watchlist'}
@@ -127,7 +127,7 @@ export default function WatchlistModal({
         <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           {/* Ticker Symbol */}
           <div>
-            <label htmlFor="ticker" className="block text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
+            <label htmlFor="ticker" className="block text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white mb-1">
               Ticker Symbol *
             </label>
             <input
@@ -143,7 +143,7 @@ export default function WatchlistModal({
                 }));
               }}
               disabled={isLoading}
-              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-[11px] sm:text-[12px] 2xl:text-sm bg-white dark:bg-black text-black dark:text-white"
               placeholder="e.g., AAPL"
               maxLength={10}
             />
@@ -151,7 +151,7 @@ export default function WatchlistModal({
 
           {/* Notes */}
           <div>
-            <label htmlFor="notes" className="block text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
+            <label htmlFor="notes" className="block text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white mb-1">
               Notes (Optional)
             </label>
             <textarea
@@ -161,7 +161,7 @@ export default function WatchlistModal({
               onChange={handleInputChange}
               disabled={isLoading}
               rows={3}
-              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-xs resize-none bg-white dark:bg-black text-black dark:text-white"
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-[11px] sm:text-[12px] 2xl:text-sm resize-none bg-white dark:bg-black text-black dark:text-white"
               placeholder="e.g. Technical analysis, support/resistance levels, entry/exit points ..."
               maxLength={500}
             />
@@ -172,7 +172,7 @@ export default function WatchlistModal({
 
           {/* Chart Link */}
           <div>
-            <label htmlFor="chart_link" className="block text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white mb-1">
+            <label htmlFor="chart_link" className="block text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white mb-1">
               Custom Chart Link (Optional)
             </label>
             <input
@@ -182,7 +182,7 @@ export default function WatchlistModal({
               value={formData.chart_link}
               onChange={handleInputChange}
               disabled={isLoading}
-              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-xs bg-white dark:bg-black text-black dark:text-white"
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-[11px] sm:text-[12px] 2xl:text-sm bg-white dark:bg-black text-black dark:text-white"
               placeholder="https://www.tradingview.com/chart/..."
             />
             <p className="text-[10px] sm:text-[11px] 2xl:text-sm text-gray-900 dark:text-gray-400 mt-1">
@@ -196,14 +196,14 @@ export default function WatchlistModal({
               type="button"
               onClick={handleClose}
               disabled={isLoading}
-              className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 dark:border-gray-800/70 text-black dark:text-white rounded-lg hover:bg-gray-100 dark:bg-black dark:hover:bg-gray-900 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
+              className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 dark:border-gray-800/70 text-black dark:text-white rounded-lg hover:bg-gray-100 dark:bg-black dark:hover:bg-gray-900 font-medium transition-colors cursor-pointer text-[11px] sm:text-[12px] 2xl:text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading || !formData.ticker.trim()}
-              className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[10px] sm:text-[12px] 2xl:text-sm"
+              className="flex-1 px-2 sm:px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors cursor-pointer text-[11px] sm:text-[12px] 2xl:text-sm"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">

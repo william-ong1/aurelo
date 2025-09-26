@@ -38,6 +38,7 @@ app.add_middleware(
         "http://localhost:3000",
         "http://192.168.0.14:3000",
         "http://192.168.0.14:8000",
+        "http://10.18.219.26:3000"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -166,6 +167,18 @@ async def get_current_user(authorization: str = Header(None)) -> str:
     except Exception as e:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+def get_current_price_for_ticker(ticker: str) -> Optional[float]:
+    """Get current market price for a ticker symbol"""
+    try:
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period="1d")
+        if not hist.empty:
+            return float(hist['Close'].iloc[-1])
+        return None
+    except Exception as e:
+        print(f"Error fetching price for {ticker}: {e}")
+        return None
+
 def parse_portfolio_image(image_data: str, mime_type: str):
     """Parse portfolio image using Gemini Vision API"""
     try:
@@ -193,7 +206,7 @@ def parse_portfolio_image(image_data: str, mime_type: str):
         - Asset name/company name (exactly as shown in image)
         - Ticker symbol (exactly as shown, if visible)
         - Number of shares/units (exact number from image)
-        - Current price per share (exact dollar amount from image)
+        - Purchase price per share (exact dollar amount from image - this is the cost basis/price paid)
         - Account balance (exact dollar amount from image)
         - Interest rate/APY (exact percentage from image, convert to decimal - if none, use real-time search functionality to find the most probable APY. If you're not confident, use 0.00%.)
         
@@ -208,14 +221,16 @@ def parse_portfolio_image(image_data: str, mime_type: str):
             "isStock": true/false,
             "ticker": "SYMBOL" (only for stocks, exactly as shown),
             "shares": 123.45 (only for stocks, exact number from image),
-            "currentPrice": 150.25 (only for stocks, exact price from image),
+            "purchasePrice": 150.25 (only for stocks, exact purchase price/cost basis from image),
             "balance": 5000.00 (only for cash accounts, exact balance from image),
             "apy": 0.045 (only for cash accounts, exact rate from image as decimal)
           }
         ]
         
-        IMPORTANT: Only extract what you can see clearly in the image. If you're unsure about any value, omit that asset entirely.
-        Only return valid JSON, no other text or explanations.
+        IMPORTANT: 
+        - The price extracted from the image should be treated as the PURCHASE PRICE (cost basis), not current market price
+        - Only extract what you can see clearly in the image. If you're unsure about any value, omit that asset entirely.
+        - Only return valid JSON, no other text or explanations.
         """
         
         # Generate response from Gemini
@@ -248,18 +263,18 @@ def parse_portfolio_image(image_data: str, mime_type: str):
                     # For stocks, ensure all required fields exist or set defaults
                     asset['ticker'] = asset.get('ticker', '')
                     asset['shares'] = asset.get('shares', 0)
-                    asset['currentPrice'] = asset.get('currentPrice', 0)
+                    asset['purchasePrice'] = asset.get('purchasePrice', 0)
                     asset['balance'] = 0  # Stocks don't have balance
                     asset['apy'] = 0  # Stocks don't have APY
                     
                     # Ensure numerical values are valid
                     try:
                         shares = float(asset['shares'])
-                        current_price = float(asset['currentPrice'])
-                        if shares <= 0 or current_price <= 0:
+                        purchase_price = float(asset['purchasePrice'])
+                        if shares <= 0 or purchase_price <= 0:
                             continue
                         asset['shares'] = shares
-                        asset['currentPrice'] = current_price
+                        asset['purchasePrice'] = purchase_price
                     except (ValueError, TypeError):
                         continue
                 
@@ -267,7 +282,7 @@ def parse_portfolio_image(image_data: str, mime_type: str):
                     # For cash accounts, ensure all required fields exist or set defaults
                     asset['ticker'] = ''  # Cash accounts don't have tickers
                     asset['shares'] = 0  # Cash accounts don't have shares
-                    asset['currentPrice'] = 0  # Cash accounts don't have current price
+                    asset['purchasePrice'] = 0  # Cash accounts don't have purchase price
                     asset['balance'] = asset.get('balance', 0)
                     asset['apy'] = asset.get('apy', 0)  # Default to 0 if APY is unknown
                     
@@ -1036,7 +1051,7 @@ async def get_watchlist(user_id: str = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Database not configured")
     
     try:
-        result = supabase.table('watchlist').select('id,ticker,notes,chart_link,created_at,updated_at').eq('user_id', user_id).order('created_at', desc=True).execute()
+        result = supabase.table('watchlist').select('id,ticker,notes,chart_link,created_at').eq('user_id', user_id).order('created_at', desc=True).execute()
         return {"watchlist": result.data}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal server error")

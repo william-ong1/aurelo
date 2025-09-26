@@ -3,7 +3,7 @@ import React from 'react';
 
 export default function PerformanceSection() {
   return (
-    <div className="bg-white dark:bg-black rounded-lg p-4 pt-3 shadow-sm border border-gray-200 dark:border-gray-800/70">
+    <div className="bg-white dark:bg-black rounded-lg p-3 pt-2 sm:p-4 sm:pt-3 shadow-sm border border-gray-200 dark:border-gray-800/70">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Performance</h3>

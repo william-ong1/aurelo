@@ -247,7 +247,7 @@ export default function JournalSection() {
 
       {/* Content - Only show after authentication and entries are loaded */}
       {!isAuthLoading && !isLoadingEntries && (
-        <div className="py-9">
+        <div className="pb-10 pt-20 md:py-10">
           <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800/70">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Journal</h3>

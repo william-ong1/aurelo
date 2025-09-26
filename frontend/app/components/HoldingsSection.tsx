@@ -242,14 +242,14 @@ export default function HoldingsSection({
   );
 
   const getGainLossIcon = (gainLoss: number) => {
-    if (gainLoss > 0) return <TrendingUp className="w-3 h-3 text-green-500" />;
+    if (gainLoss > 0) return <TrendingUp className="w-3 h-3 text-emerald-500" />;
     if (gainLoss < 0) return <TrendingDown className="w-3 h-3 text-red-500" />;
     return <Minus className="w-3 h-3 text-gray-400" />;
   };
 
   const getGainLossColor = (gainLoss: number) => {
-    if (gainLoss > 0) return 'text-green-600';
-    if (gainLoss < 0) return 'text-red-600';
+    if (gainLoss > 0) return 'text-emerald-600';
+    if (gainLoss < 0) return 'text-rose-600';
     return 'text-black dark:text-white';
   };
 
@@ -264,8 +264,8 @@ export default function HoldingsSection({
       );
     } else {
       return (
-        <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-          <DollarSign className="w-4 h-4 text-green-600" />
+        <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+          <DollarSign className="w-4 h-4 text-emerald-600" />
         </div>
       );
     }
@@ -273,7 +273,7 @@ export default function HoldingsSection({
 
     if (isLoadingAssets) {
     return (
-      <div className="bg-white dark:bg-black rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-800/70 h-[400px] flex flex-col">
+      <div className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-800/70 h-[400px] flex flex-col">
         <div className="flex items-center justify-between mb-4 flex-shrink-0">
           <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Holdings</h3>
         </div>
@@ -298,15 +298,15 @@ export default function HoldingsSection({
 
   return (
     <div className="bg-white dark:bg-black rounded-lg px-0 pt-3 shadow-sm border border-gray-200 dark:border-gray-800/70 h-[400px] flex flex-col">
-      <div className="flex items-center justify-between mb-4 flex-shrink-0 px-4">
-        <h3 className="text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Holdings</h3>
+      <div className="flex items-center justify-between mb-4 flex-shrink-0 px-3 sm:px-4">
+        <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Holdings</h3>
         <div className="flex items-center gap-2.5 sm:gap-1">
           <button
             onClick={onToggleEditMode}
             disabled={assets.length === 0}
             className={`p-1 sm:p-1.5 rounded-lg transition-all duration-200 ${
               assets.length === 0
-                ? 'text-gray-200 cursor-not-allowed'
+                ? 'text-gray-200 dark:text-gray-600 cursor-not-allowed'
                 : isEditMode && assets.length > 0
                 ? 'text-gray-900 dark:text-gray-100 bg-white dark:bg-black shadow-sm ring-1 ring-gray-300 cursor-pointer' 
                 : 'text-gray-400 hover:text-black dark:hover:text-white dark:text-white transition-all cursor-pointer'
@@ -320,7 +320,7 @@ export default function HoldingsSection({
             disabled={isEditMode && assets.length > 0}
             className={`p-1 sm:p-1.5 rounded-lg transition-colors ${
               isEditMode && assets.length > 0
-                ? 'text-gray-200 cursor-not-allowed' 
+                ? 'text-gray-200 dark:text-gray-600 cursor-not-allowed' 
                 : 'text-gray-400 hover:text-black dark:hover:text-white dark:text-white transition-all cursor-pointer'
             }`}
             title={isEditMode && assets.length > 0 ? "Exit edit mode to add assets" : "Add Asset"}
@@ -334,7 +334,7 @@ export default function HoldingsSection({
         <div className="text-center py-8 flex-1 flex items-center justify-center">
           <div>
             <p className="text-sm text-gray-900 dark:text-gray-100 mb-1">No holdings yet</p>
-            <p className="text-[12px] text-gray-600">Add your first asset to get started</p>
+            <p className="text-[12px] text-gray-600 dark:text-gray-400">Add your first asset to get started</p>
           </div>
         </div>
       ) : (
@@ -432,7 +432,7 @@ export default function HoldingsSection({
                                   ${currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </div>
                                 {Math.abs(gainLoss) > 0.01 && (
-                                  <div className={`text-[11px] flex items-center space-x-1 ${gainLoss > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  <div className={`text-[11px] flex items-center space-x-1 ${gainLoss > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                                     <span>
                                       {gainLoss > 0 ? '+' : '-'}${Math.abs(gainLoss).toFixed(2)} ({gainLossPercent >= 0 ? '+' : ''}{gainLossPercent.toFixed(1)}%)
                                     </span>
@@ -456,7 +456,7 @@ export default function HoldingsSection({
                                     e.stopPropagation();
                                     onDelete?.(asset.id);
                                   }}
-                                  className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
+                                  className="p-1 text-gray-400 hover:text-rose-600 rounded transition-colors"
                                   title="Delete"
                                 >
                                   <Trash2 size={12} />
@@ -557,7 +557,7 @@ export default function HoldingsSection({
                                     e.stopPropagation();
                                     onDelete?.(asset.id);
                                   }}
-                                  className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
+                                  className="p-1 text-gray-400 hover:text-rose-600 rounded transition-colors"
                                   title="Delete"
                                 >
                                   <Trash2 size={12} />

@@ -76,11 +76,13 @@ export default function Sidebar({ onLogout }: SidebarProps) {
     <aside className="fixed inset-y-0 left-0 w-56 bg-white dark:bg-black backdrop-blur-sm border-r border-gray-200 dark:border-gray-800/70 shadow-sm z-40 flex flex-col transition-colors select-none">
       {/* Brand */}
       <div className="px-4 sm:px-5 pt-4 sm:pt-8 pb-3 border-b border-gray-200 dark:border-gray-800/70">
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl 2xl:text-3xl font-bold text-amber-500 tracking-tight">Aurelo</h1>
-          <span className="px-1.5 py-0.5 text-[9px] 2xl:text-[11px] leading-none font-medium rounded-full border bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-gray-800/70">
-            Beta
-          </span>
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-xl 2xl:text-3xl font-bold bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 bg-clip-text text-transparent tracking-tight drop-shadow-sm">Aurelo</h1>
+            <span className="px-2 py-1 text-[9px] 2xl:text-[11px] leading-none font-bold rounded-full bg-gradient-to-br from-orange-500 via-orange-400 to-rose-500 text-white shadow-lg border border-orange-300/50 dark:border-orange-400/60 ring-1 ring-white/20 dark:ring-white/10 relative overflow-hidden tracking-wider uppercase">
+              <span className="relative z-10 drop-shadow-sm">Beta</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+              <div className="absolute -inset-y-1 -left-2 w-1/3 bg-white/20 blur-[3px] -skew-x-12 animate-pulse"></div>
+            </span>
         </div>
         <p className="mt-0 text-[.7rem] 2xl:text-[.9rem] text-black dark:text-white">
           Your finances, simplified.

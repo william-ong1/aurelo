@@ -335,7 +335,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                       </span>
                     </td>
                     <td className="py-3 px-2 text-right">
-                      <div className="flex items-center justify-end gap-1 sm:gap-2">
+                      <div className="flex items-center justify-end gap-3">
                         <button
                           onClick={() => onEdit(trade)}
                           className="p-0.5 text-gray-400 hover:text-blue-600 transition-colors"
@@ -361,7 +361,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
               ) : (
                 <tr>
                   <td colSpan={5} className="py-6 sm:py-8 px-3 sm:px-6 text-center text-xs text-gray-900 dark:text-gray-100">
-                    No trades yet. Click the + button to add your first trade.
+                    No trades in your history.
                   </td>
                 </tr>
               )}

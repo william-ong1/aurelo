@@ -279,10 +279,12 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
   return (
     <div className="bg-white dark:bg-black rounded-lg p-2 sm:p-4 pt-2 sm:pt-3 shadow-sm border border-gray-200 dark:border-gray-800/70 flex-1 flex flex-col">
         {/* Calendar Header */}
-        <div className="flex items-center justify-between mb-1 px-1">
+        <div className="flex items-center justify-between mb-1 px-1 relative">
           <div className="flex items-center gap-2">
             <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">P&L Calendar</h3>
-            <div className="flex bg-gray-100 dark:bg-black rounded-lg p-0.5 ml-8 sm:ml-10 lg:ml-28 relative border border-gray-200/30 dark:border-gray-800/80">
+          </div>
+          <div className="absolute left-1/2 transform -translate-x-1/2">
+            <div className="flex bg-gray-100 dark:bg-black rounded-md p-0.5 relative border border-gray-200/30 dark:border-gray-800/80">
               <button
                 onClick={() => {
                   setDisplayMode('price');

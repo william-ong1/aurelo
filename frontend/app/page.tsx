@@ -41,7 +41,7 @@ function InputField({ label, ...props }: { label: string; [key: string]: unknown
       </label>
       <input
         {...props}
-        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
+        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-[11px] sm:text-[12px] 2xl:text-sm bg-white dark:bg-black text-black dark:text-white"
       />
     </div>
   );
@@ -409,34 +409,34 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       {isPageReady && (
-        <main className="mx-auto px-2 sm:px-6 lg:px-8 pt-19 sm:pt-9 pb-8 sm:pb-9 max-w-6xl 2xl:max-w-7xl">
+        <main className="mx-auto px-2 sm:px-6 lg:px-8 pt-20 md:pt-9 pb-8 sm:pb-9 max-w-6xl 2xl:max-w-7xl">
           {/* Top Row - Overview and Holdings */}
           <div className="flex flex-col lg:flex-row gap-4 mb-4">
             {/* Overview Box - Fixed size */}
-            <div className="lg:w-2/5 bg-white dark:bg-black rounded-lg p-4 pt-3 shadow-sm border border-gray-200 dark:border-gray-800/70 h-[400px]">
+            <div className="lg:w-2/5 bg-white dark:bg-black rounded-lg p-3 pt-2 sm:p-4 sm:pt-3 shadow-sm border border-gray-200 dark:border-gray-800/70 h-[400px]">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Overview</h3>
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-3">
-                  <div className="flex items-center bg-gray-50 dark:bg-gray-900/50 backdrop-blur rounded-full p-1 border border-gray-200/60 dark:border-gray-700/60 shadow-sm gap-1">
+                  <div className="flex bg-gray-100 dark:bg-black rounded-md p-0.5 mt-1 -mb-1 relative border border-gray-200/30 dark:border-gray-800/80">
                     <button
                       onClick={() => setTimePeriod('all-time')}
-                      className={`px-1.5 sm:px-2 2xl:px-3 py-.7 sm:py-1 2xl:py-1.5 text-[.55rem] 2xl:text-[.8rem] font-medium rounded-full transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 ${
+                      className={`flex items-center justify-center px-2 sm:px-3 h-6 sm:h-6 rounded-sm transition-all duration-200 text-[.6rem] sm:text-[.65rem] 2xl:text-[.8rem] ${
                         timePeriod === 'all-time'
-                          ? 'text-gray-900 dark:text-white bg-white dark:bg-gray-800 shadow ring-1 ring-gray-300 dark:ring-gray-700 font-medium'
-                          : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/50'
-                      }`}
+                          ? 'bg-white dark:bg-gray-900 text-gray-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-medium'
+                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                      } cursor-pointer`}
                     >
                       All Time
                     </button>
                     <button
                       onClick={() => setTimePeriod('today')}
-                      className={`px-1.5 sm:px-2 2xl:px-3 py-.7 sm:py-1 2xl:py-1.5 text-[.55rem] 2xl:text-[.8rem] font-medium rounded-full transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 ${
+                      className={`flex items-center justify-center px-2 sm:px-3 h-6 sm:h-6 rounded-sm transition-all duration-200 text-[.6rem] sm:text-[.65rem] 2xl:text-[.8rem] ${
                         timePeriod === 'today'
-                          ? 'text-gray-900 dark:text-white bg-white dark:bg-gray-800 shadow ring-1 ring-gray-300 dark:ring-gray-700 font-medium'
-                          : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/50'
-                      }`}
+                          ? 'bg-white dark:bg-gray-900 text-gray-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-medium'
+                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                      } cursor-pointer`}
                     >
                       Today
                     </button>
@@ -488,7 +488,7 @@ export default function Home() {
           <div 
             className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-all p-3 sm:p-4"
           >
-            <div className="bg-white dark:bg-black backdrop-blur-sm rounded-lg shadow-2xl p-3 sm:p-6 w-full max-w-sm mx-auto border border-gray-200 dark:border-gray-800/70 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-black backdrop-blur-sm rounded-lg shadow-2xl p-4 sm:p-6 w-full max-w-sm mx-auto border border-gray-200 dark:border-gray-800/70 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-3 sm:mb-4">
                 <h2 className="text-sm sm:text-lg 2xl:text-lg font-medium text-black dark:text-white">
                   {editingAsset ? 'Edit Asset' : 'Add New Asset'}
@@ -506,9 +506,9 @@ export default function Home() {
                   <div className="flex flex-row gap-2 sm:gap-3">
                     <button
                       onClick={() => setUploadMode('manual')}
-                      className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-1 transition-all cursor-pointer ${
+                      className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2 rounded-lg border-1 transition-all cursor-pointer ${
                         uploadMode === 'manual'
-                          ? 'border-gray-200 dark:border-gray-800/70 text-black dark:text-white ring-1 ring-black dark:ring-white'
+                          ? 'border-gray-200 dark:border-gray-800/70 text-black dark:text-white ring-1 ring-offset-0 ring-black dark:ring-white'
                           : 'border-gray-200 dark:border-gray-800/70 text-black dark:text-white hover:border-gray-300'
                       }`}
                     >
@@ -517,7 +517,7 @@ export default function Home() {
                     </button>
                     <button
                       onClick={() => setUploadMode('image')}
-                      className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-1 transition-all cursor-pointer ${
+                      className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2 rounded-lg border-1 transition-all cursor-pointer ${
                         uploadMode === 'image'
                           ? 'border-gray-200 dark:border-gray-800/70 text-black dark:text-white ring-1 ring-black dark:ring-white'
                           : 'border-gray-200 dark:border-gray-800/70 text-black dark:text-white hover:border-gray-300'
@@ -536,7 +536,7 @@ export default function Home() {
                   {selectedImages.length === 0 ? (
                     <div className="border-2 border-dashed border-gray-300 dark:border-gray-800/70 rounded-lg p-3 sm:p-6 text-center">
                       <Upload className="mx-auto h-6 w-6 sm:h-10 sm:w-10 text-gray-400 mb-2 sm:mb-3" />
-                      <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-black dark:text-white mb-2 sm:mb-3">
+                      <div className="text-[11px] sm:text-[12px] 2xl:text-sm text-black dark:text-white mb-2 sm:mb-3">
                         Upload images of your portfolio or holdings
                       </div>
                       <input
@@ -549,7 +549,7 @@ export default function Home() {
                       />
                       <label
                         htmlFor="image-upload"
-                        className="inline-flex items-center px-2 sm:px-3 py-1.5 border border-transparent text-[10px] sm:text-[12px] 2xl:text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                        className="inline-flex items-center px-2 sm:px-3 py-1.5 border border-transparent text-[11px] sm:text-[12px] 2xl:text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
                       >
                         Choose Images
                       </label>
@@ -564,7 +564,7 @@ export default function Home() {
                             </div>
                             <div>
                               <div className="font-medium text-gray-900 dark:text-gray-100 text-[10px] sm:text-[12px] 2xl:text-sm">{image.name}</div>
-                              <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-gray-900 dark:text-gray-100">
+                              <div className="text-[11px] sm:text-[12px] 2xl:text-sm text-gray-900 dark:text-gray-100">
                                 {(image.size / 1024 / 1024).toFixed(2)} MB
                               </div>
                             </div>
@@ -600,7 +600,7 @@ export default function Home() {
 
                       {parsedAssets.length > 0 && (
                         <div className="space-y-2 sm:space-y-3">
-                          <div className="text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 dark:text-gray-300">
+                          <div className="text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-gray-700 dark:text-gray-300">
                             Found {parsedAssets.length} asset(s):
                           </div>
                           <div className="max-h-60 overflow-y-auto space-y-2">
@@ -609,7 +609,7 @@ export default function Home() {
                                 <div className="font-medium text-gray-900 dark:text-gray-100 text-[10px] sm:text-[12px] 2xl:text-sm">
                                   {asset.isStock ? asset.ticker : asset.name}
                                 </div>
-                                <div className="text-[10px] sm:text-[12px] 2xl:text-sm text-black dark:text-white">
+                                <div className="text-[11px] sm:text-[12px] 2xl:text-sm text-black dark:text-white">
                                   {asset.isStock 
                                     ? `${asset.shares} shares @ $${asset.currentPrice}`
                                     : `$${asset.balance} @ ${((asset.apy || 0) * 100).toFixed(2)}% APY`
@@ -646,7 +646,7 @@ export default function Home() {
                 <div className="space-y-3 sm:space-y-4">
                   {/* Asset Type */}
                   <div>
-                    <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white mb-2">Asset Type *</label>
+                    <label className="block text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white mb-2">Asset Type *</label>
                     <div className="flex flex-row gap-4 sm:gap-6">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input 
@@ -658,7 +658,7 @@ export default function Home() {
                             setFormData(prev => ({ ...prev, isStock: true }));
                           }} 
                         />
-                        <span className="text-[10px] sm:text-[12px] 2xl:text-sm text-black dark:text-white">Stock / ETF</span>
+                        <span className="text-[11px] sm:text-[12px] 2xl:text-sm text-black dark:text-white">Stock / ETF</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input 
@@ -670,7 +670,7 @@ export default function Home() {
                             setFormData(prev => ({ ...prev, isStock: false }));
                           }} 
                         />
-                        <span className="text-[10px] sm:text-[12px] 2xl:text-sm text-black dark:text-white">Cash Account</span>
+                        <span className="text-[11px] sm:text-[12px] 2xl:text-sm text-black dark:text-white">Cash Account</span>
                       </label>
                     </div>
                   </div>
@@ -678,19 +678,19 @@ export default function Home() {
                   {/* Row: Name + Ticker */}
                   <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white mb-1">Asset Name *</label>
+                      <label className="block text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white mb-1">Asset Name *</label>
                       <input
                         type="text"
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-[11px] sm:text-[12px] 2xl:text-sm bg-white dark:bg-black text-black dark:text-white"
                         placeholder="e.g. Apple Inc."
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white mb-1">Ticker {formData.isStock ? '*' : ''}</label>
+                      <label className="block text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white mb-1">Ticker {formData.isStock ? '*' : ''}</label>
                       <input
                         type="text"
                         name="ticker"
@@ -699,7 +699,7 @@ export default function Home() {
                           const { name, value } = e.target;
                           setFormData(prev => ({ ...prev, [name]: value.toUpperCase() }));
                         }}
-                        className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm ${
+                        className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-[11px] sm:text-[12px] 2xl:text-sm ${
                           !formData.isStock 
                             ? 'bg-gray-100 dark:bg-gray-900 text-gray-400 dark:text-gray-500 cursor-not-allowed' 
                             : 'bg-white dark:bg-black text-black dark:text-white'
@@ -715,28 +715,28 @@ export default function Home() {
                   {formData.isStock ? (
                     <div className="grid grid-cols-2 gap-3 sm:gap-4">
                       <div>
-                        <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white mb-1">Number of Shares *</label>
+                        <label className="block text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white mb-1">Number of Shares *</label>
                         <input
                           type="number"
                           name="shares"
                           value={formData.shares}
                           onChange={handleInputChange}
-                          className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-[11px] sm:text-[12px] 2xl:text-sm bg-white dark:bg-black text-black dark:text-white"
                           step="0.001"
                           placeholder="e.g., 10.5"
                           required
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white mb-1">Price per Share *</label>
+                        <label className="block text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white mb-1">Price per Share *</label>
                         <div className="relative">
-                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                           <input
                             type="number"
                             name="price"
                             value={formData.price}
                             onChange={handleInputChange}
-                            className="w-full pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
+                            className="w-full pl-7 sm:pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-[11px] sm:text-[12px] 2xl:text-sm bg-white dark:bg-black text-black dark:text-white"
                             step="0.01"
                             placeholder="0.00"
                             required
@@ -747,15 +747,15 @@ export default function Home() {
                   ) : (
                     <div className="grid grid-cols-2 gap-3 sm:gap-4">
                       <div>
-                        <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white mb-1">Account Balance *</label>
+                        <label className="block text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white mb-1">Account Balance *</label>
                         <div className="relative">
-                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                           <input
                             type="number"
                             name="balance"
                             value={formData.balance}
                             onChange={handleInputChange}
-                            className="w-full pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
+                            className="w-full pl-6 sm:pl-10 pr-3 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-[11px] sm:text-[12px] 2xl:text-sm bg-white dark:bg-black text-black dark:text-white"
                             step="0.01"
                             placeholder="0.00"
                             required
@@ -763,13 +763,13 @@ export default function Home() {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[10px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white mb-1">APY (%) *</label>
+                        <label className="block text-[11px] sm:text-[12px] 2xl:text-sm font-medium text-black dark:text-white mb-1">APY (%) *</label>
                         <input
                           type="number"
                           name="apy"
                           value={formData.apy}
                           onChange={handleInputChange}
-                          className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-sm bg-white dark:bg-black text-black dark:text-white"
+                          className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-800/70 rounded-lg focus:outline-none focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white hover:border-black dark:hover:border-white transition-all text-[11px] sm:text-[12px] 2xl:text-sm bg-white dark:bg-black text-black dark:text-white"
                           step="0.1"
                           placeholder="0.0"
                           required
