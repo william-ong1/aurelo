@@ -396,6 +396,20 @@ export default function WhiteboardJournal() {
         }
       } else {
         // Create new entry with position
+        // Compute a non-overlapping default position for the new note
+        const existingPositions = entries.map(e => ({ x: e.position_x || 0, y: e.position_y || 0 }));
+        let newX = 50;
+        let newY = 50;
+        while (existingPositions.some(pos =>
+          Math.abs(pos.x - newX) < 220 && Math.abs(pos.y - newY) < 170
+        )) {
+          newX += 30;
+          newY += 30;
+          if (newX > 800) {
+            newX = 50;
+            newY += 200;
+          }
+        }
         const response = await fetch(getApiUrl('/api/journal'), {
           method: 'POST',
           headers: {
@@ -404,8 +418,8 @@ export default function WhiteboardJournal() {
           },
           body: JSON.stringify({
             ...entryData,
-            position_x: newNotePosition.x,
-            position_y: newNotePosition.y,
+            position_x: newX,
+            position_y: newY,
             width: 200,
             height: 150
           })
