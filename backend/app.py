@@ -39,7 +39,8 @@ app.add_middleware(
         "http://192.168.0.14:3000",
         "http://192.168.0.14:8000",
         "http://10.18.219.26:3000",
-        "http://10.19.248.248:3000"
+        "http://10.19.248.248:3000",
+        "https://aurelo-finance.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],

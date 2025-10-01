@@ -19,7 +19,7 @@ const getBackendUrl = (): string => {
   }
   
   // Production - you can set this to your production backend URL
-  return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+  return 'https://aurelo.onrender.com';
 };
 
 export const API_BASE_URL = getBackendUrl();
