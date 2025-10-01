@@ -82,6 +82,14 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
   const { token } = useAuth();
   const [isAnalyticsReady, setIsAnalyticsReady] = useState(false);
 
+  const parseLocalDate = (dateString: string) => {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      const [year, month, day] = dateString.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    }
+    return new Date(dateString);
+  };
+
   // Set analytics as ready after a short delay to ensure calculations are complete
   useEffect(() => {
     if (trades.length > 0 && analytics.total_trades > 0) {
@@ -488,12 +496,12 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
                     <span className="text-[11px] lg:text-xs text-gray-600 dark:text-gray-300">This Month</span>
                   </div>
                   <span className={`text-xs lg:text-sm font-bold ${getPnlColor(trades.filter(t => {
-                    const tradeDate = new Date(t.date);
+                    const tradeDate = parseLocalDate(t.date);
                     const now = new Date();
                     return tradeDate.getMonth() === now.getMonth() && tradeDate.getFullYear() === now.getFullYear();
                   }).reduce((sum, t) => sum + (t.realized_pnl || 0), 0))}`}>
                     {formatCurrency(trades.filter(t => {
-                      const tradeDate = new Date(t.date);
+                      const tradeDate = parseLocalDate(t.date);
                       const now = new Date();
                       return tradeDate.getMonth() === now.getMonth() && tradeDate.getFullYear() === now.getFullYear();
                     }).reduce((sum, t) => sum + (t.realized_pnl || 0), 0))}

@@ -38,7 +38,8 @@ app.add_middleware(
         "http://localhost:3000",
         "http://192.168.0.14:3000",
         "http://192.168.0.14:8000",
-        "http://10.18.219.26:3000"
+        "http://10.18.219.26:3000",
+        "http://10.19.248.248:3000"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -129,16 +130,32 @@ class JournalEntry(BaseModel):
     tags: Optional[str] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
+    position_x: Optional[float] = None
+    position_y: Optional[float] = None
+    width: Optional[float] = None
+    height: Optional[float] = None
 
 class JournalCreate(BaseModel):
     title: str
     content: str
     tags: Optional[str] = None
+    position_x: Optional[float] = None
+    position_y: Optional[float] = None
+    width: Optional[float] = None
+    height: Optional[float] = None
 
 class JournalUpdate(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
     tags: Optional[str] = None
+
+class JournalPositionUpdate(BaseModel):
+    position_x: float
+    position_y: float
+
+class JournalSizeUpdate(BaseModel):
+    width: float
+    height: float
 
 class ImageParseRequest(BaseModel):
     image: str
@@ -1131,7 +1148,11 @@ async def create_journal_entry(entry: JournalCreate, user_id: str = Depends(get_
             'user_id': user_id,
             'title': entry.title.strip(),
             'content': entry.content.strip(),
-            'tags': entry.tags.strip() if entry.tags and entry.tags.strip() else None
+            'tags': entry.tags.strip() if entry.tags and entry.tags.strip() else None,
+            'position_x': entry.position_x,
+            'position_y': entry.position_y,
+            'width': entry.width,
+            'height': entry.height
         }
         
         result = supabase.table('journal').insert(data).execute()
@@ -1153,7 +1174,7 @@ async def get_journal_entries(user_id: str = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Database not configured")
     
     try:
-        result = supabase.table('journal').select('id,title,content,tags,created_at,updated_at').eq('user_id', user_id).order('updated_at', desc=True).order('created_at', desc=True).execute()
+        result = supabase.table('journal').select('id,title,content,tags,created_at,updated_at,position_x,position_y,width,height').eq('user_id', user_id).order('updated_at', desc=True).order('created_at', desc=True).execute()
         return {"entries": result.data}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -1214,6 +1235,62 @@ async def delete_journal_entry(entry_id: int, user_id: str = Depends(get_current
             return {"message": "Journal entry deleted successfully"}
         else:
             raise HTTPException(status_code=500, detail="Failed to delete journal entry")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.put("/api/journal/{entry_id}/position")
+async def update_journal_position(entry_id: int, position: JournalPositionUpdate, user_id: str = Depends(get_current_user)):
+    """Update journal entry position"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        # Check if entry exists and belongs to user
+        existing = supabase.table('journal').select('*').eq('id', entry_id).eq('user_id', user_id).execute()
+        if not existing.data:
+            raise HTTPException(status_code=404, detail="Journal entry not found")
+        
+        # Update position
+        result = supabase.table('journal').update({
+            'position_x': position.position_x,
+            'position_y': position.position_y
+        }).eq('id', entry_id).eq('user_id', user_id).execute()
+        
+        if result.data:
+            return {"message": "Position updated successfully"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to update position")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.put("/api/journal/{entry_id}/size")
+async def update_journal_size(entry_id: int, size: JournalSizeUpdate, user_id: str = Depends(get_current_user)):
+    """Update journal entry size"""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    
+    try:
+        # Check if entry exists and belongs to user
+        existing = supabase.table('journal').select('*').eq('id', entry_id).eq('user_id', user_id).execute()
+        if not existing.data:
+            raise HTTPException(status_code=404, detail="Journal entry not found")
+        
+        # Update size
+        result = supabase.table('journal').update({
+            'width': size.width,
+            'height': size.height
+        }).eq('id', entry_id).eq('user_id', user_id).execute()
+        
+        if result.data:
+            return {"message": "Size updated successfully"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to update size")
             
     except HTTPException:
         raise

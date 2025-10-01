@@ -66,7 +66,7 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
   //       <p className="text-xs 2xl:text-sm -mt-2 text-black dark:text-white mb-4">Key metrics and insights about your portfolio performance</p>
 
         
-  //       <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-6">
+  //       <div className="grid grid-cols-2 xl:grid-cols-4 gap-8 sm:gap-6">
   //         {/* Loading cards - match exact structure of real cards */}
   //         {[1, 2, 3, 4].map((i) => (
   //           <div key={i} className="bg-white dark:bg-black rounded-lg p-3 sm:p-4 shadow-sm border border-gray-200 dark:border-gray-800/70 animate-pulse">
@@ -141,7 +141,7 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
   return (
     <div>
       {/* Desktop Layout - Hidden on mobile */}
-      <div className="hidden lg:block">
+      <div className="hidden xl:block">
         <div className="flex gap-4 mb-4">
           {/* Left side - First 2 cards (2/5 width) */}
           <div className="w-2/5 grid grid-cols-2 gap-4">
@@ -287,7 +287,7 @@ export default function PositionAnalytics({ assets, isLoadingAssets = false }: P
       </div>
 
       {/* Mobile Layout - 3x2 Grid (2 in a row) */}
-      <div className="lg:hidden">
+      <div className="xl:hidden">
         <div className="grid grid-cols-2 gap-4 mb-4">
           {/* Row 1 */}
           {/* Total Value */}

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Eye, EyeOff, User, Mail, Lock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { disableBodyScroll, enableBodyScroll } from '../utils/scrollLock';
@@ -18,14 +18,17 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const emailInputRef = useRef<HTMLInputElement>(null);
 
   const { login, register, isAuthenticated } = useAuth();
 
-  // Clear success message when modal is closed or user logs out
+  // Clear fields and messages when modal is closed or user logs out
   useEffect(() => {
     if (!isOpen || !isAuthenticated) {
       setSuccess('');
       setError('');
+      setEmail('');
+      setPassword('');
     }
   }, [isOpen, isAuthenticated]);
 
@@ -43,6 +46,16 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
     };
   }, [isOpen]);
 
+  // Focus email input when modal opens
+  useEffect(() => {
+    if (isOpen && emailInputRef.current) {
+      // Small delay to ensure the modal is fully rendered
+      setTimeout(() => {
+        emailInputRef.current?.focus();
+      }, 100);
+    }
+  }, [isOpen]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -56,6 +69,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
         success = await login(email, password);
         if (success) {
           setSuccess('Login successful!');
+          setEmail('');
+          setPassword('');
           setTimeout(() => {
             onClose();
           }, 1000);
@@ -138,6 +153,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
               Email Address
             </label>
             <input
+              ref={emailInputRef}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

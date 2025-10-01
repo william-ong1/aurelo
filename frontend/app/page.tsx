@@ -362,9 +362,9 @@ export default function Home() {
           <p className="text-xs sm:text-sm 2xl:text-base text-black dark:text-white font-medium">
             Loading portfolio...
           </p>
-          <p className="text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">
+          {/* <p className="text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">
             Retrieving your portfolio data
-          </p>
+          </p> */}
         </div>
       </div>
     );
@@ -381,7 +381,7 @@ export default function Home() {
   // Show loading state while fetching initial prices
   if (isInitialLoading && validStockAssets.length > 0) {
     // return (
-    //   <div className="flex items-center justify-center rounded-lg w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] 2xl:h-[360px]">
+    //   <div className="flex items-center justify-center rounded-lg w-full h-[200px] sm:h-[240px] md:h-[280px] xl:h-[320px] 2xl:h-[360px]">
     //     <div className="text-center">
     //       <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto mb-3 sm:mb-4"></div>
     //       <div className="text-xs sm:text-sm 2xl:text-base text-black dark:text-white font-medium">Loading prices...</div>
@@ -409,11 +409,11 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       {isPageReady && (
-        <main className="mx-auto px-2 sm:px-6 lg:px-8 pt-20 md:pt-9 pb-8 sm:pb-9 max-w-6xl 2xl:max-w-7xl">
+        <main className="mx-auto px-2 sm:px-6 xl:px-8 pt-20 md:pt-9 pb-8 sm:pb-9 max-w-6xl 2xl:max-w-7xl">
           {/* Top Row - Overview and Holdings */}
-          <div className="flex flex-col lg:flex-row gap-4 mb-4">
+          <div className="flex flex-col xl:flex-row gap-4 mb-4">
             {/* Overview Box - Fixed size */}
-            <div className="lg:w-2/5 bg-white dark:bg-black rounded-lg p-3 pt-2 sm:p-4 sm:pt-3 shadow-sm border border-gray-200 dark:border-gray-800/70 h-[400px]">
+            <div className="xl:w-2/5 bg-white dark:bg-black rounded-lg p-3 pt-2 sm:p-4 sm:pt-3 shadow-sm border border-gray-200 dark:border-gray-800/70 h-[400px]">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Overview</h3>
@@ -458,7 +458,7 @@ export default function Home() {
             </div>
 
             {/* Holdings Box - Takes remaining space */}
-            <div className="lg:w-3/5">
+            <div className="xl:w-3/5">
               <HoldingsSection 
                 assets={assets} 
                 isLoadingAssets={isLoadingAssets}

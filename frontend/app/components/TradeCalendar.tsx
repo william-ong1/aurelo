@@ -33,6 +33,15 @@ const formatLargeNumber = (value: number): string => {
 };
 
 export default function TradeCalendar({ trades }: TradeCalendarProps) {
+  // Parse a YYYY-MM-DD string as a local date to avoid UTC timezone shifts
+  const parseLocalDate = (dateString: string) => {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      const [year, month, day] = dateString.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    }
+    return new Date(dateString);
+  };
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [hasInitialized, setHasInitialized] = useState(false);
   const [displayMode, setDisplayMode] = useState<'price' | 'percentage' | 'r'>(() => {
@@ -201,7 +210,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
 
   // Calculate monthly P&L for current month
   const monthlyPnl = Object.entries(dailyStats).reduce((total, [date, stats]) => {
-    const dateObj = new Date(date);
+    const dateObj = parseLocalDate(date);
     if (dateObj.getMonth() === month && dateObj.getFullYear() === year) {
       return total + stats.pnl;
     }
@@ -210,7 +219,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
 
   // Calculate monthly percentage return
   const monthlyInvested = Object.entries(dailyStats).reduce((total, [date, stats]) => {
-    const dateObj = new Date(date);
+    const dateObj = parseLocalDate(date);
     if (dateObj.getMonth() === month && dateObj.getFullYear() === year) {
       return total + stats.totalInvested;
     }
@@ -222,7 +231,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
 
   // Calculate monthly win rate
   const monthlyTrades = Object.entries(tradesByDate).reduce((trades, [date, stats]) => {
-    const dateObj = new Date(date);
+    const dateObj = parseLocalDate(date);
     if (dateObj.getMonth() === month && dateObj.getFullYear() === year) {
       return trades.concat(tradesByDate[date] || []);
     }
@@ -358,7 +367,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
         </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-6 gap-0.75 lg:gap-1.5 flex-1">
+      <div className="grid grid-cols-6 gap-0.75 lg:gap-1 flex-1">
         {/* Day Headers */}
         {dayNames.map((day) => (
           <div key={day} className="p-2 pb-0 text-center">
@@ -390,7 +399,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
               calendarDays.push(
                 <div
                   key={`day-${i + dayIndex}`}
-                  className={`relative p-1 lg:p-1.5 min-h-[60px] lg:min-h-[70px] border rounded-lg transition-all duration-200 flex flex-col justify-between ${
+                  className={`relative p-1 lg:p-1.5 min-h-[60px] lg:min-h-[70px] border rounded-md transition-all duration-200 flex flex-col justify-between ${
                     hasTrades 
                       ? getDayBackgroundColor(dayStats.pnl)
                       : isCurrentMonth 
