@@ -250,7 +250,7 @@ export default function WatchlistSection() {
 
       {/* Content - Only show after authentication and watchlist are loaded */}
       {!isAuthLoading && !isLoadingWatchlist && (
-        <div className="pb-10 pt-20 md:py-10">
+        <div className="pb-10 pt-16 md:py-10">
         <div className="bg-white dark:bg-black rounded-md shadow-sm px-3 py-3 pb-3 sm:px-4 sm:py-4 sm:pb-4 border border-gray-200 dark:border-gray-800/70">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-white uppercase tracking-wide">Watchlist</h3>

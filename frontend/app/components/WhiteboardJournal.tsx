@@ -471,7 +471,7 @@ export default function WhiteboardJournal() {
             radial-gradient(circle, #b7b7bcff 1px, transparent 1px)
           `,
           backgroundSize: '20px 20px',
-          backgroundPosition: '0 0, 10px 10px'
+          backgroundPosition: '15px 15px, 25px 25px'
         }}
       >
         {/* Dark mode grid overlay */}
@@ -482,7 +482,7 @@ export default function WhiteboardJournal() {
               radial-gradient(circle, #282b2fff 1px, transparent 1px)
             `,
             backgroundSize: '20px 20px',
-            backgroundPosition: '0 0, 10px 10px'
+            backgroundPosition: '15px 15px, 25px 25px'
           }}
         />
         {entries.map((entry) => (

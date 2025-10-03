@@ -46,15 +46,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
     };
   }, [isOpen]);
 
-  // Focus email input when modal opens
-  useEffect(() => {
-    if (isOpen && emailInputRef.current) {
-      // Small delay to ensure the modal is fully rendered
-      setTimeout(() => {
-        emailInputRef.current?.focus();
-      }, 100);
-    }
-  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

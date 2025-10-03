@@ -335,7 +335,7 @@ export default function TradeList({ trades, onEdit, onDelete, onAdd }: TradeList
                       </span>
                     </td>
                     <td className="py-3 px-2 text-right">
-                      <div className="flex items-center justify-end gap-3">
+                      <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => onEdit(trade)}
                           className="p-0.5 text-gray-400 hover:text-blue-600 transition-colors"

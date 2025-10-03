@@ -299,26 +299,26 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                   setDisplayMode('price');
                   localStorage.setItem('tradeCalendarDisplayMode', 'price');
                 }}
-                className={`flex items-center justify-center w-6 h-5 sm:w-6 sm:h-5 rounded-sm transition-all duration-200 ${
+                className={`flex items-center justify-center w-5 h-4 sm:w-6 sm:h-5 rounded-sm transition-all duration-200 ${
                   displayMode === 'price' 
                     ? 'bg-white dark:bg-gray-900 text-gray-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-medium' 
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
                 } cursor-pointer`}
               >
-                <DollarSign className="w-3 h-3 sm:h-2.5 sm:w-2.5 " />
+                <DollarSign className="w-2.5 h-2.5 sm:h-2.5 sm:w-2.5 " />
               </button>
               <button
                 onClick={() => {
                   setDisplayMode('percentage');
                   localStorage.setItem('tradeCalendarDisplayMode', 'percentage');
                 }}
-                className={`flex items-center justify-center w-6 h-5 sm:w-6 sm:h-5 rounded-sm transition-all duration-200 ${
+                className={`flex items-center justify-center w-5 h-4 sm:w-6 sm:h-5 rounded-sm transition-all duration-200 ${
                   displayMode === 'percentage' 
                     ? 'bg-white dark:bg-gray-900 text-gray-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-medium' 
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
                 } cursor-pointer`}
               >
-                <Percent className="w-3 h-3 sm:h-2.5 sm:w-2.5" />
+                <Percent className="w-2.5 h-2.5 sm:h-2.5 sm:w-2.5" />
               </button>
               <div className="flex">
                 <button
@@ -326,7 +326,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                     setDisplayMode('r');
                     localStorage.setItem('tradeCalendarDisplayMode', 'r');
                   }}
-                  className={`flex items-center justify-center w-6 h-5 sm:w-6 sm:h-5 transition-all duration-200 ${
+                  className={`flex items-center justify-center w-5 h-4 sm:w-6 sm:h-5 transition-all duration-200 ${
                     displayMode === 'r' 
                       ? 'bg-white dark:bg-gray-900 text-gray-700 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-gray-600 font-medium rounded-l-sm' 
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-sm'
@@ -339,7 +339,7 @@ export default function TradeCalendar({ trades }: TradeCalendarProps) {
                     type="number"
                     value={rValue === 0 ? '' : rValue}
                     onChange={handleRValueChange}
-                     className="w-7 h-5 sm:w-8 sm:h-5 text-[.65rem] sm:text-[.6rem] text-center border border-gray-200/30 dark:border-gray-800/80 rounded-r-sm bg-white dark:bg-gray-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-300 ring-1 ring-gray-300 dark:ring-gray-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none leading-none py-0 px-0 font-medium shadow-sm"
+                     className="w-6 h-4 sm:w-8 sm:h-5 text-[.65rem] sm:text-[.6rem] text-center border border-gray-200/30 dark:border-gray-800/80 rounded-r-sm bg-white dark:bg-gray-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-300 ring-1 ring-gray-300 dark:ring-gray-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none leading-none py-0 px-0 font-medium shadow-sm"
                     min="0"
                     step="0.1"
                   />

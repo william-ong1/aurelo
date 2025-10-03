@@ -392,7 +392,7 @@ export default function TradingSection() {
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
               <p className="text-sm 2xl:text-base text-black dark:text-white font-medium">
-                Adding trades ...
+                Adding trades...
               </p>
               <p className="text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 mt-1">
                 Checking for duplicates

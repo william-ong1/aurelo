@@ -409,7 +409,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       {isPageReady && (
-        <main className="mx-auto px-2 sm:px-6 xl:px-8 pt-20 md:pt-9 pb-8 sm:pb-9 max-w-6xl 2xl:max-w-7xl">
+        <main className="mx-auto px-2 sm:px-6 xl:px-8 pt-16 md:pt-9 pb-8 sm:pb-9 max-w-6xl 2xl:max-w-7xl">
           {/* Top Row - Overview and Holdings */}
           <div className="flex flex-col xl:flex-row gap-4 mb-4">
             {/* Overview Box - Fixed size */}

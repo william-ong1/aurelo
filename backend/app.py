@@ -15,6 +15,7 @@ import asyncio
 from datetime import datetime, UTC
 from supabase import create_client, Client
 from jose import jwt, JWTError
+import aiohttp
 
 # Load environment variables
 load_dotenv()
@@ -31,17 +32,60 @@ else:
 
 app = FastAPI()
 
+# Health check endpoint to keep server alive
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "timestamp": datetime.now(UTC).isoformat()}
+
+# Keep-alive endpoint that does minimal work
+@app.get("/ping")
+async def ping():
+    return {"message": "pong", "timestamp": datetime.now(UTC).isoformat()}
+
+# Background task to keep server alive
+async def keep_alive_task():
+    """Background task that pings the server every 10 minutes to prevent shutdown"""
+    while True:
+        try:
+            # Wait 10 minutes (600 seconds)
+            await asyncio.sleep(600)
+            
+            # Get the server URL from environment or use localhost
+            server_url = os.getenv('RENDER_SERVER_URL', 'http://localhost:8000')
+            
+            # Ping our own health endpoint
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"{server_url}/health") as response:
+                    if response.status == 200:
+                        print(f"Keep-alive ping successful at {datetime.now(UTC).isoformat()}")
+                    else:
+                        print(f"Keep-alive ping failed with status {response.status}")
+        except Exception as e:
+            print(f"Keep-alive task error: {e}")
+            # Continue the loop even if there's an error
+            await asyncio.sleep(60)  # Wait 1 minute before retrying
+
+# Start the keep-alive task when the app starts
+@app.on_event("startup")
+async def startup_event():
+    # Only start keep-alive task if we're on Render (has RENDER env var)
+    if os.getenv('RENDER'):
+        asyncio.create_task(keep_alive_task())
+        print("Keep-alive task started for Render deployment")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173", 
-        "http://localhost:3000",
-        "http://192.168.0.14:3000",
-        "http://192.168.0.14:8000",
-        "http://10.18.219.26:3000",
-        "http://10.19.248.248:3000",
-        "https://aurelo-finance.vercel.app",
-    ],
+    # allow_origins=[
+    #     "http://localhost:5173", 
+    #     "http://localhost:3000",
+    #     "http://192.168.0.14:3000",
+    #     "http://192.168.0.14:8000",
+    #     "http://10.18.219.26:3000",
+    #     "http://10.19.248.248:3000",
+    #     "https://aurelo-finance.vercel.app",
+    #     "http://10.18.143.116:3000",
+    # ],
+    allow_origins=["*"],   # Allow all origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -210,10 +210,26 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
       ? trades.reduce((sum, trade) => sum + (trade.realized_pnl ?? 0), 0) / trades.length 
       : 0;
     
-    // Calculate average percentage return
-    const avgPercentReturn = trades.length > 0 
-      ? trades.reduce((sum, trade) => sum + (trade.percent_diff ?? 0), 0) / trades.length 
-      : 0;
+    // Calculate dollar-weighted average percentage return
+    let totalWeightedReturn = 0;
+    let totalPositionSize = 0;
+    
+    trades.forEach(trade => {
+      // Estimate position size from P&L and percentage
+      let positionSize = 0;
+      if (trade.percent_diff && trade.percent_diff !== 0) {
+        positionSize = Math.abs((trade.realized_pnl || 0) / (trade.percent_diff / 100));
+      } else {
+        // Fallback: estimate position size if no percentage data
+        positionSize = Math.abs(trade.realized_pnl || 0) * 10; // Assume 10% return on average
+      }
+      
+      // Weight the percentage return by position size
+      totalWeightedReturn += (trade.percent_diff || 0) * positionSize;
+      totalPositionSize += positionSize;
+    });
+    
+    const avgPercentReturn = totalPositionSize > 0 ? totalWeightedReturn / totalPositionSize : 0;
     
     return { profitFactor, riskRewardRatio, avgPositionReturn, avgPercentReturn };
   };
@@ -463,6 +479,57 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
     return { totalInvested, percentageGain };
   };
 
+  // Calculate dollar-weighted average return for each month
+  const getMonthlyDollarWeightedReturns = () => {
+    if (trades.length === 0) return {};
+    
+    // Group trades by month
+    const monthlyTrades = trades.reduce((acc, trade) => {
+      try {
+        const tradeDate = new Date(trade.date);
+        if (isNaN(tradeDate.getTime())) {
+          return acc;
+        }
+        
+        const monthKey = `${tradeDate.getFullYear()}-${(tradeDate.getMonth() + 1).toString().padStart(2, '0')}`;
+        
+        if (!acc[monthKey]) {
+          acc[monthKey] = [];
+        }
+        acc[monthKey].push(trade);
+      } catch (error) {
+        console.warn('Error parsing date:', trade.date, error);
+      }
+      return acc;
+    }, {} as Record<string, Trade[]>);
+    
+    // Calculate dollar-weighted average return for each month
+    const monthlyReturns = Object.entries(monthlyTrades).reduce((acc, [monthKey, monthTrades]) => {
+      let totalWeightedReturn = 0;
+      let totalPositionSize = 0;
+      
+      monthTrades.forEach(trade => {
+        // Estimate position size from P&L and percentage
+        let positionSize = 0;
+        if (trade.percent_diff && trade.percent_diff !== 0) {
+          positionSize = Math.abs((trade.realized_pnl || 0) / (trade.percent_diff / 100));
+        } else {
+          // Fallback: estimate position size if no percentage data
+          positionSize = Math.abs(trade.realized_pnl || 0) * 10; // Assume 10% return on average
+        }
+        
+        // Weight the percentage return by position size
+        totalWeightedReturn += (trade.percent_diff || 0) * positionSize;
+        totalPositionSize += positionSize;
+      });
+      
+      acc[monthKey] = totalPositionSize > 0 ? totalWeightedReturn / totalPositionSize : 0;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    return monthlyReturns;
+  };
+
   const topPerformer = getTopPerformer();
   const mostTraded = getMostTraded();
   const uniqueTickers = getUniqueTickers();
@@ -471,11 +538,12 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
   const { maxConsecutiveWins, maxConsecutiveLosses, bestDay } = getBehavioralMetrics();
   const { avgPositionSize, largestPosition, concentration } = getPositionSizing();
   const { totalInvested, percentageGain } = getTotalInvestedAndGain();
+  const monthlyDollarWeightedReturns = getMonthlyDollarWeightedReturns();
 
   return (
     <>
       {/* Analytics and Calendar Layout */}
-      <div className="pt-11 md:p-0 grid grid-cols-1 lg:grid-cols-2 gap-4 mb-0">
+      <div className="pt-7 md:p-0 grid grid-cols-1 xl:grid-cols-2 gap-4 mb-0">
         {/* Daily P&L Calendar */}
         <div className="flex flex-col h-full">
           <TradeCalendar trades={trades} />
@@ -671,31 +739,37 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
                   <tr className="border-b border-gray-200 dark:border-gray-800/70">
                     <th className="text-left py-3 pl-0 pr-2 text-xs font-medium text-gray-700 dark:text-gray-300">
                       <div className="flex items-center gap-1.5">
-                        <Calendar className="h-3 w-3 text-gray-500" />
+                        <Calendar className="h-3 w-3 text-gray-500 hidden sm:block" />
                         Month
                       </div>
                     </th>
                     <th className="text-right py-3 px-2 text-xs font-medium text-gray-700 dark:text-gray-300">
                       <div className="flex items-center justify-end gap-1.5">
-                        <Target className="h-3 w-3 text-gray-500" />
+                        <Target className="h-3 w-3 text-gray-500 hidden sm:block" />
                         Trades
                       </div>
                     </th>
                     <th className="text-right py-3 px-2 text-xs font-medium text-gray-700 dark:text-gray-300">
                       <div className="flex items-center justify-end gap-1.5">
-                        <Percent className="h-3 w-3 text-gray-500" />
+                        <Percent className="h-3 w-3 text-gray-500 hidden sm:block" />
                         Win Rate
                       </div>
                     </th>
                     <th className="text-right py-3 px-2 text-xs font-medium text-gray-700 dark:text-gray-300">
                       <div className="flex items-center justify-end gap-1.5">
-                        <DollarSign className="h-3 w-3 text-gray-500" />
+                        <TrendingUp className="h-3 w-3 text-gray-500 hidden sm:block" />
+                        Avg Return
+                      </div>
+                    </th>
+                    <th className="text-right py-3 px-2 text-xs font-medium text-gray-700 dark:text-gray-300">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <DollarSign className="h-3 w-3 text-gray-500 hidden sm:block" />
                         Total P&L
                       </div>
                     </th>
                   </tr>
                 </thead>
-                                  <tbody>
+                  <tbody>
                     {(() => {
                       const months = Object.entries(analytics.monthly_performance)
                         .sort(([a], [b]) => b.localeCompare(a));
@@ -709,10 +783,12 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
                           <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-gray-100">-</td>
                           <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
                           <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
+                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
                           <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-gray-100 text-right">-</td>
                         </tr>,
                         <tr key="empty-2" className="border-b border-gray-200 dark:border-gray-900">
                           <td className="py-2 sm:py-2 pl-0 pr-2 sm:pr-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-gray-100">-</td>
+                          <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
                           <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
                           <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm text-gray-900 dark:text-gray-100 text-right">-</td>
                           <td className="py-2 sm:py-2 px-2 sm:px-4 text-[12px] sm:text-xs 2xl:text-sm font-medium text-black dark:text-gray-100 text-right">-</td>
@@ -720,24 +796,32 @@ export default function TradeAnalytics({ trades, analytics }: TradeAnalyticsProp
                       ];
                     }
                     
-                    return months.map(([monthKey, data], index) => (
-                      <tr key={monthKey} className="border-b border-gray-200 dark:border-gray-900">
-                        <td className="py-3 pl-0 pr-2 text-xs font-medium text-gray-900 dark:text-gray-100">
-                          {formatMonth(monthKey)}
-                        </td>
-                        <td className="py-3 px-2 text-xs text-gray-900 dark:text-gray-100 text-right">
-                          <span className="font-medium">{data.total_trades}</span>
-                        </td>
-                        <td className="py-3 px-2 text-xs text-right">
-                          <span className={`font-medium ${data.success_rate >= 50 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                            {formatPercent(data.success_rate)}
-                          </span>
-                        </td>
-                        <td className={`py-3 px-2 text-xs font-medium text-right ${getPnlColor(data.total_pnl)}`}>
-                          {formatCurrency(data.total_pnl)}
-                        </td>
-                      </tr>
-                    ));
+                    return months.map(([monthKey, data], index) => {
+                      const avgReturn = monthlyDollarWeightedReturns[monthKey] || 0;
+                      return (
+                        <tr key={monthKey} className="border-b border-gray-200 dark:border-gray-900">
+                          <td className="py-3 pl-0 pr-2 text-[11px] sm:text-xs font-medium text-gray-900 dark:text-gray-100">
+                            {formatMonth(monthKey)}
+                          </td>
+                          <td className="py-3 px-2 text-[11px] sm:text-xs text-gray-900 dark:text-gray-100 text-right">
+                            <span className="font-medium">{data.total_trades}</span>
+                          </td>
+                          <td className="py-3 px-2 text-[11px] sm:text-xs text-right">
+                            <span className={`font-medium ${data.success_rate >= 50 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              {formatPercent(data.success_rate)}
+                            </span>
+                          </td>
+                          <td className="py-3 px-2 text-[11px] sm:text-xs text-right">
+                            <span className={`font-medium ${avgReturn >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              {formatPercent(avgReturn)}
+                            </span>
+                          </td>
+                          <td className={`py-3 px-2 text-[11px] sm:text-xs font-medium text-right ${getPnlColor(data.total_pnl)}`}>
+                            {formatCurrency(data.total_pnl)}
+                          </td>
+                        </tr>
+                      );
+                    });
                   })()}
                 </tbody>
               </table>

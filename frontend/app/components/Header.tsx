@@ -30,7 +30,7 @@ export default function Header({ onLogout, onMenuClick }: HeaderProps) {
   return (
     <header className="fixed top-0 w-full z-40 bg-white/80 dark:bg-black/70 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-800/70 shadow-sm lg:sticky" suppressHydrationWarning>
       <div className="container pl-4 pr-2 sm:px-6 lg:px-8 max-w-7xl">
-        <div className="flex items-center justify-between h-14">
+        <div className="flex items-center justify-between h-12">
           {/* Branding (left on mobile and desktop) */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-0 sm:gap-3">
             <div className="flex items-center gap-2.5">

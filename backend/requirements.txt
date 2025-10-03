@@ -9,3 +9,4 @@ Pillow
 supabase
 python-jose[cryptography]
 python-multipart
+aiohttp
