@@ -34,6 +34,7 @@ app = FastAPI()
 
 # Root endpoint
 @app.get("/")
+@app.head("/")
 async def root():
     return {
         "message": "Aurelo Finance API",
@@ -49,6 +50,7 @@ async def root():
 
 # Health check endpoint to keep server alive
 @app.get("/health")
+@app.head("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.now(UTC).isoformat()}
 
