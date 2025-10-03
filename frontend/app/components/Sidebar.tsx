@@ -84,7 +84,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
               <div className="absolute -inset-y-1 -left-2 w-1/3 bg-white/20 blur-[3px] -skew-x-12 animate-pulse"></div>
             </span>
         </div>
-        <p className="mt-0 text-[.7rem] 2xl:text-[.9rem] text-black dark:text-white">
+        <p className="mt-1 text-[.7rem] 2xl:text-[.9rem] bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 dark:from-gray-400 dark:via-gray-300 dark:to-gray-400 bg-clip-text text-transparent font-medium tracking-wide opacity-90 hover:opacity-100 transition-opacity duration-300">
           Your finances, simplified.
         </p>
       </div>

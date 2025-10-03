@@ -32,6 +32,21 @@ else:
 
 app = FastAPI()
 
+# Root endpoint
+@app.get("/")
+async def root():
+    return {
+        "message": "Aurelo Finance API",
+        "status": "running",
+        "version": "1.0.0",
+        "timestamp": datetime.now(UTC).isoformat(),
+        "endpoints": {
+            "health": "/health",
+            "ping": "/ping",
+            "api": "/api/*"
+        }
+    }
+
 # Health check endpoint to keep server alive
 @app.get("/health")
 async def health_check():
